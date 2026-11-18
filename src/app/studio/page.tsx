@@ -25,6 +25,8 @@ import { Glyph } from "@/components/brand/Glyph";
 import type { CameraKeyframe } from "@/lib/luxreal-exporter";
 import type { DirectorStageMutation } from "@/app/api/aholo/director/route";
 import type { PendingJob, SpawnedAsset } from "@/lib/spawned-assets";
+import { T, tx, type L } from "@/lib/i18n";
+import { useLang } from "@/components/brand/LangSwitch";
 
 const AholoHybridStage = dynamic(
   () => import("@/components/stage/AholoHybridStage"),
@@ -52,6 +54,11 @@ const CACHED_LUX3D_RESULT = {
   label: "Cached Lux3D result · task 8353472 (no API key)",
   source: "cached" as const,
 };
+/** The same label in both languages, for the stage's drop-in toast. */
+const CACHED_LUX3D_LABEL: L = {
+  en: CACHED_LUX3D_RESULT.label,
+  zh: "Lux3D 缓存结果 · 任务 8353472（未配置 API 密钥）",
+};
 
 /** The finished task's GLB: an https output URL ending in .glb (JSON outputs are ignored). */
 function pickGlbUrl(outputs: unknown): string | null {
@@ -66,15 +73,20 @@ function pickGlbUrl(outputs: unknown): string | null {
   return urls.find((u) => u.split("?")[0].toLowerCase().endsWith(".glb")) ?? null;
 }
 
-const DRAWER_LINKS = [
-  { href: "/", label: "Home", glyph: "back" as const },
-  { href: "/lab", label: "Lux3D bench", glyph: "mesh" as const },
-  { href: "/report", label: "Report", glyph: "doc" as const },
-  { href: "/mcp", label: "MCP hub", glyph: "plug" as const },
-  { href: "/docs", label: "Docs", glyph: "doc" as const },
+const DRAWER_LINKS: { href: string; label: L; glyph: "back" | "mesh" | "doc" | "plug" }[] = [
+  { href: "/", label: { en: "Home", zh: "首页" }, glyph: "back" },
+  { href: "/lab", label: { en: "Lux3D bench", zh: "Lux3D 测试台" }, glyph: "mesh" },
+  { href: "/report", label: { en: "Report", zh: "报告" }, glyph: "doc" },
+  { href: "/mcp", label: { en: "MCP hub", zh: "MCP 中心" }, glyph: "plug" },
+  { href: "/docs", label: { en: "Docs", zh: "文档" }, glyph: "doc" },
 ];
 
 export default function HolorraStudioPage() {
+  // UI language for attributes; the ref lets callbacks read it without new dependencies
+  const lang = useLang();
+  const langRef = useRef(lang);
+  langRef.current = lang;
+
   // Active World, Hero Blueprint & Actor state
   const [activeWorldPreset, setActiveWorldPreset] = useState<AholoWorldPreset>(
     AHOLO_WORLD_PRESETS[0]
@@ -237,7 +249,10 @@ export default function HolorraStudioPage() {
       }
       // No API key: the preview drops a stored real Lux3D result, and says so.
       later(() => {
-        setSpawnedAssets((prev) => [...prev, { id: `cached-${Date.now()}`, ...CACHED_LUX3D_RESULT }]);
+        setSpawnedAssets((prev) => [
+          ...prev,
+          { id: `cached-${Date.now()}`, ...CACHED_LUX3D_RESULT, label: tx(langRef.current, CACHED_LUX3D_LABEL) },
+        ]);
         handleAddReceipt({
           id: `rcpt_${Date.now()}`,
           timestamp: new Date().toLocaleTimeString(),
@@ -483,11 +498,11 @@ export default function HolorraStudioPage() {
           open={drawerOpen}
           onClose={closeDrawer}
           footer={
-            <nav aria-label="Pages" className="grid grid-cols-2 gap-1.5">
+            <nav aria-label={tx(lang, { en: "Pages", zh: "页面" })} className="grid grid-cols-2 gap-1.5">
               {DRAWER_LINKS.map((l) => (
                 <Link key={l.href} href={l.href} onClick={closeDrawer} className="btn btn-ghost justify-start px-2">
                   <Glyph name={l.glyph} size={14} />
-                  {l.label}
+                  <T en={l.label.en} zh={l.label.zh} />
                 </Link>
               ))}
             </nav>
@@ -495,11 +510,15 @@ export default function HolorraStudioPage() {
         >
           <div className="flex h-full min-h-0 flex-col">
             <div className="shrink-0 border-b border-line p-3">
-              <div role="tablist" aria-label="Dock" className="grid grid-cols-2 gap-1 rounded-md border border-line bg-canvas p-0.5">
+              <div
+                role="tablist"
+                aria-label={tx(lang, { en: "Dock", zh: "面板" })}
+                className="grid grid-cols-2 gap-1 rounded-md border border-line bg-canvas p-0.5"
+              >
                 {(
                   [
-                    { id: "create", label: "Create", glyph: "mesh" },
-                    { id: "inspect", label: "Inspect", glyph: "split" },
+                    { id: "create", label: { en: "Create", zh: "创建" }, glyph: "mesh" },
+                    { id: "inspect", label: { en: "Inspect", zh: "检视" }, glyph: "split" },
                   ] as const
                 ).map((p) => {
                   const active = drawerPane === p.id;
@@ -515,7 +534,7 @@ export default function HolorraStudioPage() {
                       }`}
                     >
                       <Glyph name={p.glyph} size={14} className={active ? "text-accent" : ""} />
-                      {p.label}
+                      <T en={p.label.en} zh={p.label.zh} />
                     </button>
                   );
                 })}

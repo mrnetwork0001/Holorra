@@ -19,31 +19,72 @@ import {
 import { Glyph, type GlyphName } from "@/components/brand/Glyph";
 import { findFloorY, loadUrdfAssembly, type UrdfAssembly } from "@/lib/urdf-assembly";
 import type { PendingJob, SpawnedAsset } from "@/lib/spawned-assets";
+import { T, tx, type L } from "@/lib/i18n";
+import { useLang } from "@/components/brand/LangSwitch";
 
 /** Scene quest: a short play loop around the real Lux3D assets. */
-const QUEST_STEPS = [
-  { key: "walk", title: "Walk to the espresso machine", hint: "WASD or the joystick" },
-  { key: "brew", title: "Brew a coffee", hint: "Press E near the machine" },
-  { key: "frame", title: "Frame the shot", hint: "Press K to add a keyframe" },
-  { key: "cheer", title: "Celebrate", hint: "Press F" },
-] as const;
-
-const CAMERA_MODES: { id: StageCameraMode; label: string; glyph: GlyphName; hint: string }[] = [
-  { id: "orbit", label: "Orbit", glyph: "orbit", hint: "Orbit the stage" },
-  { id: "walk-third", label: "Third person", glyph: "walk", hint: "Walk the actor with WASD" },
-  { id: "walk-first", label: "First person", glyph: "eye", hint: "First-person walk with voxel collision" },
-  { id: "spline", label: "Path", glyph: "spline", hint: "Camera path view" },
+const QUEST_STEPS: readonly { key: string; title: L; hint: L }[] = [
+  {
+    key: "walk",
+    title: { en: "Walk to the espresso machine", zh: "走到咖啡机旁" },
+    hint: { en: "WASD or the joystick", zh: "WASD 或摇杆" },
+  },
+  {
+    key: "brew",
+    title: { en: "Brew a coffee", zh: "冲一杯咖啡" },
+    hint: { en: "Press E near the machine", zh: "在咖啡机旁按 E" },
+  },
+  {
+    key: "frame",
+    title: { en: "Frame the shot", zh: "构图取景" },
+    hint: { en: "Press K to add a keyframe", zh: "按 K 添加关键帧" },
+  },
+  { key: "cheer", title: { en: "Celebrate", zh: "庆祝一下" }, hint: { en: "Press F", zh: "按 F" } },
 ];
 
+const CAMERA_MODES: { id: StageCameraMode; label: L; glyph: GlyphName; hint: L }[] = [
+  { id: "orbit", label: { en: "Orbit", zh: "环绕" }, glyph: "orbit", hint: { en: "Orbit the stage", zh: "环绕查看舞台" } },
+  {
+    id: "walk-third",
+    label: { en: "Third person", zh: "第三人称" },
+    glyph: "walk",
+    hint: { en: "Walk the actor with WASD", zh: "用 WASD 操控角色行走" },
+  },
+  {
+    id: "walk-first",
+    label: { en: "First person", zh: "第一人称" },
+    glyph: "eye",
+    hint: { en: "First-person walk with voxel collision", zh: "第一人称行走，带体素碰撞" },
+  },
+  { id: "spline", label: { en: "Path", zh: "镜头路径" }, glyph: "spline", hint: { en: "Camera path view", zh: "镜头路径视角" } },
+];
+
+/** Display-only Chinese names for config actors (config `name` stays English). */
+const ACTOR_NAME_ZH: Partial<Record<ActorId, string>> = { lux3d: "Lux3D 角色" };
+
 /** Display-only: shorten the voxel status strings set by the loader. */
-function describeVoxelStatus(status: string): { label: string; active: boolean } {
+function describeVoxelStatus(status: string): { label: L; title: L; active: boolean } {
   if (status.startsWith("Voxel Octree Active")) {
     const res = status.match(/@\s*([\d.]+)\s*m/);
     const cm = res ? Math.round(parseFloat(res[1]) * 100) : null;
-    return { label: cm ? `collision ${cm} cm` : "collision on", active: true };
+    return {
+      label: cm ? { en: `collision ${cm} cm`, zh: `体素碰撞 ${cm} cm` } : { en: "collision on", zh: "体素碰撞已开启" },
+      title: { en: status, zh: status.replace(/^Voxel Octree Active\s*\((.*)\)\s*$/, "体素八叉树已启用（$1）") },
+      active: true,
+    };
   }
-  if (/Streaming|Loading/.test(status)) return { label: "collision loading", active: false };
-  return { label: "no collision", active: false };
+  if (/Streaming|Loading/.test(status)) {
+    return {
+      label: { en: "collision loading", zh: "体素碰撞加载中" },
+      title: { en: status, zh: "正在加载体素碰撞八叉树…" },
+      active: false,
+    };
+  }
+  return {
+    label: { en: "no collision", zh: "无体素碰撞" },
+    title: { en: status, zh: status === "Free Boundary Walk" ? "体素碰撞加载失败，自由行走" : "无体素碰撞，自由飞行" },
+    active: false,
+  };
 }
 
 export type StageCameraMode = "orbit" | "walk-third" | "walk-first" | "spline";
@@ -106,12 +147,17 @@ export default function AholoHybridStage({
   autoPlay = false,
 }: AholoHybridStageProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  // UI language for attributes only; bilingual state is stored as { en, zh } so effects never depend on it
+  const lang = useLang();
 
   // Status & HUD state
-  const [loadingText, setLoadingText] = useState<string>("Initializing @manycore/aholo-viewer WebGL2 Engine...");
+  const [loadingText, setLoadingText] = useState<L>({
+    en: "Initializing @manycore/aholo-viewer WebGL2 Engine...",
+    zh: "正在初始化 @manycore/aholo-viewer WebGL2 引擎…",
+  });
   const [loadProgress, setLoadProgress] = useState<number>(15);
   const [isReady, setIsReady] = useState<boolean>(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<L | null>(null);
   const [fps, setFps] = useState<number>(60);
   const [voxelStatus, setVoxelStatus] = useState<string>("Loading Octree...");
   const [actorLoaded, setActorLoaded] = useState<boolean>(false);
@@ -360,7 +406,10 @@ export default function AholoHybridStage({
     setErrorMsg(null);
     setActorLoaded(false);
     setLoadProgress(12);
-    setLoadingText(`Booting @manycore/aholo-viewer (${worldPreset.title})...`);
+    setLoadingText({
+      en: `Booting @manycore/aholo-viewer (${worldPreset.title})...`,
+      zh: `正在启动 @manycore/aholo-viewer（${worldPreset.titleZh ?? worldPreset.title}）…`,
+    });
 
     poseStateRef.current = {
       px: worldPreset.pose.px,
@@ -822,7 +871,10 @@ export default function AholoHybridStage({
         // 5. Load 3D Gaussian Splatting World (Direct .spz/.sog/.ply OR Chunk-LOD Stream)
         setLoadProgress(38);
         if (worldPreset.splatMode === "direct" && worldPreset.primarySplatUrl) {
-          setLoadingText(`Streaming 3DGS Splat (${worldPreset.splatCountLabel})...`);
+          setLoadingText({
+            en: `Streaming 3DGS Splat (${worldPreset.splatCountLabel})...`,
+            zh: `正在流式加载 3DGS 高斯点（${worldPreset.splatCountLabel}）…`,
+          });
           const ft =
             Aholo.SplatLoader.detectSplatFileType(worldPreset.primarySplatUrl, new Uint8Array()) ??
             Aholo.SplatLoader.SplatFileType.SPZ;
@@ -851,7 +903,10 @@ export default function AholoHybridStage({
           }
         } else if (worldPreset.splatMode === "lod" && worldPreset.lodMetaUrl) {
           if (worldPreset.envSplatUrl) {
-            setLoadingText("Loading 3DGS Sky & Environment Radiance Layer...");
+            setLoadingText({
+              en: "Loading 3DGS Sky & Environment Radiance Layer...",
+              zh: "正在加载 3DGS 天空与环境辐射层…",
+            });
             const envFt =
               Aholo.SplatLoader.detectSplatFileType(worldPreset.envSplatUrl, new Uint8Array()) ??
               Aholo.SplatLoader.SplatFileType.PLY;
@@ -871,7 +926,10 @@ export default function AholoHybridStage({
           }
 
           setLoadProgress(60);
-          setLoadingText(`Connecting Chunk-LOD 3DGS Stream (${worldPreset.splatCountLabel})...`);
+          setLoadingText({
+            en: `Connecting Chunk-LOD 3DGS Stream (${worldPreset.splatCountLabel})...`,
+            zh: `正在连接分块 LOD 3DGS 流（${worldPreset.splatCountLabel}）…`,
+          });
           const metaRes = await fetch(worldPreset.lodMetaUrl, { signal });
           const metaJson = await metaRes.json();
           if (signal.aborted) return;
@@ -1330,8 +1388,11 @@ export default function AholoHybridStage({
         rafId = requestAnimationFrame(tickFrame);
       } catch (err: unknown) {
         if (signal.aborted) return;
+        // raw SDK error text stays as-is in both languages
         setErrorMsg(
-          err instanceof Error ? err.message : "Failed to initialize @manycore/aholo-viewer"
+          err instanceof Error
+            ? { en: err.message, zh: err.message }
+            : { en: "Failed to initialize @manycore/aholo-viewer", zh: "@manycore/aholo-viewer 初始化失败" }
         );
       }
     }
@@ -1393,8 +1454,8 @@ export default function AholoHybridStage({
           <HudDivider className="max-[600px]:hidden" />
           <span className="max-[600px]:hidden">{worldPreset.splatCountLabel}</span>
           <HudDivider className="max-[600px]:hidden" />
-          <span className={`max-[600px]:hidden ${voxel.active ? "text-ink-2" : "text-ink-3"}`} title={voxelStatus}>
-            {voxel.label}
+          <span className={`max-[600px]:hidden ${voxel.active ? "text-ink-2" : "text-ink-3"}`} title={tx(lang, voxel.title)}>
+            <T en={voxel.label.en} zh={voxel.label.zh} />
           </span>
         </div>
 
@@ -1414,16 +1475,20 @@ export default function AholoHybridStage({
           <HudDivider />
           <span className="flex items-center gap-1.5 font-sans text-[12px] text-ink-2">
             <Glyph name="rig" size={13} className="text-ink-3" />
-            {actor.name}
+            <T en={actor.name} zh={ACTOR_NAME_ZH[actor.id] ?? actor.name} />
             <span className="font-mono text-[11px] text-ink-3">{activeAnimationId}</span>
-            {actorLoaded && <Glyph name="check" size={12} className="text-ok" title="Actor loaded" />}
+            {actorLoaded && (
+              <Glyph name="check" size={12} className="text-ok" title={tx(lang, { en: "Actor loaded", zh: "角色已加载" })} />
+            )}
           </span>
         </div>
 
         {play.active && (
           <div className="pointer-events-auto w-64 rounded-[6px] border border-line bg-surface/95 p-2.5 max-[900px]:w-auto max-[900px]:max-w-[calc(100vw-24px)]">
             <div className="flex items-center justify-between">
-              <span className="label">Scene quest</span>
+              <span className="label">
+                <T en="Scene quest" zh="场景任务" />
+              </span>
               <span className="font-mono text-[11px] text-ink-3 tabular">
                 {Math.min(play.step, QUEST_STEPS.length)}/{QUEST_STEPS.length}
               </span>
@@ -1443,16 +1508,24 @@ export default function AholoHybridStage({
                     </span>
                     <span className="min-w-0">
                       <span className={`block text-[12px] ${done ? "text-ink-3 line-through" : current ? "text-ink" : "text-ink-2"}`}>
-                        {q.title}
+                        <T en={q.title.en} zh={q.title.zh} />
                       </span>
-                      {current && <span className="block font-mono text-[10.5px] text-ink-3">{q.hint}</span>}
+                      {current && (
+                        <span className="block font-mono text-[10.5px] text-ink-3">
+                          <T en={q.hint.en} zh={q.hint.zh} />
+                        </span>
+                      )}
                     </span>
                   </li>
                 );
               })}
             </ol>
             <div className="mt-1.5 text-[12px] text-ink min-[901px]:hidden">
-              {play.step < QUEST_STEPS.length ? QUEST_STEPS[play.step].title : "Scene wrapped"}
+              {play.step < QUEST_STEPS.length ? (
+                <T en={QUEST_STEPS[play.step].title.en} zh={QUEST_STEPS[play.step].title.zh} />
+              ) : (
+                <T en="Scene wrapped" zh="本场杀青" />
+              )}
             </div>
           </div>
         )}
@@ -1463,15 +1536,22 @@ export default function AholoHybridStage({
         <button
           type="button"
           onClick={play.active ? stopPlay : startPlay}
-          title={play.active ? "Leave play mode" : "Play: walk the Lux3D actor through a short scene quest"}
+          title={
+            play.active
+              ? tx(lang, { en: "Leave play mode", zh: "退出游玩模式" })
+              : tx(lang, {
+                  en: "Play: walk the Lux3D actor through a short scene quest",
+                  zh: "游玩：操控 Lux3D 角色完成一段简短的场景任务",
+                })
+          }
           className={`btn btn-sm h-8 max-[900px]:h-10 ${play.active ? "border-line bg-surface/95" : "btn-primary"}`}
         >
           <Glyph name={play.active ? "stop" : "play"} size={11} />
-          {play.active ? "Exit" : "Play"}
+          {play.active ? <T en="Exit" zh="退出" /> : <T en="Play" zh="游玩" />}
         </button>
         <div
           role="radiogroup"
-          aria-label="Camera mode"
+          aria-label={tx(lang, { en: "Camera mode", zh: "视角模式" })}
           className="flex h-8 items-center gap-0.5 rounded-[6px] border border-line bg-surface/95 p-0.5 max-[900px]:h-10"
         >
           {CAMERA_MODES.map((item) => {
@@ -1483,14 +1563,16 @@ export default function AholoHybridStage({
                 role="radio"
                 aria-checked={active}
                 onClick={() => onCameraModeChange(item.id)}
-                title={item.hint}
-                aria-label={item.label}
+                title={tx(lang, item.hint)}
+                aria-label={tx(lang, item.label)}
                 className={`flex h-7 items-center gap-1.5 rounded-[4px] px-2 text-[12px] transition-colors max-[900px]:h-9 max-[900px]:w-9 max-[900px]:justify-center max-[900px]:px-0 ${
                   active ? "bg-raised text-ink" : "text-ink-3 hover:text-ink"
                 }`}
               >
                 <Glyph name={item.glyph} size={14} className={active ? "text-accent" : ""} />
-                <span className="hidden 2xl:inline">{item.label}</span>
+                <span className="hidden 2xl:inline">
+                  <T en={item.label.en} zh={item.label.zh} />
+                </span>
               </button>
             );
           })}
@@ -1499,19 +1581,21 @@ export default function AholoHybridStage({
         <button
           type="button"
           onClick={handleTakeKeyframeSnapshot}
-          title="Add the current view to the camera path"
-          aria-label="Add keyframe"
+          title={tx(lang, { en: "Add the current view to the camera path", zh: "把当前视角加入镜头路径" })}
+          aria-label={tx(lang, { en: "Add keyframe", zh: "添加关键帧" })}
           className="btn btn-sm h-8 border-line bg-surface/95 max-[900px]:h-10 max-[600px]:w-10 max-[600px]:px-0"
         >
           <Glyph name="keyframe" size={12} className="text-accent" />
-          <span className="max-[600px]:hidden">Keyframe</span>
+          <span className="max-[600px]:hidden">
+            <T en="Keyframe" zh="关键帧" />
+          </span>
         </button>
 
         <button
           type="button"
           onClick={handleResetCamera}
-          title="Reset camera to the spawn pose"
-          aria-label="Reset camera"
+          title={tx(lang, { en: "Reset camera to the spawn pose", zh: "把视角重置到出生点" })}
+          aria-label={tx(lang, { en: "Reset camera", zh: "重置视角" })}
           className="btn btn-sm btn-icon h-8 w-8 border-line bg-surface/95 max-[900px]:h-10 max-[900px]:w-10"
         >
           <Glyph name="reset" size={14} />
@@ -1520,13 +1604,23 @@ export default function AholoHybridStage({
         <button
           type="button"
           onClick={toggleExpand}
-          title={expanded === "off" ? "Expand the stage" : "Exit expanded view (Esc)"}
-          aria-label={expanded === "off" ? "Expand the stage" : "Exit expanded view"}
+          title={
+            expanded === "off"
+              ? tx(lang, { en: "Expand the stage", zh: "全屏显示舞台" })
+              : tx(lang, { en: "Exit expanded view (Esc)", zh: "退出全屏（Esc）" })
+          }
+          aria-label={
+            expanded === "off"
+              ? tx(lang, { en: "Expand the stage", zh: "全屏显示舞台" })
+              : tx(lang, { en: "Exit expanded view", zh: "退出全屏" })
+          }
           aria-pressed={expanded !== "off"}
           className="btn btn-sm h-8 min-w-8 justify-center border-line bg-surface/95 px-2 max-[900px]:h-10 max-[900px]:min-w-10"
         >
           <Glyph name={expanded === "off" ? "expand" : "collapse"} size={14} />
-          <span className="hidden @min-[760px]:inline">{expanded === "off" ? "Expand" : "Exit"}</span>
+          <span className="hidden @min-[760px]:inline">
+            {expanded === "off" ? <T en="Expand" zh="全屏" /> : <T en="Exit" zh="退出" />}
+          </span>
         </button>
       </div>
 
@@ -1537,7 +1631,9 @@ export default function AholoHybridStage({
             touchUi && (cameraMode === "walk-third" || cameraMode === "walk-first") ? "hidden" : ""
           }`}
         >
-          <span className="label px-1 max-[600px]:hidden">Parts</span>
+          <span className="label px-1 max-[600px]:hidden">
+            <T en="Parts" zh="部件" />
+          </span>
           <button
             type="button"
             onClick={() => onSelectPart(null)}
@@ -1545,7 +1641,7 @@ export default function AholoHybridStage({
               selectedPartId === null ? "border-accent text-ink" : "border-transparent text-ink-3 hover:text-ink"
             }`}
           >
-            All
+            <T en="All" zh="全部" />
           </button>
           {heroBlueprint.parts.map((part, idx) => {
             const active = selectedPartId === part.id;
@@ -1571,37 +1667,43 @@ export default function AholoHybridStage({
 
         <div className="hide-mobile hidden h-8 items-center gap-3 rounded-[6px] border border-line bg-surface/95 px-2.5 text-[11px] text-ink-3 md:flex">
           <span className="flex items-center gap-1">
-            <span className="kbd">Drag</span> look
+            <span className="kbd">
+              <T en="Drag" zh="拖动" />
+            </span>{" "}
+            <T en="look" zh="环视" />
           </span>
           <span className="flex items-center gap-1">
             <span className="kbd">W</span>
             <span className="kbd">A</span>
             <span className="kbd">S</span>
-            <span className="kbd">D</span> move
+            <span className="kbd">D</span> <T en="move" zh="移动" />
           </span>
           {cameraMode === "walk-third" || cameraMode === "walk-first" ? (
             <>
               <span className="flex items-center gap-1">
-                <span className="kbd">Shift</span> jog
+                <span className="kbd">Shift</span> <T en="jog" zh="小跑" />
               </span>
               <span className="flex items-center gap-1">
-                <span className="kbd">E</span> brew
+                <span className="kbd">E</span> <T en="brew" zh="冲咖啡" />
               </span>
               <span className="flex items-center gap-1">
-                <span className="kbd">K</span> frame
+                <span className="kbd">K</span> <T en="frame" zh="取景" />
               </span>
               <span className="flex items-center gap-1">
-                <span className="kbd">F</span> cheer
+                <span className="kbd">F</span> <T en="cheer" zh="欢呼" />
               </span>
             </>
           ) : (
             <>
               <span className="flex items-center gap-1">
                 <span className="kbd">Q</span>
-                <span className="kbd">E</span> height
+                <span className="kbd">E</span> <T en="height" zh="升降" />
               </span>
               <span className="flex items-center gap-1">
-                <span className="kbd">Scroll</span> zoom
+                <span className="kbd">
+                  <T en="Scroll" zh="滚轮" />
+                </span>{" "}
+                <T en="zoom" zh="缩放" />
               </span>
             </>
           )}
@@ -1612,7 +1714,7 @@ export default function AholoHybridStage({
       {isPlayingSpline && (
         <div className="absolute bottom-14 left-1/2 z-20 flex h-7 -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-[6px] border border-line bg-surface/95 px-2.5 text-[12px] text-ink max-[900px]:bottom-16">
           <Glyph name="record" size={12} className="text-accent" />
-          Playing camera path
+          <T en="Playing camera path" zh="正在播放镜头路径" />
           <span className="font-mono text-[11px] text-ink-3 tabular">{splineProgress}%</span>
           <span className="relative h-[2px] w-24 overflow-hidden rounded bg-line">
             <span className="absolute inset-y-0 left-0 bg-accent" style={{ width: `${splineProgress}%` }} />
@@ -1623,22 +1725,28 @@ export default function AholoHybridStage({
       {/* Brew prompt when the actor is next to the real machine */}
       {play.near && !touchUi && (
         <div className="pointer-events-none absolute bottom-16 left-1/2 z-20 flex h-9 -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-[6px] border border-accent bg-surface/95 px-3 text-[13px] text-ink">
-          <span className="kbd">E</span> Brew a coffee
+          <span className="kbd">E</span> <T en="Brew a coffee" zh="冲一杯咖啡" />
         </div>
       )}
 
       {/* Quest complete */}
       {play.wrapped && (
         <div className="absolute left-1/2 top-16 z-20 w-[min(360px,calc(100%-24px))] -translate-x-1/2 rounded-[8px] border border-line bg-surface/95 p-4 text-center max-[900px]:top-14">
-          <div className="font-mono text-[11px] text-accent">SCENE WRAPPED</div>
-          <div className="mt-1 text-[15px] text-ink">Walked, brewed, framed and celebrated.</div>
-          <div className="mt-1 text-[12px] text-ink-3">Play the camera path below to review your shot.</div>
+          <div className="font-mono text-[11px] text-accent">
+            <T en="SCENE WRAPPED" zh="本场杀青" />
+          </div>
+          <div className="mt-1 text-[15px] text-ink">
+            <T en="Walked, brewed, framed and celebrated." zh="走位、冲咖啡、取景、庆祝，全部完成。" />
+          </div>
+          <div className="mt-1 text-[12px] text-ink-3">
+            <T en="Play the camera path below to review your shot." zh="播放下方的镜头路径，回看这组镜头。" />
+          </div>
           <div className="mt-3 flex justify-center gap-2">
             <button type="button" className="btn btn-sm btn-primary" onClick={startPlay}>
-              Play again
+              <T en="Play again" zh="再玩一次" />
             </button>
             <button type="button" className="btn btn-sm" onClick={stopPlay}>
-              Done
+              <T en="Done" zh="完成" />
             </button>
           </div>
         </div>
@@ -1661,7 +1769,11 @@ export default function AholoHybridStage({
                 )}
                 <span className="truncate text-ink">{j.label}</span>
                 <span className="shrink-0 font-mono text-[11px] text-ink-3 tabular">
-                  {j.status === "failed" ? "failed" : `${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`}
+                  {j.status === "failed" ? (
+                    <T en="failed" zh="失败" />
+                  ) : (
+                    `${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`
+                  )}
                 </span>
               </div>
             );
@@ -1673,9 +1785,13 @@ export default function AholoHybridStage({
       {toast && (
         <div className="pointer-events-none absolute bottom-16 left-1/2 z-20 flex h-9 max-w-[min(480px,calc(100vw-24px))] -translate-x-1/2 items-center gap-2 rounded-[6px] border border-line bg-surface/95 px-3 text-[12.5px] max-[900px]:bottom-20">
           <Glyph name="mesh" size={14} className="text-accent" />
-          <span className="shrink-0 text-ink">Dropped into the scene</span>
+          <span className="shrink-0 text-ink">
+            <T en="Dropped into the scene" zh="已投放到场景" />
+          </span>
           <span className="truncate text-ink-2">{toast.text}</span>
-          <span className="chip shrink-0">{toast.source === "live" ? "live" : "cached"}</span>
+          <span className="chip shrink-0">
+            {toast.source === "live" ? <T en="live" zh="实时" /> : <T en="cached" zh="缓存结果" />}
+          </span>
         </div>
       )}
 
@@ -1713,7 +1829,7 @@ export default function AholoHybridStage({
               el.addEventListener("pointerup", onUp);
               el.addEventListener("pointercancel", onUp);
             }}
-            aria-label="Move"
+            aria-label={tx(lang, { en: "Move", zh: "移动" })}
             role="slider"
           >
             <div
@@ -1726,16 +1842,26 @@ export default function AholoHybridStage({
               type="button"
               onClick={() => (actionRef.current.interact = true)}
               className={`btn h-14 w-14 rounded-full p-0 text-[12px] ${play.near ? "btn-primary" : ""}`}
-              aria-label="Brew"
+              aria-label={tx(lang, { en: "Brew", zh: "冲咖啡" })}
             >
-              Brew
+              <T en="Brew" zh="冲咖啡" />
             </button>
             <div className="flex gap-2">
-              <button type="button" onClick={handleTakeKeyframeSnapshot} className="btn h-11 w-11 rounded-full p-0" aria-label="Frame the shot">
+              <button
+                type="button"
+                onClick={handleTakeKeyframeSnapshot}
+                className="btn h-11 w-11 rounded-full p-0"
+                aria-label={tx(lang, { en: "Frame the shot", zh: "构图取景" })}
+              >
                 <Glyph name="keyframe" size={14} className="text-accent" />
               </button>
-              <button type="button" onClick={() => (actionRef.current.cheer = true)} className="btn h-11 w-11 rounded-full p-0 text-[11px]" aria-label="Celebrate">
-                Cheer
+              <button
+                type="button"
+                onClick={() => (actionRef.current.cheer = true)}
+                className="btn h-11 w-11 rounded-full p-0 text-[11px]"
+                aria-label={tx(lang, { en: "Celebrate", zh: "庆祝" })}
+              >
+                <T en="Cheer" zh="欢呼" />
               </button>
             </div>
           </div>
@@ -1747,17 +1873,23 @@ export default function AholoHybridStage({
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-canvas">
           <div className="w-80 max-w-[calc(100%-24px)] rounded-[8px] border border-line bg-surface p-4">
             <div className="flex items-center justify-between">
-              <span className="label">Loading world</span>
+              <span className="label">
+                <T en="Loading world" zh="正在加载世界" />
+              </span>
               <span className="font-mono text-[11px] text-ink-3 tabular">{loadProgress}%</span>
             </div>
-            <div className="mt-2 text-[13px] text-ink">{worldPreset.title}</div>
-            <div className="mt-0.5 truncate text-[12px] text-ink-3" title={loadingText}>
-              {loadingText}
+            <div className="mt-2 text-[13px] text-ink">
+              <T en={worldPreset.title} zh={worldPreset.titleZh ?? worldPreset.title} />
+            </div>
+            <div className="mt-0.5 truncate text-[12px] text-ink-3" title={tx(lang, loadingText)}>
+              <T en={loadingText.en} zh={loadingText.zh} />
             </div>
             <div className="mt-3 h-[2px] w-full overflow-hidden rounded bg-line">
               <div className="h-full bg-accent transition-[width] duration-300" style={{ width: `${loadProgress}%` }} />
             </div>
-            <div className="mt-2 font-mono text-[10.5px] text-ink-3">Streaming from the Manycore CDN</div>
+            <div className="mt-2 font-mono text-[10.5px] text-ink-3">
+              <T en="Streaming from the Manycore CDN" zh="从 Manycore CDN 流式加载" />
+            </div>
           </div>
         </div>
       )}
@@ -1768,16 +1900,18 @@ export default function AholoHybridStage({
           <div className="w-full max-w-md rounded-[8px] border border-line bg-surface p-4">
             <div className="flex items-center gap-2 text-[13px] font-medium text-err">
               <Glyph name="info" size={15} />
-              The stage could not start
+              <T en="The stage could not start" zh="舞台无法启动" />
             </div>
-            <p className="mt-2 font-mono text-[12px] leading-relaxed text-ink-2">{errorMsg}</p>
+            <p className="mt-2 font-mono text-[12px] leading-relaxed text-ink-2">
+              <T en={errorMsg.en} zh={errorMsg.zh} />
+            </p>
             <div className="mt-4 flex justify-end gap-2">
               <button type="button" onClick={handleResetCamera} className="btn btn-sm btn-ghost">
-                Reset camera
+                <T en="Reset camera" zh="重置视角" />
               </button>
               <button type="button" onClick={() => window.location.reload()} className="btn btn-sm">
                 <Glyph name="refresh" size={13} />
-                Reload
+                <T en="Reload" zh="重新加载" />
               </button>
             </div>
           </div>
