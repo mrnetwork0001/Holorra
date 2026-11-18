@@ -1,0 +1,21 @@
+# Holorra — Hybrid 3DGS World + Part-Split & Rigged Interactive Spatial Director
+
+> Built for the Manycore Aholo Global 3D AI Hackathon (https://www.aholo.ai/hackathon)
+
+## Overview
+Holorra is an end-to-end browser Spatial Intelligence Studio that unifies all five core Manycore Tech capabilities:
+1. **Aholo SpatialGen (`@manycore/aholo-sdk-world@1.5.0`)**: Prompt/Image-guided 3D Gaussian Splatting (3DGS) world generation (`world.generations.create`).
+2. **Aholo Reality (`@manycore/aholo-sdk-world@1.5.0`)**: Video, Insta360 (`.insv`), and multi-view photo 3DGS reconstruction (`world.reconstructions.create`).
+3. **Aholo Lux3D (`@manycore/aholo-sdk-lux3d@1.10.0`)**: Full 10-method pipeline including `textTo3d`, `imgTo3d` (`G1` & `G1-Turbo`), `imageToFourView`, `multimodalToImage`, `partSplit` (semantic sub-mesh segmentation), `articulationAnimation` (prompt-driven kinematic hinges/sliders), `humanoidAutoRig`, `humanoidAnimationRetarget` (all 85 official `HUMANOID_ANIMATION_IDS`), `materialTransfer` (`v3.0-standard`), and `multiFormatExport` (`usdz`, `fbx_zip`, `obj_zip`, `stl`, `3mf`).
+4. **Aholo Viewer (`@manycore/aholo-viewer@1.14.0`)**: Real-time WebGL2 3DGS renderer supporting `.spz`, `.sog`, `.ply`, multi-million-splat Chunk-LOD streaming (`SplatUtils.LodSplat`), sparse octree `VoxelCollision` first/third-person `WASD` walk mode, and GLTF `AnimationPlugin` skeletal animation.
+5. **Aholo MCP (`@manycore/aholo-sdk-mcp@1.10.0`) & LuxReal Bridge**: In-app Spatial Co-Director Agent + Catmull-Rom 3D camera trajectory sequencer exporting storyboards directly for LuxReal AI video creation.
+
+## Routes
+- `/` — Interactive Hybrid 3DGS + Part-Split & Rigged Spatial Director Studio
+- `/report` — Official Hackathon Project Report Deck (Interactive Web Presentation + 1-Click PDF Report Exporter)
+- `/mcp` — Interactive `@manycore/aholo-sdk-mcp` Tool Playground & Claude Code / Cursor Configuration Hub
+- `/api/aholo/status` — SDK telemetry and regional gateway status (`com` / `cn`)
+- `/api/aholo/world` — Aholo SpatialGen & Reality 3DGS endpoints
+- `/api/aholo/lux3d` — All 10 Aholo Lux3D endpoints
+- `/api/aholo/tasks` — Unified task polling
+- `/api/aholo/director` — Natural-language MCP Spatial Co-Director planner
