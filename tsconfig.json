@@ -31,22 +31,8 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    ".next-184903/types/**/*.ts",
-    ".next-185025/types/**/*.ts",
-    ".next-185139/types/**/*.ts",
-    ".next-185232/types/**/*.ts",
-    ".next-191007/types/**/*.ts",
-    ".next-192124/types/**/*.ts",
-    ".next-194648/types/**/*.ts",
-    ".next-195716/types/**/*.ts",
-    ".next-agent-a/types/**/*.ts",
-    ".next-agent-b/types/**/*.ts",
-    ".next-agent-c/types/**/*.ts",
-    ".next-agent-m/types/**/*.ts",
-    ".next-me/types/**/*.ts",
     ".next/types/**/*.ts",
-    "next-env.d.ts",
-    ".next-200006/types/**/*.ts"
+    "next-env.d.ts"
   ],
   "exclude": [
     "node_modules"
