@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Instrument_Serif } from "next/font/google";
 import "./globals.css";
+import { LANG_BOOT_SCRIPT } from "@/lib/i18n";
 
 const sans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -34,7 +35,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable} ${serif.variable}`}>
+    <html lang="en" data-lang="en" suppressHydrationWarning className={`${sans.variable} ${mono.variable} ${serif.variable}`}>
+      <head>
+        {/* sets data-lang (中 / EN) before first paint, so there is no flash of the other language */}
+        <script dangerouslySetInnerHTML={{ __html: LANG_BOOT_SCRIPT }} />
+      </head>
       <body className="bg-canvas text-ink antialiased">{children}</body>
     </html>
   );

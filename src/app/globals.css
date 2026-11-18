@@ -22,9 +22,9 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
-  --font-serif: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  --font-sans: var(--font-plex-sans), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, "PingFang SC", "Microsoft YaHei", monospace;
+  --font-serif: var(--font-instrument-serif), "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", ui-serif, Georgia, serif;
 }
 
 /* ---------------------------------------------------------------- base */
@@ -543,4 +543,20 @@ html:has(.landing-root) {
     break-after: page;
     min-height: 92vh;
   }
+}
+
+/* ---------------------------------------------------------------- 中 / EN
+ * Every translated string is rendered twice (see src/lib/i18n.tsx); the
+ * inactive language is hidden here, keyed on <html data-lang>.          */
+html[data-lang="zh"] .i18n-en,
+html:not([data-lang="zh"]) .i18n-zh {
+  display: none !important;
+}
+/* CJK display type: no negative tracking, a touch more leading */
+html[data-lang="zh"] .font-serif {
+  letter-spacing: 0 !important;
+}
+html[data-lang="zh"] h1.font-serif,
+html[data-lang="zh"] h2.font-serif {
+  line-height: 1.18 !important;
 }
