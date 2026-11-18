@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { T } from "@/lib/i18n";
 
 /**
  * Minimal @manycore/aholo-viewer GLB inspector used by /lab.
@@ -278,10 +279,14 @@ export default function GlbViewer({
               <div className="h-px w-32 overflow-hidden bg-line-strong">
                 <div className="h-full bg-accent transition-[width] duration-200" style={{ width: `${Math.round(progress * 100)}%` }} />
               </div>
-              <span className="font-mono text-[11px] text-ink-3 tabular">loading GLB {Math.round(progress * 100)}%</span>
+              <span className="font-mono text-[11px] text-ink-3 tabular">
+                <T en={`loading GLB ${Math.round(progress * 100)}%`} zh={`正在加载 GLB ${Math.round(progress * 100)}%`} />
+              </span>
             </>
           ) : (
-            <span className="font-mono text-[11px] text-err">Could not load this GLB.</span>
+            <span className="font-mono text-[11px] text-err">
+              <T en="Could not load this GLB." zh="无法加载这个 GLB。" />
+            </span>
           )}
         </div>
       )}

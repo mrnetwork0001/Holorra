@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { T } from "@/lib/i18n";
 
 /**
  * Plays a Lux3D articulationAnimation result: reads the returned URDF at runtime,
@@ -247,13 +248,17 @@ export default function ArticulatedViewer({
       {state !== "ready" && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
           {state === "error" ? (
-            <span className="font-mono text-[11px] text-err">Could not load the articulated model.</span>
+            <span className="font-mono text-[11px] text-err">
+              <T en="Could not load the articulated model." zh="无法加载关节化模型。" />
+            </span>
           ) : (
             <>
               <div className="h-px w-32 overflow-hidden bg-line-strong">
                 <div className="h-full bg-accent transition-[width] duration-200" style={{ width: `${Math.round(progress * 100)}%` }} />
               </div>
-              <span className="font-mono text-[11px] text-ink-3 tabular">loading 4 links {Math.round(progress * 100)}%</span>
+              <span className="font-mono text-[11px] text-ink-3 tabular">
+                <T en={`loading 4 links ${Math.round(progress * 100)}%`} zh={`正在加载 4 个连杆 ${Math.round(progress * 100)}%`} />
+              </span>
             </>
           )}
         </div>

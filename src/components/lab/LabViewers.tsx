@@ -3,6 +3,7 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import type { Lux3dResult } from "@/config/lux3d-results";
+import { T } from "@/lib/i18n";
 
 const GlbViewer = dynamic(() => import("@/components/lab/GlbViewer"), { ssr: false });
 const ArticulatedViewer = dynamic(() => import("@/components/lab/ArticulatedViewer"), { ssr: false });
@@ -27,13 +28,15 @@ export function ArticulationBench({
       />
       <div className="bg-surface p-5 sm:p-6">
         <div className="flex items-center justify-between">
-          <span className="label">Joints</span>
+          <span className="label">
+            <T en="Joints" zh="关节" />
+          </span>
           <button
             type="button"
             className={`btn btn-sm ${manual ? "" : "!border-accent !text-accent"}`}
             onClick={() => setManual(manual ? null : Object.fromEntries(moving.map((j) => [j.name, 0.6])))}
           >
-            {manual ? "Auto loop" : "Looping"}
+            {manual ? <T en="Auto loop" zh="自动循环" /> : <T en="Looping" zh="循环中" />}
           </button>
         </div>
         <div className="mt-4 space-y-4">
@@ -60,9 +63,15 @@ export function ArticulationBench({
         <table className="mt-6 w-full border-collapse text-left">
           <thead>
             <tr className="border-y border-line">
-              <th className="label py-2 pr-3 font-medium">Joint</th>
-              <th className="label py-2 pr-3 font-medium">Type</th>
-              <th className="label py-2 font-medium">Axis</th>
+              <th className="label py-2 pr-3 font-medium">
+              <T en="Joint" zh="关节" />
+            </th>
+              <th className="label py-2 pr-3 font-medium">
+              <T en="Type" zh="类型" />
+            </th>
+              <th className="label py-2 font-medium">
+              <T en="Axis" zh="轴向" />
+            </th>
             </tr>
           </thead>
           <tbody>
@@ -76,7 +85,10 @@ export function ArticulationBench({
           </tbody>
         </table>
         <p className="mt-4 text-[12.5px] leading-relaxed text-ink-3">
-          Link names, joint types, axes and limits are read live from the robot.urdf Lux3D returned.
+          <T
+            en="Link names, joint types, axes and limits are read live from the robot.urdf Lux3D returned."
+            zh="连杆名称、关节类型、轴向和限位均实时读取自 Lux3D 返回的 robot.urdf。"
+          />
         </p>
       </div>
     </div>
@@ -98,10 +110,24 @@ export function ResultViewer({
       <GlbViewer src={result.file} bounds={result.bounds} clip={clip} className={`w-full ${aspect}`} />
       <figcaption className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t border-line px-4 py-3">
         <span className="text-[14px] text-ink">{result.label}</span>
-        <span className="font-mono text-[11px] text-ink-3">task {result.taskId}</span>
+        <span className="font-mono text-[11px] text-ink-3">
+          <T en={`task ${result.taskId}`} zh={`任务 ${result.taskId}`} />
+        </span>
         <span className="ml-auto font-mono text-[11px] text-ink-2 tabular">
-          {result.seconds} s{result.triangles ? ` · ${(result.triangles / 1000).toFixed(0)}k tris` : ""}
-          {result.textureMaps ? ` · ${result.textureMaps} maps` : ""}
+          <T
+            en={
+              <>
+                {result.seconds} s{result.triangles ? ` · ${(result.triangles / 1000).toFixed(0)}k tris` : ""}
+                {result.textureMaps ? ` · ${result.textureMaps} maps` : ""}
+              </>
+            }
+            zh={
+              <>
+                {result.seconds} s{result.triangles ? ` · ${(result.triangles / 1000).toFixed(0)}k 三角面` : ""}
+                {result.textureMaps ? ` · ${result.textureMaps} 张贴图` : ""}
+              </>
+            }
+          />
         </span>
       </figcaption>
     </figure>
@@ -134,9 +160,11 @@ export function ClipBench({
       </div>
       <figcaption className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t border-line px-4 py-3">
         <span className="text-[14px] text-ink">{result.label}</span>
-        <span className="font-mono text-[11px] text-ink-3">task {result.taskId}</span>
+        <span className="font-mono text-[11px] text-ink-3">
+          <T en={`task ${result.taskId}`} zh={`任务 ${result.taskId}`} />
+        </span>
         <span className="ml-auto font-mono text-[11px] text-ink-2 tabular">
-          ≤{result.seconds} s · {result.joints} joints
+          <T en={<>≤{result.seconds} s · {result.joints} joints</>} zh={<>≤{result.seconds} s · {result.joints} 个关节</>} />
         </span>
       </figcaption>
     </figure>
@@ -166,7 +194,7 @@ export function PartsBench({
       <div className="bg-surface p-5 sm:p-6">
         <div className="flex items-baseline justify-between">
           <label htmlFor="lab-explode" className="label">
-            Explode
+            <T en="Explode" zh="爆炸视图" />
           </label>
           <span className="font-mono text-[13px] text-ink tabular">{Math.round(explode * 100)}%</span>
         </div>
@@ -181,22 +209,28 @@ export function PartsBench({
         />
         <div className="mt-3 flex gap-2">
           <button type="button" className="btn btn-sm" onClick={() => setExplode(0)}>
-            Assembled
+            <T en="Assembled" zh="合拢" />
           </button>
           <button type="button" className="btn btn-sm" onClick={() => setExplode(0.55)}>
-            Exploded
+            <T en="Exploded" zh="爆炸" />
           </button>
           <button type="button" className="btn btn-sm btn-ghost ml-auto" onClick={() => setSpin((s) => !s)}>
-            {spin ? "Pause turntable" : "Turntable"}
+            {spin ? <T en="Pause turntable" zh="暂停转台" /> : <T en="Turntable" zh="转台" />}
           </button>
         </div>
 
         <table className="mt-6 w-full border-collapse text-left">
           <thead>
             <tr className="border-y border-line">
-              <th className="label py-2 pr-3 font-medium">Part</th>
-              <th className="label py-2 pr-3 font-medium">Our reading</th>
-              <th className="label py-2 text-right font-medium">Tris</th>
+              <th className="label py-2 pr-3 font-medium">
+                <T en="Part" zh="部件" />
+              </th>
+              <th className="label py-2 pr-3 font-medium">
+                <T en="Our reading" zh="我们的判读" />
+              </th>
+              <th className="label py-2 text-right font-medium">
+                <T en="Tris" zh="三角面" />
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -209,7 +243,7 @@ export function PartsBench({
             ))}
             <tr>
               <td className="py-2.5 pr-3 text-[13px] text-ink-3" colSpan={2}>
-                Total (same as the unsplit G1 mesh)
+                <T en="Total (same as the unsplit G1 mesh)" zh="合计（与未拆分的 G1 网格一致）" />
               </td>
               <td className="py-2.5 text-right font-mono text-[12px] text-accent tabular">
                 {parts.reduce((n, p) => n + p.triangles, 0).toLocaleString("en-US")}
@@ -218,7 +252,10 @@ export function PartsBench({
           </tbody>
         </table>
         <p className="mt-4 text-[12.5px] leading-relaxed text-ink-3">
-          Lux3D returns the parts as unnamed materials. The readings are our description of each part&apos;s position and size.
+          <T
+            en="Lux3D returns the parts as unnamed materials. The readings are our description of each part's position and size."
+            zh="Lux3D 返回的部件是未命名的材质。「判读」一栏是我们根据各部件的位置和大小给出的描述。"
+          />
         </p>
       </div>
     </div>
