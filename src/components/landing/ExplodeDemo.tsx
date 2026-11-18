@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { T } from "@/lib/i18n";
 import { AHOLO_WORLD_PRESETS, LUX3D_HERO_BLUEPRINTS } from "@/config/aholo-presets";
 
 const blueprint = LUX3D_HERO_BLUEPRINTS[AHOLO_WORLD_PRESETS[0].defaultHeroAssetId];
@@ -67,7 +68,10 @@ export default function ExplodeDemo() {
           explode <span className="text-ink">{String(explode).padStart(3, " ")}%</span> · {parts.length} parts
         </div>
         <div className="absolute bottom-3 left-3 right-3 font-mono text-[11px] text-ink-3">
-          Illustration of the studio control. The real one runs inside the WebGL stage.
+          <T
+            en="Illustration of the studio control. The real one runs inside the WebGL stage."
+            zh="创作台控件示意。真实控件运行在 WebGL 舞台中。"
+          />
         </div>
       </div>
 
@@ -75,7 +79,7 @@ export default function ExplodeDemo() {
       <div className="bg-surface p-5 sm:p-6">
         <div className="flex items-baseline justify-between">
           <label htmlFor="explode" className="label">
-            Explode
+            <T en="Explode" zh="爆炸视图" />
           </label>
           <span className="font-mono text-[13px] text-ink tabular">{explode}%</span>
         </div>
@@ -101,7 +105,9 @@ export default function ExplodeDemo() {
           ))}
         </div>
 
-        <div className="label mt-6">Part hierarchy</div>
+        <div className="label mt-6">
+          <T en="Part hierarchy" zh="部件层级" />
+        </div>
         <ul className="mt-2 divide-y divide-line border-y border-line">
           {parts.map((p, i) => {
             const isSel = p.id === selected;
@@ -126,17 +132,27 @@ export default function ExplodeDemo() {
         <p className="mt-4 min-h-[2.75rem] text-[13px] leading-relaxed text-ink-2">
           {active ? (
             <>
-              <span className="text-ink">{pretty(active.name)}</span>, {active.semanticRole.toLowerCase()}.{" "}
+              <span className="text-ink">{pretty(active.name)}</span>
+              <T en={<>, {active.semanticRole.toLowerCase()}. </>} zh="。" />
               {active.articulationType !== "none" ? (
-                <>
-                  Moves as <span className="font-mono text-ink">{active.articulationType}</span>.
-                </>
+                <T
+                  en={
+                    <>
+                      Moves as <span className="font-mono text-ink">{active.articulationType}</span>.
+                    </>
+                  }
+                  zh={
+                    <>
+                      运动方式：<span className="font-mono text-ink">{active.articulationType}</span>。
+                    </>
+                  }
+                />
               ) : (
-                "Fixed part."
+                <T en="Fixed part." zh="固定部件。" />
               )}
             </>
           ) : (
-            "Select a part to isolate it."
+            <T en="Select a part to isolate it." zh="选择一个部件即可单独显示。" />
           )}
         </p>
       </div>

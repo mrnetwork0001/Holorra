@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { T } from "@/lib/i18n";
 
 /**
  * Hero visual: one continuous loop through Holorra's four stages.
@@ -17,10 +18,10 @@ const PHASE_DUR = 4.2; // seconds per stage
 const MORPH = 1.1; // seconds of each stage spent morphing in
 
 const PHASES = [
-  { n: "01", title: "Generate the world", call: "world.generations.create" },
-  { n: "02", title: "Split the parts", call: "lux3d.partSplit · articulationAnimation" },
-  { n: "03", title: "Rig the actors", call: "lux3d.humanoidAutoRig · retarget" },
-  { n: "04", title: "Direct the scene", call: "camera path → LuxReal" },
+  { n: "01", title: "Generate the world", zh: "生成世界", short: "世界", call: "world.generations.create" },
+  { n: "02", title: "Split the parts", zh: "拆分部件", short: "部件", call: "lux3d.partSplit · articulationAnimation" },
+  { n: "03", title: "Rig the actors", zh: "绑定角色", short: "角色", call: "lux3d.humanoidAutoRig · retarget" },
+  { n: "04", title: "Direct the scene", zh: "导演场景", short: "场景", call: "camera path → LuxReal" },
 ];
 
 // --------------------------------------------------------------------------- math
@@ -520,7 +521,9 @@ export default function PipelineLoop() {
       <div className="absolute left-6 top-6 right-28">
         <div key={phase} className="animate-[stageIn_.5s_ease-out_both]">
           <div className="font-mono text-[11px] text-accent">{p.n}</div>
-          <div className="mt-1 text-[17px] font-medium text-ink">{p.title}</div>
+          <div className="mt-1 text-[17px] font-medium text-ink">
+            <T en={p.title} zh={p.zh} />
+          </div>
           <div className="mt-0.5 font-mono text-[11px] text-ink-3">{p.call}</div>
         </div>
       </div>
@@ -545,7 +548,7 @@ export default function PipelineLoop() {
               />
             </div>
             <div className={`mt-2 truncate font-mono text-[10.5px] ${i === phase ? "text-ink" : "text-ink-3"}`}>
-              {s.n} {s.title.split(" ").pop()}
+              {s.n} <T en={s.title.split(" ").pop()} zh={s.short} />
             </div>
           </div>
         ))}
