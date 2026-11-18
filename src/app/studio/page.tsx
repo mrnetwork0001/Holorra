@@ -189,10 +189,22 @@ export default function HolorraStudioPage() {
   // Deep links from the landing page: /studio?world=<preset id> and /studio?play=1
   const [autoPlay, setAutoPlay] = useState(false);
   useEffect(() => {
-    const q = new URLSearchParams(window.location.search);
-    const preset = AHOLO_WORLD_PRESETS.find((w) => w.id === q.get("world"));
-    if (preset) handleSelectWorldPreset(preset);
-    if (q.get("play") === "1") setAutoPlay(true);
+    // On an in-app navigation (landing → studio) this effect can run before the router has
+    // written the new URL, so read the query now and again shortly after; apply it once.
+    let applied = false;
+    const apply = () => {
+      if (applied) return;
+      const q = new URLSearchParams(window.location.search);
+      const preset = AHOLO_WORLD_PRESETS.find((w) => w.id === q.get("world"));
+      const wantsPlay = q.get("play") === "1";
+      if (!preset && !wantsPlay) return;
+      applied = true;
+      if (preset) handleSelectWorldPreset(preset);
+      if (wantsPlay) setAutoPlay(true);
+    };
+    apply();
+    const timers = [60, 300, 1000].map((ms) => window.setTimeout(apply, ms));
+    return () => timers.forEach((t) => window.clearTimeout(t));
   }, [handleSelectWorldPreset]);
 
   const handleTogglePartVisible = useCallback((partId: string) => {

@@ -240,8 +240,10 @@ export default function AholoHybridStage({
   });
   const playRef = useRef({
     active: false, step: 0, near: false, interactAt: -1e9, cheerAt: -1e9, wrappedAt: -1e9,
-    startAt: 0, beans: 0, emoteKey: "", emoteUntil: 0,
+    startAt: 0, beans: 0, emoteKey: "", emoteUntil: 0, runId: 0,
   });
+  // false until the player first moves in a run: shows the "how to walk" hint and holds the clock
+  const [moved, setMoved] = useState(false);
   // bean hunt + run timer + finish card
   const [beansUi, setBeansUi] = useState(0);
   const [clock, setClock] = useState(0);
@@ -322,7 +324,7 @@ export default function AholoHybridStage({
     const wrapped = q.step >= QUEST_STEPS.length;
     if (wrapped) {
       q.wrappedAt = performance.now();
-      const ms = Math.round(q.wrappedAt - q.startAt);
+      const ms = Math.round(q.wrappedAt - (q.startAt || q.wrappedAt));
       // only a run with every bean counts for the best time
       let best: number | null = null;
       let isBest = false;
@@ -349,8 +351,12 @@ export default function AholoHybridStage({
   const startPlay = useCallback(() => {
     playRef.current = {
       active: true, step: 0, near: false, interactAt: -1e9, cheerAt: -1e9, wrappedAt: -1e9,
-      startAt: performance.now(), beans: 0, emoteKey: "", emoteUntil: 0,
+      // the clock starts on the first step, not on the click
+      startAt: 0, beans: 0, emoteKey: "", emoteUntil: 0, runId: playRef.current.runId + 1,
     };
+    setMoved(false);
+    // keys go to the stage: a focused prompt box or select would swallow W A S D
+    (document.activeElement as HTMLElement | null)?.blur?.();
     setBeansUi(0);
     setClock(0);
     setRun(null);
@@ -377,7 +383,10 @@ export default function AholoHybridStage({
   // run clock, shown in the quest panel while a run is in progress
   useEffect(() => {
     if (!play.active || play.wrapped) return;
-    const id = window.setInterval(() => setClock(performance.now() - playRef.current.startAt), 100);
+    const id = window.setInterval(
+      () => setClock(playRef.current.startAt ? performance.now() - playRef.current.startAt : 0),
+      100
+    );
     return () => window.clearInterval(id);
   }, [play.active, play.wrapped]);
   useEffect(() => {
@@ -1399,6 +1408,10 @@ export default function AholoHybridStage({
               }
               p.py += upInput * moveSpeed * 0.65 * dt;
               if (mode === "walk-first" || mode === "walk-third") {
+                if (playRef.current.active && !playRef.current.startAt && isMoving) {
+                  playRef.current.startAt = now;
+                  setMoved(true);
+                }
                 const fast = keysPressed.has("ShiftLeft") || Math.hypot(joyRef.current.x, joyRef.current.y) > 0.95;
                 stepAccum += Math.hypot(dx, dz);
                 if (stepAccum > (fast ? 0.95 : 0.62)) {
@@ -1625,8 +1638,8 @@ export default function AholoHybridStage({
 
           // Bean hunt: five coffee beans placed on reachable floor when a run starts
           const qb = playRef.current;
-          if (qb.active && qb.startAt !== beansStamp) {
-            beansStamp = qb.startAt;
+          if (qb.active && qb.runId !== beansStamp) {
+            beansStamp = qb.runId;
             for (const b of beans) scene.remove(b.mesh);
             beans.length = 0;
             const eng3 = voxelCollisionRef.current;
@@ -2076,6 +2089,36 @@ export default function AholoHybridStage({
           <span className="relative h-[2px] w-24 overflow-hidden rounded bg-line">
             <span className="absolute inset-y-0 left-0 bg-accent" style={{ width: `${splineProgress}%` }} />
           </span>
+        </div>
+      )}
+
+      {/* Start of a run: say how to move, until the first step */}
+      {play.active && !play.wrapped && !moved && isReady && (
+        <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 w-[min(340px,calc(100%-32px))] -translate-x-1/2 -translate-y-1/2 rounded-[8px] border border-accent bg-surface/95 p-4 text-center">
+          <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
+            <T en="You are the actor" zh="你就是这个角色" />
+          </div>
+          {touchUi ? (
+            <div className="mt-2 text-[15px] text-ink">
+              <T en="Push the joystick to walk. Drag the scene to look." zh="推动摇杆行走，拖动画面环顾四周。" />
+            </div>
+          ) : (
+            <>
+              <div className="mt-3 flex items-center justify-center gap-1.5">
+                {["W", "A", "S", "D"].map((k) => (
+                  <span key={k} className="kbd !h-7 !min-w-7 !text-[13px]">
+                    {k}
+                  </span>
+                ))}
+              </div>
+              <div className="mt-2 text-[15px] text-ink">
+                <T en="Hold W to walk. Drag the scene to look around." zh="按住 W 行走，拖动画面环顾四周。" />
+              </div>
+            </>
+          )}
+          <div className="mt-1.5 text-[12px] text-ink-3">
+            <T en="The clock starts with your first step." zh="迈出第一步时开始计时。" />
+          </div>
         </div>
       )}
 
