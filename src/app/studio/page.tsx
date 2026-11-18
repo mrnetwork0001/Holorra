@@ -355,6 +355,7 @@ export default function HolorraStudioPage() {
         {
           id: `kf_${Date.now()}`,
           label: `Captured view ${String(prev.length + 1).padStart(2, "0")}`,
+          labelZh: `捕获视角 ${String(prev.length + 1).padStart(2, "0")}`,
           position: pose.position,
           target: pose.target,
           durationSec: 3.0,

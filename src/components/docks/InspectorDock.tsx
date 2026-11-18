@@ -418,7 +418,7 @@ export default function InspectorDock({
             <div className="flex items-start justify-between gap-3 px-4 py-4 border-b border-line">
               <div className="min-w-0">
                 <div className="text-[13px] font-medium text-ink truncate">
-                  {activeHeroBlueprint.name}
+                  <T en={activeHeroBlueprint.name} zh={activeHeroBlueprint.nameZh ?? activeHeroBlueprint.name} />
                 </div>
                 <div className="mt-0.5 font-mono text-[11px] text-ink-3 tabular">
                   {activeHeroBlueprint.procedural ? (

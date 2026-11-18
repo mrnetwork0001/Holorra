@@ -164,7 +164,9 @@ export default function LuxRealTimeline({
 
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline justify-between gap-2">
-                <span className="truncate text-[12px] font-medium text-ink">{kf.label}</span>
+                <span className="truncate text-[12px] font-medium text-ink">
+                  <T en={kf.label} zh={kf.labelZh ?? kf.label} />
+                </span>
                 <span className="shrink-0 font-mono text-[11px] text-ink-3 tabular">{kf.durationSec.toFixed(1)} s</span>
               </div>
               <div className="mt-0.5 truncate font-mono text-[10.5px] text-ink-3 tabular">

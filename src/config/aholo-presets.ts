@@ -29,6 +29,8 @@ export interface HeroSubPartSpec {
 export interface Lux3dHeroAssetBlueprint {
   id: string;
   name: string;
+  /** 简体中文 display name for the 中 / EN switch */
+  nameZh?: string;
   tagline: string;
   lux3dVersion: "G1" | "G1-Turbo";
   sourcePrompt: string;
@@ -82,6 +84,7 @@ export interface AholoWorldPreset {
   defaultKeyframes: {
     id: string;
     label: string;
+    labelZh?: string;
     position: [number, number, number];
     target: [number, number, number];
     durationSec: number;
@@ -141,6 +144,7 @@ export const LUX3D_HERO_BLUEPRINTS: Record<string, Lux3dHeroAssetBlueprint> = {
   "cyber-barista-station": {
     id: "cyber-barista-station",
     name: "Espresso machine (Lux3D)",
+    nameZh: "意式咖啡机（Lux3D）",
     tagline: "4 URDF links · hinge + slide",
     lux3dVersion: "G1",
     sourcePrompt:
@@ -232,6 +236,7 @@ export const LUX3D_HERO_BLUEPRINTS: Record<string, Lux3dHeroAssetBlueprint> = {
     id: "aegis-guardian-mech",
     procedural: true,
     name: "Aegis-IX Tactical Patrol Drone",
+    nameZh: "Aegis-IX 战术巡逻无人机",
     tagline: "6 parts · articulated drone",
     lux3dVersion: "G1",
     sourcePrompt:
@@ -333,6 +338,7 @@ export const LUX3D_HERO_BLUEPRINTS: Record<string, Lux3dHeroAssetBlueprint> = {
     id: "chrono-holo-kiosk",
     procedural: true,
     name: "ChronoGate Wayfinding Holo-Terminal",
+    nameZh: "ChronoGate 导览全息终端",
     tagline: "5 parts · articulated kiosk",
     lux3dVersion: "G1-Turbo",
     sourcePrompt:
@@ -448,6 +454,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
       {
         id: "kf-1",
         label: "Entrance wide",
+        labelZh: "入口全景",
         position: [-4.15, 0.85, 1.23],
         target: [-2.3, 0.8, -0.4],
         durationSec: 3.0,
@@ -457,6 +464,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
       {
         id: "kf-2",
         label: "Appliance close-up",
+        labelZh: "咖啡机特写",
         position: [-3.1, 0.65, 0.35],
         target: [-2.6, 0.72, -0.35],
         durationSec: 3.5,
@@ -466,6 +474,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
       {
         id: "kf-3",
         label: "Actor tracking shot",
+        labelZh: "角色跟拍",
         position: [-2.1, 0.55, -1.1],
         target: [-3.5, 0.9, 0.2],
         durationSec: 3.0,
@@ -505,6 +514,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
       {
         id: "kf-plaza-1",
         label: "Aerial plaza descent",
+        labelZh: "广场航拍下降",
         position: [21.5, -1.8, 64.2],
         target: [18.5, -0.1, 59.5],
         durationSec: 3.5,
@@ -514,6 +524,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
       {
         id: "kf-plaza-2",
         label: "Drone reveal",
+        labelZh: "无人机亮相",
         position: [19.4, -0.4, 61.1],
         target: [18.5, -0.2, 59.8],
         durationSec: 3.0,
@@ -551,6 +562,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
       {
         id: "kf-station-1",
         label: "Concourse sweep",
+        labelZh: "大厅横扫",
         position: [-0.98, -1.75, 2.29],
         target: [-0.85, -1.45, 0.4],
         durationSec: 3.5,
@@ -560,6 +572,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
       {
         id: "kf-station-2",
         label: "Terminal inspection",
+        labelZh: "终端近观",
         position: [-0.45, -1.55, 1.35],
         target: [-0.85, -1.45, 0.65],
         durationSec: 3.0,
@@ -595,6 +608,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
       {
         id: "kf-bear-1",
         label: "Left 45° turntable",
+        labelZh: "左 45° 转台",
         position: [-1.5, -0.5, 0.3],
         target: [0, 0, 0],
         durationSec: 2.5,
@@ -603,6 +617,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
       {
         id: "kf-bear-2",
         label: "Right 45° detail orbit",
+        labelZh: "右 45° 细节环绕",
         position: [-1.2, -0.35, -0.85],
         target: [0, 0, 0],
         durationSec: 2.5,
@@ -641,6 +656,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
       {
         id: "kf-cafe-1",
         label: "Wide from the window",
+        labelZh: "窗边全景",
         position: [-3.4, -0.1, 1.2],
         target: [0.3, 0.2, -0.2],
         durationSec: 3,
@@ -649,6 +665,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
       {
         id: "kf-cafe-2",
         label: "Push in to the counter",
+        labelZh: "推近吧台",
         position: [-1.9, 0.1, 0.4],
         target: [0.4, 0.3, 0.0],
         durationSec: 3,
@@ -657,6 +674,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
       {
         id: "kf-cafe-3",
         label: "Espresso close-up",
+        labelZh: "咖啡机特写",
         position: [-1.6, 0.45, -0.4],
         target: [-1.25, 0.95, -0.45],
         durationSec: 3,

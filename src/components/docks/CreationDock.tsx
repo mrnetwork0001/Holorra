@@ -584,7 +584,9 @@ export default function CreationDock({
                       setLuxVersion(bp.lux3dVersion);
                     }}
                   >
-                    <div className="text-[13px] text-ink truncate">{bp.name}</div>
+                    <div className="text-[13px] text-ink truncate">
+                      <T en={bp.name} zh={bp.nameZh ?? bp.name} />
+                    </div>
                     <div className="mt-0.5 flex items-center gap-1.5 font-mono text-[11px] text-ink-3 tabular">
                       {bp.procedural ? (
                         <span>
@@ -809,7 +811,9 @@ export default function CreationDock({
                   <div className="flex items-start gap-2.5">
                     <Glyph name="split" size={14} className="mt-0.5 text-ink-3" />
                     <div className="min-w-0">
-                      <div className="text-ink truncate">{activeHeroBlueprint.name}</div>
+                      <div className="text-ink truncate">
+                        <T en={activeHeroBlueprint.name} zh={activeHeroBlueprint.nameZh ?? activeHeroBlueprint.name} />
+                      </div>
                       <div className="mt-0.5 font-mono text-[11px] text-ink-3">
                         <T
                           en={`${activeHeroBlueprint.parts.length} parts`}

@@ -1,6 +1,8 @@
 export interface CameraKeyframe {
   id: string;
   label: string;
+  /** 简体中文 label for the 中 / EN switch (default keyframes only) */
+  labelZh?: string;
   position: [number, number, number];
   target: [number, number, number];
   durationSec: number;
