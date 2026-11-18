@@ -174,8 +174,8 @@ export default function InspectorDock({
   >([
     {
       id: "init-plan",
-      prompt: "Initialize hybrid 3DGS loft stage with segmented Lux3D appliance & rigged droid",
-      summary: "Boot plan: hosted loft world plus a 6-part segmented prop and a rigged actor.",
+      prompt: "Initialize hybrid 3DGS loft stage with segmented Lux3D appliance & rigged Lux3D actor",
+      summary: "Boot plan: hosted loft world plus the 4-part articulated espresso machine and the rigged Lux3D actor.",
       steps: [
         {
           step: 1,
@@ -189,7 +189,7 @@ export default function InspectorDock({
           mcpTool: "lux3d_part_split",
           sdkMethod: "lux3d.partSplit.create",
           arguments: { glbUrl: "https://labs.aholo.ai/stage/kinetix-espresso.glb" },
-          rationale: "Segment the hero mesh into 6 semantic parts for explosion and joints.",
+          rationale: "Segment the hero mesh into semantic parts for explosion and joints.",
         },
       ],
     },
@@ -253,8 +253,9 @@ export default function InspectorDock({
         headers: buildHeaders(),
         body: JSON.stringify({
           operation,
-          modelUrl: AHOLO_RIGGED_ACTORS[actorId].glbUrl,
-          rigModelUrl: AHOLO_RIGGED_ACTORS[actorId].glbUrl,
+          // the cloud cannot fetch app-relative paths: use the actor's public rig URL
+          modelUrl: AHOLO_RIGGED_ACTORS[actorId].sourceRigUrl ?? AHOLO_RIGGED_ACTORS[actorId].glbUrl,
+          rigModelUrl: AHOLO_RIGGED_ACTORS[actorId].sourceRigUrl ?? AHOLO_RIGGED_ACTORS[actorId].glbUrl,
           animationIds: [clip, "Idle_Loop"],
           animationOutputMode: "combined",
           outFormat: "glb",
@@ -564,8 +565,8 @@ export default function InspectorDock({
         {activeTab === "rig" && (
           <>
             <Section title="Actor">
-              <div className="grid grid-cols-2 gap-2">
-                {(["robot", "man"] as const).map((id) => {
+              <div className="grid grid-cols-1 gap-2">
+                {(Object.keys(AHOLO_RIGGED_ACTORS) as ActorId[]).map((id) => {
                   const actor = AHOLO_RIGGED_ACTORS[id];
                   const active = actorId === id;
                   return (

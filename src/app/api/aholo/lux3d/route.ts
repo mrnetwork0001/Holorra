@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
         case "humanoidAnimationRetarget":
           sdkMethod = "lux3d.humanoidAnimationRetarget.create";
           taskId = await lux3d.humanoidAnimationRetarget.create({
-            rigModelUrl: body.rigModelUrl || AHOLO_RIGGED_ACTORS.robot.glbUrl,
+            rigModelUrl: body.rigModelUrl || AHOLO_RIGGED_ACTORS.lux3d.sourceRigUrl,
             animationIds: (body.animationIds || ["Idle_Loop", "Walk_Loop"]) as HumanoidAnimationId[],
             animationOutputMode: body.animationOutputMode || "combined",
             outFormat: body.outFormat || "glb",

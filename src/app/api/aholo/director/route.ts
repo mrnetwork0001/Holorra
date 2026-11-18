@@ -1,4 +1,5 @@
 import type { ActorId } from "@/config/aholo-presets";
+import { AHOLO_RIGGED_ACTORS } from "@/config/aholo-presets";
 import { NextRequest, NextResponse } from "next/server";
 import { type HumanoidAnimationId } from "@manycore/aholo-sdk-lux3d";
 
@@ -141,10 +142,8 @@ export async function POST(req: NextRequest) {
   }
 
   // 4. Rigged Actor & 85-Preset Animation Retarget intent
-  if (lower.includes("human") || lower.includes("man") || lower.includes("director")) {
-    mutation.switchActorId = "man";
-  } else if (lower.includes("robot") || lower.includes("droid")) {
-    mutation.switchActorId = "robot";
+  if (/\b(human|man|woman|person|actor|character|robot|droid)\b/.test(lower)) {
+    mutation.switchActorId = "lux3d";
   }
 
   let selectedAnim: HumanoidAnimationId | undefined;
@@ -164,10 +163,7 @@ export async function POST(req: NextRequest) {
       mcpTool: "lux3d_humanoid_animation_retarget",
       sdkMethod: "lux3d.humanoidAnimationRetarget.create",
       arguments: {
-        rigModelUrl:
-          mutation.switchActorId === "man"
-            ? "https://holo-cos.aholo3d.cn/aholo-opensource/gs_file/misc/man-final.755ce8ea.glb"
-            : "https://holo-cos.aholo3d.cn/aholo-opensource/gs_file/misc/robot.0765006a.glb",
+        rigModelUrl: AHOLO_RIGGED_ACTORS.lux3d.sourceRigUrl,
         animationIds: [clip, "Idle_Loop"],
         animationOutputMode: "combined",
         outFormat: "glb",
@@ -212,7 +208,7 @@ export async function POST(req: NextRequest) {
         mcpTool: "lux3d_humanoid_animation_retarget",
         sdkMethod: "lux3d.humanoidAnimationRetarget.create",
         arguments: {
-          rigModelUrl: "https://holo-cos.aholo3d.cn/aholo-opensource/gs_file/misc/robot.0765006a.glb",
+          rigModelUrl: AHOLO_RIGGED_ACTORS.lux3d.sourceRigUrl,
           animationIds: ["Dance_Loop", "Walk_Loop"],
           animationOutputMode: "combined",
           outFormat: "glb",
