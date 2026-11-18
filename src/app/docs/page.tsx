@@ -69,6 +69,7 @@ export default function DocsHome() {
       </H2>
       <KV
         rows={[
+          [<T key="live" en="Live app" zh="线上地址" />, <A key="live" href="https://holorra.xyz">holorra.xyz</A>],
           [<T key="l" en="Landing page" zh="首页" />, <A key="l" href="/">/</A>],
           [<T key="s" en="Studio" zh="创作台" />, <A key="s" href="/studio">/studio</A>],
           [<T key="p" en="Play the scene quest" zh="游玩场景任务" />, <A key="p" href="/studio?play=1">/studio?play=1</A>],

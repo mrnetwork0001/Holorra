@@ -1,70 +1,45 @@
 # Deploying Holorra on a VPS
 
-One Next.js process behind Caddy, which serves your domain over HTTPS and renews the certificate itself.
-No database, no queue, no cron. Tested layout: Ubuntu 22.04 / 24.04 or Debian 12, 1 vCPU, 2 GB RAM or more.
+Production runs this way at **https://holorra.xyz**: one Next.js process behind Caddy, on a host that also runs
+other apps. Nothing here edits another app's config, restarts Caddy (graceful reloads only) or builds on the server.
 
 | File | Goes to | Purpose |
 | --- | --- | --- |
-| `setup.sh` | run once as root | installs Node.js 20 and Caddy, creates the `holorra` user, adds swap on small machines, installs the service and Caddy config |
-| `holorra.service` | `/etc/systemd/system/` | runs `next start` on `127.0.0.1:3000`, restarts on failure |
-| `Caddyfile` | `/etc/caddy/Caddyfile` | HTTPS for your domain, reverse proxy to the app, long cache for static assets |
-| `deploy.sh` | run after each update | `npm ci`, `npm run build`, restart, local health check |
+| `holorra.service` | `/etc/systemd/system/` | `next start` on `127.0.0.1:3720`, restarts on failure, capped at 1 GB RAM |
+| `holorra.caddy` | `/etc/caddy/conf.d/` | HTTPS for the domain, `www` redirect, assets served from disk, HTTP/3 off for this site only |
+| `setup.sh` | run once on the server | creates the `holorra` user, installs the service and the Caddy file, validates, reloads |
+| `deploy.sh` | run on the server | `npm ci` only when the lockfile changed, restart, local health check |
+| `redeploy.sh` | run on your machine | build locally, upload code and build, run `deploy.sh` on the server |
 
-## 1. DNS
+## First deploy
 
-At your domain registrar, point the domain at the VPS:
+1. **DNS** at the registrar: `A @ → server IP`, `CNAME www → your domain`.
+2. **Build and upload** from your machine (the server only installs packages; a build needs ~2 GB RAM):
+   ```bash
+   HOST=root@SERVER_IP bash deploy/redeploy.sh   # first run: builds, uploads, then deploy.sh fails until setup ran
+   ```
+   or copy the files by hand (`rsync` excluding `node_modules`, `.next*`, `.env*`, `.git`).
+3. **One-time setup** on the server (needs Node.js 20+ and Caddy v2 already installed):
+   ```bash
+   DOMAIN=your.domain bash /opt/holorra/deploy/setup.sh
+   bash /opt/holorra/deploy/deploy.sh
+   ```
+4. **Optional key**: put `AHOLO_API_KEY=...` in `/etc/holorra.env` (mode 600) and `systemctl restart holorra` to let
+   visitors run live jobs on your credits. Without it, visitors can still paste their own key in the studio.
 
-| Type | Name | Value |
-| --- | --- | --- |
-| `A` | `@` | your VPS IPv4 address |
-| `CNAME` | `www` | your domain |
-
-Wait until `ping your.domain` answers with the VPS address before step 3; Caddy needs it to get the certificate.
-
-## 2. Copy the code to the server
-
-The repository is private, so either push the files from your machine:
-
-```bash
-rsync -az --delete \
-  --exclude node_modules --exclude '.next*' --exclude .env.local --exclude .git \
-  ./ root@YOUR_VPS_IP:/opt/holorra/
-```
-
-or clone on the server with a GitHub token or deploy key:
+## Updates
 
 ```bash
-git clone https://github.com/mrnetwork0001/Holorra.git /opt/holorra
+HOST=root@SERVER_IP bash deploy/redeploy.sh
 ```
 
-## 3. One-time setup
-
-```bash
-ssh root@YOUR_VPS_IP
-cd /opt/holorra
-DOMAIN=your.domain bash deploy/setup.sh
-nano /etc/holorra.env        # optional: AHOLO_API_KEY=..., AHOLO_REGION=com or cn
-```
-
-## 4. Build and start
-
-```bash
-bash /opt/holorra/deploy/deploy.sh
-```
-
-It prints `local check: HTTP 200` and the `/api/aholo/status` JSON. Then open `https://your.domain`,
-`https://your.domain/studio?play=1` and `https://your.domain/docs`.
-
-## Updating
-
-Copy the new code (step 2) and run `deploy.sh` again. The site is down for the few seconds of the restart only;
-the build happens while the old version is still serving.
+About 2 s of downtime during the restart.
 
 ## Notes
 
-- **Mainland China visitors.** A VPS in Hong Kong, Singapore or Japan is reachable from mainland China without an ICP
-  filing. A server inside mainland China needs ICP filing before it may serve a domain on ports 80/443.
-- **Logs:** `journalctl -u holorra -f` (app) and `journalctl -u caddy -f` (HTTPS, proxy).
-- **Secrets** live only in `/etc/holorra.env` (mode 600). Never commit `.env.local`.
-- **Large downloads.** The asset proxy streams result files up to 120 MB; the Caddyfile disables response buffering
-  for it and allows 120 s per request.
+- **Logs:** `journalctl -u holorra -f` (app), `journalctl -u caddy -f` (HTTPS, proxy).
+- **Undo:** `systemctl disable --now holorra`, delete `/etc/caddy/conf.d/holorra.caddy`, `systemctl reload caddy`,
+  remove `/opt/holorra`, `/etc/holorra.env` and the unit file.
+- **HTTP/3:** large downloads over QUIC were slow on our host, so `holorra.caddy` drops the `Alt-Svc` header for this
+  site; browsers stay on HTTP/2. Other sites on the same Caddy keep HTTP/3.
+- **Mainland China:** a host in Hong Kong, Singapore or Japan needs no ICP filing; a host inside mainland China does.

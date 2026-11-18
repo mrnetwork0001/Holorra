@@ -1,0 +1,35 @@
+# /etc/caddy/conf.d/holorra.caddy
+# Holorra's own site file. It never edits the main Caddyfile; the main Caddyfile only needs
+#   import /etc/caddy/conf.d/*.caddy
+# Remove this file and run `systemctl reload caddy` to undo.
+(holorra_site) {
+	header {
+		defer
+		# HTTP/3 (QUIC) was slow for large files on our host; keep browsers on HTTP/2 for Holorra only
+		-Alt-Svc
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+	# 3D assets and captures straight from disk: range requests, no Node, no re-compression of binaries
+	@media path /assets/* /landing/*
+	handle @media {
+		root * /opt/holorra/public
+		header Cache-Control "public, max-age=86400"
+		file_server
+	}
+	handle {
+		encode zstd gzip
+		reverse_proxy 127.0.0.1:3720 {
+			# the asset proxy streams result files up to 120 MB
+			flush_interval -1
+		}
+	}
+}
+
+holorra.example.com {
+	import holorra_site
+}
+
+www.holorra.example.com {
+	redir https://holorra.example.com{uri} permanent
+}

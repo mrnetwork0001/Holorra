@@ -1,40 +1,30 @@
 #!/usr/bin/env bash
-# One-time setup on a fresh Ubuntu 22.04 / 24.04 or Debian 12 VPS, run as root:
-#   DOMAIN=holorra.example.com bash setup.sh
-# Then copy the code to /opt/holorra (see deploy/README.md) and run deploy.sh.
+# One-time server setup, run as root ON THE SERVER after the code is in /opt/holorra:
+#   DOMAIN=holorra.example.com bash /opt/holorra/deploy/setup.sh
+# Safe on a shared host: it never overwrites an existing Caddyfile, never restarts Caddy (graceful reload only)
+# and touches no other service. Needs Node.js >= 20 and Caddy v2 already installed.
 set -euo pipefail
 : "${DOMAIN:?set DOMAIN=your.domain}"
+command -v node >/dev/null || { echo "Install Node.js 20+ first"; exit 1; }
+command -v caddy >/dev/null || { echo "Install Caddy v2 first (https://caddyserver.com/docs/install)"; exit 1; }
+HERE="$(cd "$(dirname "$0")" && pwd)"
 
-apt-get update
-apt-get install -y curl ca-certificates gnupg debian-keyring debian-archive-keyring apt-transport-https rsync
-
-# Node.js 20
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-apt-get install -y nodejs
-
-# Caddy (automatic HTTPS)
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' > /etc/apt/sources.list.d/caddy-stable.list
-apt-get update && apt-get install -y caddy
-
-# app user and folders
-id holorra >/dev/null 2>&1 || useradd --system --create-home --shell /usr/sbin/nologin holorra
-mkdir -p /opt/holorra && chown holorra:holorra /opt/holorra
+id holorra >/dev/null 2>&1 || useradd --system --create-home --home-dir /home/holorra --shell /usr/sbin/nologin holorra
+chown -R holorra:holorra /opt/holorra
 [ -f /etc/holorra.env ] || { printf 'AHOLO_API_KEY=\nAHOLO_REGION=com\n' > /etc/holorra.env; chmod 600 /etc/holorra.env; }
 
-# 2 GB swap so `next build` does not run out of memory on small VPSs
-if ! swapon --show | grep -q swapfile && [ "$(free -m | awk '/Mem:/{print $2}')" -lt 3000 ]; then
-  fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
-  echo '/swapfile none swap sw 0 0' >> /etc/fstab
-fi
-
-# service + Caddy config
-install -m 644 "$(dirname "$0")/holorra.service" /etc/systemd/system/holorra.service
-sed "s/holorra.example.com/${DOMAIN}/g" "$(dirname "$0")/Caddyfile" > /etc/caddy/Caddyfile
+# app service
+install -m 644 "$HERE/holorra.service" /etc/systemd/system/holorra.service
 systemctl daemon-reload
-systemctl enable holorra
-systemctl reload caddy || systemctl restart caddy
+systemctl enable holorra >/dev/null
 
-# firewall, if ufw is present
-if command -v ufw >/dev/null; then ufw allow OpenSSH; ufw allow 80; ufw allow 443; fi
-echo "Setup done. Put AHOLO_API_KEY in /etc/holorra.env (optional), copy the code to /opt/holorra, then run deploy.sh."
+# Caddy: our own file in conf.d; add the import line only if the main Caddyfile lacks it
+mkdir -p /etc/caddy/conf.d
+sed "s/holorra.example.com/${DOMAIN}/g" "$HERE/holorra.caddy" > /etc/caddy/conf.d/holorra.caddy
+grep -q 'import /etc/caddy/conf.d/\*.caddy' /etc/caddy/Caddyfile 2>/dev/null || {
+  cp /etc/caddy/Caddyfile "/etc/caddy/Caddyfile.bak-$(date +%Y%m%d-%H%M%S)" 2>/dev/null || true
+  printf '\nimport /etc/caddy/conf.d/*.caddy\n' >> /etc/caddy/Caddyfile
+}
+caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+systemctl reload caddy
+echo "Setup done. Next: bash /opt/holorra/deploy/deploy.sh (on the server) or deploy/redeploy.sh (from your machine)."

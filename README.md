@@ -4,9 +4,9 @@
 
 Holorra puts 3D Gaussian Splatting (3DGS) worlds, Lux3D props that come apart and move, an auto-rigged actor you control, and a camera director on one WebGL2 stage, built on the official Manycore Aholo SDKs. One rule decides what goes on that stage: **every asset is a real Aholo output, and anything that is not is labelled.**
 
-Built for the Manycore Aholo Global 3D AI Hackathon · `#Manycorehackathon` · App: `<LIVE_URL>` · Demo: `<VIDEO_URL>` · Code: [github.com/mrnetwork0001/Holorra](https://github.com/mrnetwork0001/Holorra)
+Built for the Manycore Aholo Global 3D AI Hackathon · `#Manycorehackathon` · App: [holorra.xyz](https://holorra.xyz) · Demo: `<VIDEO_URL>` · Code: [github.com/mrnetwork0001/Holorra](https://github.com/mrnetwork0001/Holorra)
 
-**Judges, start here:** `<LIVE_URL>/studio?play=1` starts a one-minute scene quest with no key and no sign-up. Every real Lux3D result is live in 3D at `/lab`, and the docs (13 pages, including the HTTP API and an honest Limits & FAQ) are at `/docs`.
+**Judges, start here:** [holorra.xyz/studio?play=1](https://holorra.xyz/studio?play=1) starts a one-minute scene quest with no key and no sign-up. Every real Lux3D result is live in 3D at `/lab`, and the docs (13 pages, including the HTTP API and an honest Limits & FAQ) are at `/docs`.
 
 ---
 
@@ -313,7 +313,7 @@ npm run build && npm start      # http://localhost:3000
 3. **No database, crons or contracts.** Every job is started by a visitor and followed by their open tab, so there is nothing to schedule and nothing to store server-side.
 4. **Static assets.** The mirrored results in `public/assets` total about 135 MB (largest file 22 MB) and ship as static files; worlds 01 to 04 stream from Manycore's CDN, not from the deployment.
 5. **Smoke test.** Open `/api/aholo/status` (SDK versions, key present or not), then `/studio`, `/studio?play=1`, `/lab`, `/report` and `/docs`.
-6. **Production** is live at `<LIVE_URL>`.
+6. **Production** is live at [holorra.xyz](https://holorra.xyz), served from a VPS behind Caddy (see `deploy/README.md`).
 
 ### First live runs (18 Nov 2026)
 

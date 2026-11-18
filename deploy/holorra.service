@@ -1,7 +1,7 @@
 # /etc/systemd/system/holorra.service
-# Runs the production build on 127.0.0.1:3000; Caddy (see Caddyfile) serves it on your domain with HTTPS.
+# Next.js on 127.0.0.1:3720; Caddy (holorra.caddy) serves it on the domain with HTTPS.
 [Unit]
-Description=Holorra (Next.js production server)
+Description=Holorra (Next.js)
 After=network.target
 
 [Service]
@@ -11,11 +11,13 @@ WorkingDirectory=/opt/holorra
 # AHOLO_API_KEY / AHOLO_REGION live here, never in the repository
 EnvironmentFile=-/etc/holorra.env
 Environment=NODE_ENV=production
-Environment=PORT=3000
-Environment=HOSTNAME=127.0.0.1
-ExecStart=/usr/bin/npm start -- -p 3000 -H 127.0.0.1
+Environment=NEXT_TELEMETRY_DISABLED=1
+ExecStart=/usr/bin/node /opt/holorra/node_modules/next/dist/bin/next start -p 3720 -H 127.0.0.1
 Restart=always
 RestartSec=3
+# shared host: never let Holorra take memory from other apps
+MemoryMax=1G
+Nice=5
 
 [Install]
 WantedBy=multi-user.target
