@@ -68,6 +68,12 @@ export interface AholoWorldPreset {
   voxelMetaUrl?: string;
   voxelBinUrl?: string;
   splatCountLabel: string;
+  /** "z" for SpatialGen output (Z-up); the stage rotates it into the OpenCV (-Y up) frame */
+  upAxis?: "z";
+  /** floor height in the stage frame when there is no voxel grid to probe */
+  floorY?: number;
+  /** [x, z] where the actor stands, when the default spot (ahead of the camera) is not suitable */
+  actorSpot?: [number, number];
   pose: InitialCameraPose;
   defaultHeroAssetId: string;
   defaultActorId: ActorId;
@@ -83,7 +89,7 @@ export interface AholoWorldPreset {
 
 export const AHOLO_OSS_BASE = "https://holo-cos.aholo3d.cn/aholo-opensource/gs_file";
 
-export type ActorId = "lux3d" | "robot" | "man";
+export type ActorId = "lux3d";
 
 export interface RiggedActor {
   id: ActorId;
@@ -99,6 +105,8 @@ export interface RiggedActor {
   scale?: number;
   /** generic clip names in the GLB → official Lux3D clip ids */
   clipMap?: Record<string, string>;
+  /** public URL of the rigged model, for live retarget jobs (the cloud cannot fetch app-relative paths) */
+  sourceRigUrl?: string;
 }
 
 export const AHOLO_RIGGED_ACTORS: Record<ActorId, RiggedActor> = {
@@ -108,35 +116,22 @@ export const AHOLO_RIGGED_ACTORS: Record<ActorId, RiggedActor> = {
     role: "Generated, auto-rigged and retargeted with Lux3D",
     glbUrl: "/assets/lux3d/character-animated.glb",
     rigMethod: "lux3d.humanoidAutoRig + humanoidAnimationRetarget",
-    clipCount: 5,
+    clipCount: 8,
     heightMeters: 1.65,
     upAxis: "y",
     scale: 1,
+    // humanoidAutoRig task 8355123 output
+    sourceRigUrl: "https://qhsmodel.kujiale.com/ai-generate/3/8355173-1.glb",
     clipMap: {
       animation_1: "Idle_Loop",
       animation_2: "Walk_Loop",
       animation_3: "Jog_Fwd_Loop",
-      animation_4: "Dance_Loop",
-      animation_5: "Sword_Attack",
+      animation_4: "Interact",
+      animation_5: "Chest_Open",
+      animation_6: "Yes",
+      animation_7: "Dance_Loop",
+      animation_8: "Sword_Attack",
     },
-  },
-  robot: {
-    id: "robot",
-    name: "Unit-07 droid",
-    role: "Manycore demo actor (pre-rigged)",
-    glbUrl: `${AHOLO_OSS_BASE}/misc/robot.0765006a.glb`,
-    rigMethod: "pre-rigged demo model (Manycore CDN)",
-    clipCount: 3,
-    heightMeters: 1.75,
-  },
-  man: {
-    id: "man",
-    name: "Alex",
-    role: "Manycore demo actor (pre-rigged)",
-    glbUrl: `${AHOLO_OSS_BASE}/misc/man-final.755ce8ea.glb`,
-    rigMethod: "pre-rigged demo model (Manycore CDN)",
-    clipCount: 3,
-    heightMeters: 1.75,
   },
 };
 
@@ -159,6 +154,9 @@ export const LUX3D_HERO_BLUEPRINTS: Record<string, Lux3dHeroAssetBlueprint> = {
       placements: {
         // ~1 m ahead of the loft spawn pose, left of the cabinet; floor from the voxel grid
         "smart-loft-indoor": { at: [-2.23, 0.87], floorY: 1.912 },
+        // SpatialGen coffee bar: on the table top measured in the generated splat
+        // (flat patch at z = -0.46, 0.69 m above the floor -> y = 0.46 in the stage frame)
+        "spatialgen-coffee-bar": { at: [0.65, -0.9], floorY: 0.46 },
       },
       joints: [
         { name: "hood_top_joint", max: 0.8 },
@@ -464,12 +462,12 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
       },
       {
         id: "kf-3",
-        label: "Droid tracking shot",
+        label: "Actor tracking shot",
         position: [-2.1, 0.55, -1.1],
         target: [-3.5, 0.9, 0.2],
         durationSec: 3.0,
         luxrealPrompt:
-          "Low-angle reverse tracking shot following the Aholo Unit-07 autonomous droid walking across the living room floor",
+          "Low-angle reverse tracking shot following the rigged Lux3D actor walking across the living room floor",
       },
     ],
   },
@@ -603,6 +601,59 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
         target: [0, 0, 0],
         durationSec: 2.5,
         luxrealPrompt: "Smooth studio camera arc highlighting surface texture fidelity and part-split sub-mesh explosion",
+      },
+    ],
+  },
+  {
+    id: "spatialgen-coffee-bar",
+    code: "WORLD-05",
+    title: "Coffee Bar · SpatialGen",
+    subtitle: "Generated from one prompt with Aholo SpatialGen (world 3FO4K4V99KMD)",
+    category: "Indoor",
+    sourceEngine: "Aholo SpatialGen · world.generations.create",
+    splatMode: "direct",
+    primarySplatUrl: "/assets/spatialgen/coffee-bar.spz",
+    splatCountLabel: "267K splats · SpatialGen",
+    upAxis: "z",
+    // floor plane measured at z = -1.15 in the generated splat (-> +1.15 in the stage frame)
+    floorY: 1.15,
+    actorSpot: [-0.95, 0.35],
+    pose: {
+      px: -2.5,
+      py: 0,
+      pz: 0,
+      lookAt: [0.5, 0.1, 0],
+      yaw: -1.5708,
+      pitch: 0.08,
+      thirdPersonDistance: 2.6,
+      up: [0, -1, 0],
+    },
+    defaultHeroAssetId: "cyber-barista-station",
+    defaultActorId: "lux3d",
+    defaultKeyframes: [
+      {
+        id: "kf-cafe-1",
+        label: "Wide from the window",
+        position: [-3.4, -0.1, 1.2],
+        target: [0.3, 0.2, -0.2],
+        durationSec: 3,
+        luxrealPrompt: "Slow wide dolly across a Scandinavian coffee bar generated with SpatialGen, morning light",
+      },
+      {
+        id: "kf-cafe-2",
+        label: "Push in to the counter",
+        position: [-1.9, 0.1, 0.4],
+        target: [0.4, 0.3, 0.0],
+        durationSec: 3,
+        luxrealPrompt: "Push-in toward the oak counter as the barista character walks to the espresso machine",
+      },
+      {
+        id: "kf-cafe-3",
+        label: "Espresso close-up",
+        position: [-1.6, 0.45, -0.4],
+        target: [-1.25, 0.95, -0.45],
+        durationSec: 3,
+        luxrealPrompt: "Low close-up of the articulated espresso machine opening its hood, shallow depth of field",
       },
     ],
   },
