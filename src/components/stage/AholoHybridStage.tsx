@@ -18,6 +18,15 @@ import {
 } from "@/lib/luxreal-exporter";
 import { Glyph, type GlyphName } from "@/components/brand/Glyph";
 import { findFloorY, loadUrdfAssembly, type UrdfAssembly } from "@/lib/urdf-assembly";
+import type { PendingJob, SpawnedAsset } from "@/lib/spawned-assets";
+
+/** Scene quest: a short play loop around the real Lux3D assets. */
+const QUEST_STEPS = [
+  { key: "walk", title: "Walk to the espresso machine", hint: "WASD or the joystick" },
+  { key: "brew", title: "Brew a coffee", hint: "Press E near the machine" },
+  { key: "frame", title: "Frame the shot", hint: "Press K to add a keyframe" },
+  { key: "cheer", title: "Celebrate", hint: "Press F" },
+] as const;
 
 const CAMERA_MODES: { id: StageCameraMode; label: string; glyph: GlyphName; hint: string }[] = [
   { id: "orbit", label: "Orbit", glyph: "orbit", hint: "Orbit the stage" },
@@ -66,6 +75,12 @@ export interface AholoHybridStageProps {
   }) => void;
   splatExposure: number;
   radialSort: boolean;
+  /** finished Lux3D models to drop onto the floor in front of the camera */
+  spawnedAssets?: SpawnedAsset[];
+  /** Lux3D jobs still running, shown as live timers on the stage */
+  pendingJobs?: PendingJob[];
+  /** start the scene quest as soon as the world and actor are loaded (/studio?play=1) */
+  autoPlay?: boolean;
 }
 
 export default function AholoHybridStage({
@@ -86,6 +101,9 @@ export default function AholoHybridStage({
   onCaptureKeyframe,
   splatExposure,
   radialSort,
+  spawnedAssets = [],
+  pendingJobs = [],
+  autoPlay = false,
 }: AholoHybridStageProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -148,6 +166,102 @@ export default function AholoHybridStage({
   const voxelCollisionRef = useRef<VoxelCollisionEngine | null>(null);
   const actorFloorRef = useRef<{ x: number; z: number; y: number } | null>(null);
 
+  // ---- play mode (scene quest), touch joystick and Lux3D drop-ins
+  const [play, setPlay] = useState<{ active: boolean; step: number; near: boolean; wrapped: boolean }>({
+    active: false,
+    step: 0,
+    near: false,
+    wrapped: false,
+  });
+  const playRef = useRef({ active: false, step: 0, near: false, interactAt: -1e9, cheerAt: -1e9, wrappedAt: -1e9 });
+  const actionRef = useRef<{ interact: boolean; cheer: boolean }>({ interact: false, cheer: false });
+  const joyRef = useRef({ x: 0, y: 0 });
+  const joyKnobRef = useRef<HTMLDivElement | null>(null);
+  const spawnedRef = useRef<SpawnedAsset[]>(spawnedAssets);
+  spawnedRef.current = spawnedAssets;
+  const [toast, setToast] = useState<{ text: string; source: "live" | "cached" } | null>(null);
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  const [touchUi, setTouchUi] = useState(false);
+  // Expand: native fullscreen of the stage, or a full-window view where unsupported (iOS Safari)
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const [expanded, setExpanded] = useState<"off" | "fullscreen" | "window">("off");
+  const toggleExpand = useCallback(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    if (document.fullscreenElement) {
+      void document.exitFullscreen();
+      return;
+    }
+    if (expanded === "window") {
+      setExpanded("off");
+      return;
+    }
+    if (el.requestFullscreen) {
+      el.requestFullscreen().catch(() => setExpanded("window"));
+    } else {
+      setExpanded("window");
+    }
+  }, [expanded]);
+  useEffect(() => {
+    const onFs = () => setExpanded(document.fullscreenElement === rootRef.current ? "fullscreen" : "off");
+    document.addEventListener("fullscreenchange", onFs);
+    return () => document.removeEventListener("fullscreenchange", onFs);
+  }, []);
+  useEffect(() => {
+    // the viewer listens for window resize; nudge it whenever the stage changes size
+    const id = window.setTimeout(() => window.dispatchEvent(new Event("resize")), 60);
+    if (expanded !== "window") return () => window.clearTimeout(id);
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setExpanded("off");
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.clearTimeout(id);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [expanded]);
+  useEffect(() => {
+    const mq = window.matchMedia("(pointer: coarse), (max-width: 900px)");
+    const on = () => setTouchUi(mq.matches);
+    on();
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  useEffect(() => {
+    if (!pendingJobs.length) return;
+    const id = window.setInterval(() => setNowTick(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [pendingJobs.length]);
+  useEffect(() => {
+    if (!toast) return;
+    const id = window.setTimeout(() => setToast(null), 5200);
+    return () => window.clearTimeout(id);
+  }, [toast]);
+
+  const advanceQuest = useCallback((from: number) => {
+    const q = playRef.current;
+    if (!q.active || q.step !== from) return;
+    q.step = from + 1;
+    if (q.step >= QUEST_STEPS.length) q.wrappedAt = performance.now();
+    setPlay((s) => ({ ...s, step: q.step, wrapped: q.step >= QUEST_STEPS.length }));
+  }, []);
+
+  const startPlay = useCallback(() => {
+    playRef.current = { active: true, step: 0, near: false, interactAt: -1e9, cheerAt: -1e9, wrappedAt: -1e9 };
+    setPlay({ active: true, step: 0, near: false, wrapped: false });
+    onCameraModeChange("walk-third");
+  }, [onCameraModeChange]);
+
+  const autoPlayedRef = useRef(false);
+  useEffect(() => {
+    if (!autoPlay || autoPlayedRef.current || !isReady || !actorLoaded) return;
+    autoPlayedRef.current = true;
+    startPlay();
+  }, [autoPlay, isReady, actorLoaded, startPlay]);
+
+  const stopPlay = useCallback(() => {
+    playRef.current.active = false;
+    setPlay({ active: false, step: 0, near: false, wrapped: false });
+  }, []);
+
   const handleResetCamera = useCallback(() => {
     poseStateRef.current = {
       px: worldPreset.pose.px,
@@ -191,7 +305,10 @@ export default function AholoHybridStage({
       ],
       snapshotDataUrl,
     });
-  }, [onCaptureKeyframe]);
+    advanceQuest(2);
+  }, [onCaptureKeyframe, advanceQuest]);
+  const keyframeShotRef = useRef(handleTakeKeyframeSnapshot);
+  keyframeShotRef.current = handleTakeKeyframeSnapshot;
 
   // Update viewer splatting tone mapping / sorting config on the fly
   useEffect(() => {
@@ -270,6 +387,12 @@ export default function AholoHybridStage({
         document.activeElement?.tagName === "SELECT"
       ) {
         return;
+      }
+      const walking = cameraModeRef.current === "walk-third" || cameraModeRef.current === "walk-first";
+      if (walking && !e.repeat) {
+        if (e.code === "KeyE") actionRef.current.interact = true;
+        if (e.code === "KeyF") actionRef.current.cheer = true;
+        if (e.code === "KeyK") keyframeShotRef.current();
       }
       keysPressed.add(e.code);
     };
@@ -521,7 +644,7 @@ export default function AholoHybridStage({
                 worldPreset.pose.px + spawnFwd[0] * 1.1 - spawnRight[0] * 0.3,
                 worldPreset.pose.pz + spawnFwd[1] * 1.1 - spawnRight[1] * 0.3,
               ] as [number, number],
-              floorY: worldPreset.pose.py + 0.91,
+              floorY: worldPreset.floorY ?? worldPreset.pose.py + 0.91,
               yawDeg: undefined,
             }
           : null;
@@ -652,9 +775,13 @@ export default function AholoHybridStage({
             actorRoot.add(body);
             if (actorConfig.upAxis === "y") {
               // beside the hero prop, ~1.5 m ahead of the spawn camera, on the floor
-              const ax = worldPreset.pose.px + spawnFwd[0] * 2.6 - spawnRight[0] * 0.15;
-              const az = worldPreset.pose.pz + spawnFwd[1] * 2.6 - spawnRight[1] * 0.15;
-              actorFloorRef.current = actorFloorRef.current ?? { x: ax, z: az, y: worldPreset.pose.py + 0.91 };
+              const ax = worldPreset.actorSpot?.[0] ?? worldPreset.pose.px + spawnFwd[0] * 2.6 - spawnRight[0] * 0.15;
+              const az = worldPreset.actorSpot?.[1] ?? worldPreset.pose.pz + spawnFwd[1] * 2.6 - spawnRight[1] * 0.15;
+              actorFloorRef.current = actorFloorRef.current ?? {
+                x: ax,
+                z: az,
+                y: worldPreset.floorY ?? worldPreset.pose.py + 0.91,
+              };
               actorRoot.position.set(ax, actorFloorRef.current.y, az);
               actorRoot.rotation.y = Math.atan2(-spawnFwd[0], -spawnFwd[1]) + Math.PI;
             } else {
@@ -701,7 +828,8 @@ export default function AholoHybridStage({
             Aholo.SplatLoader.SplatFileType.SPZ;
           const splatData = await Aholo.SplatLoader.parseSplatData(
             ft,
-            worldPreset.primarySplatUrl,
+            // absolute: the splat worker runs from a blob: URL and cannot resolve app-relative paths
+            new URL(worldPreset.primarySplatUrl, window.location.href).href,
             Aholo.SplatLoader.SplatPackType.Compressed,
             { signal }
           );
@@ -712,7 +840,15 @@ export default function AholoHybridStage({
             primarySplat.destroy();
             return;
           }
-          scene.add(primarySplat);
+          if (worldPreset.upAxis === "z") {
+            // SpatialGen worlds are Z-up: rotate +Z onto the stage's -Y (OpenCV) up axis
+            const upFix = new Aholo.Object3D();
+            upFix.rotation.x = Math.PI / 2;
+            upFix.add(primarySplat);
+            scene.add(upFix);
+          } else {
+            scene.add(primarySplat);
+          }
         } else if (worldPreset.splatMode === "lod" && worldPreset.lodMetaUrl) {
           if (worldPreset.envSplatUrl) {
             setLoadingText("Loading 3DGS Sky & Environment Radiance Layer...");
@@ -721,7 +857,7 @@ export default function AholoHybridStage({
               Aholo.SplatLoader.SplatFileType.PLY;
             const envData = await Aholo.SplatLoader.parseSplatData(
               envFt,
-              worldPreset.envSplatUrl,
+              new URL(worldPreset.envSplatUrl, window.location.href).href,
               Aholo.SplatLoader.SplatPackType.Compressed,
               { signal }
             );
@@ -769,6 +905,68 @@ export default function AholoHybridStage({
         setLoadProgress(100);
         setIsReady(true);
 
+        // 5b. Lux3D drop-ins (feature: generate, then it lands in the world)
+        let lastSpawnCheck = 0;
+        const spawnLoaded = new Set<string>();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const drops: { holder: any; floor: number; y: number; vy: number; bounces: number; settled: boolean }[] = [];
+        const dropAsset = async (asset: SpawnedAsset) => {
+          try {
+            const res = await fetch(asset.url, { signal });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const buf = await res.arrayBuffer();
+            if (signal.aborted) return;
+            const gltf = await Aholo.GLTFLoader.loadGLTF(buf, { textureLoader: Aholo.downloadTexture });
+            if (signal.aborted) return;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const model = gltf.scene as any;
+            const lo = [Infinity, Infinity, Infinity];
+            const hi = [-Infinity, -Infinity, -Infinity];
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const visit = (n: any) => {
+              const bb = n?.geometry?.getBoundingBox?.();
+              if (bb) {
+                lo[0] = Math.min(lo[0], bb.min.x); lo[1] = Math.min(lo[1], bb.min.y); lo[2] = Math.min(lo[2], bb.min.z);
+                hi[0] = Math.max(hi[0], bb.max.x); hi[1] = Math.max(hi[1], bb.max.y); hi[2] = Math.max(hi[2], bb.max.z);
+              }
+              (n?.children || []).forEach(visit);
+            };
+            visit(model);
+            if (!Number.isFinite(lo[0])) {
+              lo.splice(0, 3, -0.5, 0, -0.5);
+              hi.splice(0, 3, 0.5, 1, 0.5);
+            }
+            const size = Math.max(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) || 1;
+            const k = 0.7 / size; // about 70 cm across: prop scale next to the actor
+            model.scale.setScalar(k);
+            model.position.set((-(lo[0] + hi[0]) / 2) * k, -lo[1] * k, (-(lo[2] + hi[2]) / 2) * k);
+            const flip = new Aholo.Object3D();
+            flip.rotation.x = Math.PI; // glTF Y-up → OpenCV -Y up
+            flip.add(model);
+            const holder = new Aholo.Object3D();
+            holder.add(flip);
+            const pp = poseStateRef.current;
+            const fx = -Math.sin(pp.yaw);
+            const fz = -Math.cos(pp.yaw);
+            const side = ((drops.length % 3) - 1) * 0.65;
+            const x = pp.px + fx * 1.6 + Math.cos(pp.yaw) * side;
+            const z = pp.pz + fz * 1.6 - Math.sin(pp.yaw) * side;
+            let floor = worldPreset.floorY ?? pp.py + 0.91;
+            const eng = voxelCollisionRef.current;
+            if (eng) {
+              const fy = findFloorY((a, b, c) => eng.isWorldPointSolid(a, b, c), x, pp.py, z);
+              if (fy !== null && Math.abs(fy - floor) < 0.6) floor = fy;
+            }
+            holder.position.set(x, floor - 1.8, z);
+            holder.rotation.y = Math.atan2(fx, fz);
+            scene.add(holder);
+            drops.push({ holder, floor, y: floor - 1.8, vy: 0, bounces: 0, settled: false });
+            setToast({ text: asset.label, source: asset.source });
+          } catch {
+            // a failed drop must never break the stage
+          }
+        };
+
         // 6. 60fps Spatial Render & Simulation Loop
         let lastTime = performance.now();
         let frameCounter = 0;
@@ -802,7 +1000,16 @@ export default function AholoHybridStage({
               fr.rotation.set(0, 0, 0);
             }
             // articulation toggle drives the real URDF joints (hood hinge, drawer slide)
-            const open = articulateRef.current ? 0.5 - 0.5 * Math.cos(tSec * 1.3) : 0;
+            const sb = (now - playRef.current.interactAt) / 1000;
+            const ease01 = (x: number) => x * x * (3 - 2 * x);
+            const brewOpen =
+              sb < 0 ? 0 : sb < 0.9 ? ease01(sb / 0.9) : sb < 4.6 ? 1 : sb < 5.5 ? 1 - ease01((sb - 4.6) / 0.9) : 0;
+            const open =
+              brewOpen > 0
+                ? brewOpen
+                : articulateRef.current && !playRef.current.active
+                  ? 0.5 - 0.5 * Math.cos(tSec * 1.3)
+                  : 0;
             for (const j of heroBlueprint.real.joints) a.setJoint(j.name, open * j.max);
             for (const spec of heroBlueprint.parts) {
               const fr = spec.link ? a.frames[spec.link] : null;
@@ -899,10 +1106,17 @@ export default function AholoHybridStage({
             if (keysPressed.has("KeyS") || keysPressed.has("ArrowDown")) fwdInput -= 1;
             if (keysPressed.has("KeyD") || keysPressed.has("ArrowRight")) rightInput += 1;
             if (keysPressed.has("KeyA") || keysPressed.has("ArrowLeft")) rightInput -= 1;
-            if (keysPressed.has("KeyE") || keysPressed.has("Space")) upInput -= 1; // -Y is up in OpenCV
-            if (keysPressed.has("KeyQ")) upInput += 1;
+            const allowFly = mode === "orbit" || mode === "spline";
+            if (allowFly && (keysPressed.has("KeyE") || keysPressed.has("Space"))) upInput -= 1; // -Y is up in OpenCV
+            if (allowFly && keysPressed.has("KeyQ")) upInput += 1;
+            fwdInput = Math.max(-1, Math.min(1, fwdInput + joyRef.current.y));
+            rightInput = Math.max(-1, Math.min(1, rightInput + joyRef.current.x));
+            if (now - playRef.current.interactAt < 2000) {
+              fwdInput = 0;
+              rightInput = 0;
+            }
 
-            const isMoving = fwdInput !== 0 || rightInput !== 0;
+            const isMoving = Math.abs(fwdInput) > 0.12 || Math.abs(rightInput) > 0.12;
             if (isMoving || upInput !== 0) {
               const sinY = Math.sin(p.yaw);
               const cosY = Math.cos(p.yaw);
@@ -915,21 +1129,47 @@ export default function AholoHybridStage({
                 (mode === "walk-first" || mode === "walk-third") &&
                 voxelCollisionRef.current
               ) {
-                const resolved = voxelCollisionRef.current.filterHorizontalMove(
-                  p.px,
-                  p.py,
-                  p.pz,
-                  nextX,
-                  nextZ,
-                  0.24
-                );
-                p.px = resolved.x;
-                p.pz = resolved.z;
+                const eng = voxelCollisionRef.current;
+                // If the capsule already overlaps the grid where it stands (e.g. a spawn pose
+                // within 24 cm of a wall), let it walk out instead of pinning it in place.
+                const stuck = eng.filterHorizontalMove(p.px, p.py, p.pz, p.px, p.pz, 0.24).collided;
+                if (stuck) {
+                  p.px = nextX;
+                  p.pz = nextZ;
+                } else {
+                  const resolved = eng.filterHorizontalMove(p.px, p.py, p.pz, nextX, nextZ, 0.24);
+                  p.px = resolved.x;
+                  p.pz = resolved.z;
+                }
               } else {
                 p.px = nextX;
                 p.pz = nextZ;
               }
               p.py += upInput * moveSpeed * 0.65 * dt;
+            }
+
+            // Scene quest: proximity to the real prop, E to brew, F to cheer
+            const q = playRef.current;
+            if (heroBlueprint.real) {
+              const dist = Math.hypot(heroRoot.position.x - p.px, heroRoot.position.z - p.pz);
+              const near = (mode === "walk-third" || mode === "walk-first") && dist < 1.05;
+              if (near !== q.near) {
+                q.near = near;
+                setPlay((st) => ({ ...st, near }));
+              }
+              if (near) advanceQuest(0);
+            }
+            if (actionRef.current.interact) {
+              actionRef.current.interact = false;
+              if (q.near && heroBlueprint.real && now - q.interactAt > 5600) {
+                q.interactAt = now;
+                advanceQuest(1);
+              }
+            }
+            if (actionRef.current.cheer) {
+              actionRef.current.cheer = false;
+              q.cheerAt = now;
+              advanceQuest(3);
             }
 
             // Switch actor animation clip based on movement or Inspector selection
@@ -944,9 +1184,16 @@ export default function AholoHybridStage({
                 requestedAnim.includes("dance") ||
                 requestedAnim.includes("sword") ||
                 requestedAnim.includes("jump");
+              const forced =
+                now - q.interactAt < 2000 ? "interact" : now - q.cheerAt < 3000 ? "dance_loop" : null;
+              const sprint =
+                keysPressed.has("ShiftLeft") || Math.hypot(joyRef.current.x, joyRef.current.y) > 0.95;
               const targetKey = actorConfig.clipMap
-                ? isMoving
-                  ? actorKeys.find((k) => k.includes("walk")) || actorKeys[0]
+                ? forced && actorActions[forced]
+                  ? forced
+                  : isMoving
+                  ? (sprint && actorActions["jog_fwd_loop"] ? "jog_fwd_loop" : actorKeys.find((k) => k.includes("walk"))) ||
+                    actorKeys[0]
                   : actorActions[requestedAnim]
                     ? requestedAnim
                     : actorKeys.find((k) => k.includes("idle")) || actorKeys[0]
@@ -982,8 +1229,11 @@ export default function AholoHybridStage({
             if (mode === "walk-third") {
               // Position actor at p.px, p.py, p.pz and place third-person camera behind
               if (actorConfig.upAxis === "y") {
-                actorRoot.position.set(p.px, p.py + 0.91, p.pz);
-                actorRoot.rotation.y = p.yaw;
+                actorRoot.position.set(p.px, worldPreset.floorY ?? p.py + 0.91, p.pz);
+                actorRoot.rotation.y =
+                  now - q.interactAt < 2200
+                    ? Math.atan2(-(heroRoot.position.x - p.px), -(heroRoot.position.z - p.pz))
+                    : p.yaw;
               } else {
                 actorRoot.position.set(p.px, p.py + 0.45, p.pz);
                 actorRoot.rotation.y = p.yaw + Math.PI;
@@ -1008,6 +1258,54 @@ export default function AholoHybridStage({
                 )
               );
             }
+          }
+
+          // Brew close-up: cut the camera to the machine for ~3 s, blending in and out
+          if (heroBlueprint.real && !isPlayingSplineRef.current) {
+            const ct = (now - playRef.current.interactAt) / 1000 - 0.25;
+            if (ct > 0 && ct < 3.0) {
+              const hx = heroRoot.position.x;
+              const hz = heroRoot.position.z;
+              const fy = heroRoot.position.y;
+              const dx = camera.position.x - hx;
+              const dz = camera.position.z - hz;
+              const L = Math.hypot(dx, dz) || 1;
+              const tx = hx + (dx / L) * 0.8 + (-dz / L) * 0.3;
+              const tz = hz + (dz / L) * 0.8 + (dx / L) * 0.3;
+              const ty = fy - 0.55; // 55 cm above the floor (-Y up)
+              const sm = (x: number) => x * x * (3 - 2 * x);
+              const w = ct < 0.35 ? sm(ct / 0.35) : ct > 2.65 ? sm((3.0 - ct) / 0.35) : 1;
+              camera.position.set(
+                camera.position.x + (tx - camera.position.x) * w,
+                camera.position.y + (ty - camera.position.y) * w,
+                camera.position.z + (tz - camera.position.z) * w
+              );
+              camera.lookAt(new Aholo.Vector3(hx, fy - 0.2, hz));
+            }
+          }
+
+          // Lux3D drop-ins: load new results, then let them fall onto the floor and settle
+          if (now - lastSpawnCheck > 400) {
+            lastSpawnCheck = now;
+            for (const a of spawnedRef.current) {
+              if (!spawnLoaded.has(a.id)) {
+                spawnLoaded.add(a.id);
+                void dropAsset(a);
+              }
+            }
+          }
+          for (const d of drops) {
+            if (d.settled) continue;
+            d.vy += 9.8 * dt; // +Y is down in the OpenCV world
+            d.y += d.vy * dt;
+            if (d.y >= d.floor) {
+              d.y = d.floor;
+              d.vy = -d.vy * 0.32;
+              d.bounces += 1;
+              if (d.bounces > 2 || Math.abs(d.vy) < 0.25) d.settled = true;
+            }
+            d.holder.position.y = d.y;
+            if (!d.settled) d.holder.rotation.y += dt * 1.6;
           }
 
           if (lodSplat) {
@@ -1076,7 +1374,12 @@ export default function AholoHybridStage({
   const voxel = describeVoxelStatus(voxelStatus);
 
   return (
-    <div className="relative h-full w-full select-none overflow-hidden bg-canvas">
+    <div
+      ref={rootRef}
+      className={`@container relative h-full w-full select-none overflow-hidden bg-canvas ${
+        expanded === "window" ? "!fixed inset-0 z-[90] !h-[100dvh] !w-screen" : ""
+      }`}
+    >
       {/* @manycore/aholo-viewer WebGL2 canvas mount */}
       <div ref={containerRef} className="h-full w-full cursor-grab touch-none active:cursor-grabbing" />
 
@@ -1116,10 +1419,56 @@ export default function AholoHybridStage({
             {actorLoaded && <Glyph name="check" size={12} className="text-ok" title="Actor loaded" />}
           </span>
         </div>
+
+        {play.active && (
+          <div className="pointer-events-auto w-64 rounded-[6px] border border-line bg-surface/95 p-2.5 max-[900px]:w-auto max-[900px]:max-w-[calc(100vw-24px)]">
+            <div className="flex items-center justify-between">
+              <span className="label">Scene quest</span>
+              <span className="font-mono text-[11px] text-ink-3 tabular">
+                {Math.min(play.step, QUEST_STEPS.length)}/{QUEST_STEPS.length}
+              </span>
+            </div>
+            <ol className="mt-2 space-y-1.5 max-[900px]:hidden">
+              {QUEST_STEPS.map((q, i) => {
+                const done = play.step > i;
+                const current = play.step === i;
+                return (
+                  <li key={q.key} className="flex items-start gap-2">
+                    <span
+                      className={`mt-[2px] flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-[3px] border ${
+                        done ? "border-accent bg-accent text-accent-ink" : current ? "border-accent" : "border-line-strong"
+                      }`}
+                    >
+                      {done && <Glyph name="check" size={10} strokeWidth={2.4} />}
+                    </span>
+                    <span className="min-w-0">
+                      <span className={`block text-[12px] ${done ? "text-ink-3 line-through" : current ? "text-ink" : "text-ink-2"}`}>
+                        {q.title}
+                      </span>
+                      {current && <span className="block font-mono text-[10.5px] text-ink-3">{q.hint}</span>}
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
+            <div className="mt-1.5 text-[12px] text-ink min-[901px]:hidden">
+              {play.step < QUEST_STEPS.length ? QUEST_STEPS[play.step].title : "Scene wrapped"}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Top-right: camera mode + keyframe capture */}
       <div className="absolute right-3 top-3 z-20 flex items-center gap-1.5 max-[900px]:right-2 max-[900px]:top-2">
+        <button
+          type="button"
+          onClick={play.active ? stopPlay : startPlay}
+          title={play.active ? "Leave play mode" : "Play: walk the Lux3D actor through a short scene quest"}
+          className={`btn btn-sm h-8 max-[900px]:h-10 ${play.active ? "border-line bg-surface/95" : "btn-primary"}`}
+        >
+          <Glyph name={play.active ? "stop" : "play"} size={11} />
+          {play.active ? "Exit" : "Play"}
+        </button>
         <div
           role="radiogroup"
           aria-label="Camera mode"
@@ -1167,11 +1516,27 @@ export default function AholoHybridStage({
         >
           <Glyph name="reset" size={14} />
         </button>
+
+        <button
+          type="button"
+          onClick={toggleExpand}
+          title={expanded === "off" ? "Expand the stage" : "Exit expanded view (Esc)"}
+          aria-label={expanded === "off" ? "Expand the stage" : "Exit expanded view"}
+          aria-pressed={expanded !== "off"}
+          className="btn btn-sm h-8 min-w-8 justify-center border-line bg-surface/95 px-2 max-[900px]:h-10 max-[900px]:min-w-10"
+        >
+          <Glyph name={expanded === "off" ? "expand" : "collapse"} size={14} />
+          <span className="hidden @min-[760px]:inline">{expanded === "off" ? "Expand" : "Exit"}</span>
+        </button>
       </div>
 
       {/* Bottom: part quick-select + control hints */}
       <div className="pointer-events-none absolute bottom-3 left-3 right-3 z-20 flex flex-wrap items-end justify-between gap-2 max-[900px]:bottom-2 max-[900px]:left-2 max-[900px]:right-2">
-        <div className="pointer-events-auto flex h-8 max-w-full items-center gap-1 overflow-x-auto rounded-[6px] border border-line bg-surface/95 px-1.5 max-[900px]:h-11">
+        <div
+          className={`pointer-events-auto flex h-8 max-w-full items-center gap-1 overflow-x-auto rounded-[6px] border border-line bg-surface/95 px-1.5 max-[900px]:h-11 ${
+            touchUi && (cameraMode === "walk-third" || cameraMode === "walk-first") ? "hidden" : ""
+          }`}
+        >
           <span className="label px-1 max-[600px]:hidden">Parts</span>
           <button
             type="button"
@@ -1214,13 +1579,32 @@ export default function AholoHybridStage({
             <span className="kbd">S</span>
             <span className="kbd">D</span> move
           </span>
-          <span className="flex items-center gap-1">
-            <span className="kbd">Q</span>
-            <span className="kbd">E</span> height
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="kbd">Scroll</span> zoom
-          </span>
+          {cameraMode === "walk-third" || cameraMode === "walk-first" ? (
+            <>
+              <span className="flex items-center gap-1">
+                <span className="kbd">Shift</span> jog
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="kbd">E</span> brew
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="kbd">K</span> frame
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="kbd">F</span> cheer
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="flex items-center gap-1">
+                <span className="kbd">Q</span>
+                <span className="kbd">E</span> height
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="kbd">Scroll</span> zoom
+              </span>
+            </>
+          )}
         </div>
       </div>
 
@@ -1234,6 +1618,128 @@ export default function AholoHybridStage({
             <span className="absolute inset-y-0 left-0 bg-accent" style={{ width: `${splineProgress}%` }} />
           </span>
         </div>
+      )}
+
+      {/* Brew prompt when the actor is next to the real machine */}
+      {play.near && !touchUi && (
+        <div className="pointer-events-none absolute bottom-16 left-1/2 z-20 flex h-9 -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-[6px] border border-accent bg-surface/95 px-3 text-[13px] text-ink">
+          <span className="kbd">E</span> Brew a coffee
+        </div>
+      )}
+
+      {/* Quest complete */}
+      {play.wrapped && (
+        <div className="absolute left-1/2 top-16 z-20 w-[min(360px,calc(100%-24px))] -translate-x-1/2 rounded-[8px] border border-line bg-surface/95 p-4 text-center max-[900px]:top-14">
+          <div className="font-mono text-[11px] text-accent">SCENE WRAPPED</div>
+          <div className="mt-1 text-[15px] text-ink">Walked, brewed, framed and celebrated.</div>
+          <div className="mt-1 text-[12px] text-ink-3">Play the camera path below to review your shot.</div>
+          <div className="mt-3 flex justify-center gap-2">
+            <button type="button" className="btn btn-sm btn-primary" onClick={startPlay}>
+              Play again
+            </button>
+            <button type="button" className="btn btn-sm" onClick={stopPlay}>
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Lux3D jobs still generating */}
+      {pendingJobs.length > 0 && (
+        <div className="pointer-events-none absolute left-1/2 top-14 z-20 flex -translate-x-1/2 flex-col items-center gap-1.5 max-[900px]:top-16">
+          {pendingJobs.slice(0, 3).map((j) => {
+            const secs = Math.max(0, Math.floor((nowTick - j.startedAt) / 1000));
+            return (
+              <div
+                key={j.taskId}
+                className="flex h-8 max-w-[min(420px,calc(100vw-24px))] items-center gap-2 rounded-[6px] border border-line bg-surface/95 px-2.5 text-[12px]"
+              >
+                {j.status === "failed" ? (
+                  <Glyph name="cross" size={12} className="text-err" />
+                ) : (
+                  <Glyph name="loader" size={12} className="text-accent" />
+                )}
+                <span className="truncate text-ink">{j.label}</span>
+                <span className="shrink-0 font-mono text-[11px] text-ink-3 tabular">
+                  {j.status === "failed" ? "failed" : `${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* A new Lux3D model just landed */}
+      {toast && (
+        <div className="pointer-events-none absolute bottom-16 left-1/2 z-20 flex h-9 max-w-[min(480px,calc(100vw-24px))] -translate-x-1/2 items-center gap-2 rounded-[6px] border border-line bg-surface/95 px-3 text-[12.5px] max-[900px]:bottom-20">
+          <Glyph name="mesh" size={14} className="text-accent" />
+          <span className="shrink-0 text-ink">Dropped into the scene</span>
+          <span className="truncate text-ink-2">{toast.text}</span>
+          <span className="chip shrink-0">{toast.source === "live" ? "live" : "cached"}</span>
+        </div>
+      )}
+
+      {/* Touch: joystick + actions while walking */}
+      {touchUi && (cameraMode === "walk-third" || cameraMode === "walk-first") && (
+        <>
+          <div
+            className="absolute bottom-4 left-4 z-30 h-28 w-28 touch-none rounded-full border border-line-strong bg-surface/70"
+            onPointerDown={(e) => {
+              e.currentTarget.setPointerCapture(e.pointerId);
+              const r = e.currentTarget.getBoundingClientRect();
+              const move = (cx: number, cy: number) => {
+                const R = r.width / 2 - 14;
+                let dx = cx - (r.left + r.width / 2);
+                let dy = cy - (r.top + r.height / 2);
+                const len = Math.hypot(dx, dy);
+                if (len > R) {
+                  dx = (dx / len) * R;
+                  dy = (dy / len) * R;
+                }
+                joyRef.current = { x: dx / R, y: -dy / R };
+                if (joyKnobRef.current) joyKnobRef.current.style.transform = `translate(${dx}px, ${dy}px)`;
+              };
+              move(e.clientX, e.clientY);
+              const el = e.currentTarget;
+              const onMove = (ev: PointerEvent) => move(ev.clientX, ev.clientY);
+              const onUp = () => {
+                joyRef.current = { x: 0, y: 0 };
+                if (joyKnobRef.current) joyKnobRef.current.style.transform = "translate(0px, 0px)";
+                el.removeEventListener("pointermove", onMove);
+                el.removeEventListener("pointerup", onUp);
+                el.removeEventListener("pointercancel", onUp);
+              };
+              el.addEventListener("pointermove", onMove);
+              el.addEventListener("pointerup", onUp);
+              el.addEventListener("pointercancel", onUp);
+            }}
+            aria-label="Move"
+            role="slider"
+          >
+            <div
+              ref={joyKnobRef}
+              className="pointer-events-none absolute left-1/2 top-1/2 -ml-6 -mt-6 h-12 w-12 rounded-full border border-accent bg-raised"
+            />
+          </div>
+          <div className="absolute bottom-4 right-4 z-30 flex flex-col items-end gap-2">
+            <button
+              type="button"
+              onClick={() => (actionRef.current.interact = true)}
+              className={`btn h-14 w-14 rounded-full p-0 text-[12px] ${play.near ? "btn-primary" : ""}`}
+              aria-label="Brew"
+            >
+              Brew
+            </button>
+            <div className="flex gap-2">
+              <button type="button" onClick={handleTakeKeyframeSnapshot} className="btn h-11 w-11 rounded-full p-0" aria-label="Frame the shot">
+                <Glyph name="keyframe" size={14} className="text-accent" />
+              </button>
+              <button type="button" onClick={() => (actionRef.current.cheer = true)} className="btn h-11 w-11 rounded-full p-0 text-[11px]" aria-label="Celebrate">
+                Cheer
+              </button>
+            </div>
+          </div>
+        </>
       )}
 
       {/* Loading overlay while the splat streams */}
