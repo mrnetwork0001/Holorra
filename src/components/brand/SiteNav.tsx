@@ -3,13 +3,33 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
-import { Glyph } from "@/components/brand/Glyph";
 import { BurgerButton, MobileDrawer } from "@/components/brand/MobileDrawer";
 import { ScrollProgress } from "@/components/landing/Reveal";
+import LangSwitch from "@/components/brand/LangSwitch";
+import { T } from "@/lib/i18n";
 
 export interface NavLink {
   label: string;
   href: string;
+  /** 简体中文 label; common labels are translated automatically */
+  zh?: string;
+}
+
+const NAV_ZH: Record<string, string> = {
+  Pipeline: "流程",
+  Results: "成果",
+  Worlds: "世界",
+  Features: "功能",
+  "Lux3D bench": "Lux3D 测试台",
+  Docs: "文档",
+  Home: "首页",
+  Studio: "创作台",
+  MCP: "MCP",
+  Report: "报告",
+};
+
+function Label({ l }: { l: NavLink }) {
+  return <T en={l.label} zh={l.zh ?? NAV_ZH[l.label] ?? l.label} />;
 }
 
 /**
@@ -43,19 +63,16 @@ export default function SiteNav({
               {links.map((l) =>
                 l.href === current ? (
                   <span key={l.href} className="px-3 py-1.5 text-[13px] text-ink">
-                    {l.label}
+                    <Label l={l} />
                   </span>
                 ) : (
                   <Link key={l.href} href={l.href} className="px-3 py-1.5 text-[13px] text-ink-2 transition-colors hover:text-ink">
-                    {l.label}
+                    <Label l={l} />
                   </Link>
                 )
               )}
             </div>
-            <Link href="/report" className="btn btn-sm ml-2 max-[900px]:hidden">
-              <Glyph name="doc" size={14} />
-              Report
-            </Link>
+            <LangSwitch size="sm" className="ml-2" />
             <BurgerButton open={open} onClick={() => setOpen((o) => !o)} />
           </div>
         </nav>
@@ -67,10 +84,10 @@ export default function SiteNav({
         footer={
           <div className="grid gap-2">
             <Link href="/studio" onClick={close} className="btn btn-primary btn-lg w-full">
-              Launch App
+              <T en="Launch App" zh="启动应用" />
             </Link>
             <Link href="/report" onClick={close} className="btn btn-lg w-full">
-              Project report
+              <T en="Project report" zh="项目报告" />
             </Link>
           </div>
         }
@@ -84,15 +101,15 @@ export default function SiteNav({
               aria-current={l.href === current ? "page" : undefined}
               className="drawer-link"
             >
-              {l.label}
+              <Label l={l} />
             </Link>
           ))}
           <Link href="/mcp" onClick={close} className="drawer-link">
-            MCP hub
+            <T en="MCP hub" zh="MCP 中心" />
           </Link>
           {!links.some((l) => l.href === "/docs") && (
             <Link href="/docs" onClick={close} className="drawer-link">
-              Docs
+              <T en="Docs" zh="文档" />
             </Link>
           )}
         </nav>

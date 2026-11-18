@@ -57,6 +57,8 @@ export interface AholoWorldPreset {
   id: string;
   code: string;
   title: string;
+  /** 简体中文 title for the 中 / EN switch */
+  titleZh?: string;
   subtitle: string;
   category: "Indoor" | "Outdoor" | "Architecture" | "Object";
   sourceEngine: string;
@@ -421,6 +423,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
     id: "smart-loft-indoor",
     code: "WORLD-01",
     title: "Designer Smart Loft",
+    titleZh: "设计师智能公寓",
     subtitle: "Indoor apartment · .spz splat · voxel collision",
     category: "Indoor",
     sourceEngine: "Hosted .spz scene",
@@ -475,6 +478,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
     id: "juguo-urban-plaza",
     code: "WORLD-02",
     title: "Juguo Urban Plaza",
+    titleZh: "聚果城市广场",
     subtitle: "Outdoor plaza · 41.8M-splat chunk-LOD stream · .ply sky · voxel collision",
     category: "Outdoor",
     sourceEngine: "Hosted chunk-LOD stream + .ply sky",
@@ -522,6 +526,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
     id: "huochezhan-concourse",
     code: "WORLD-03",
     title: "Grand Transit Concourse",
+    titleZh: "交通枢纽大厅",
     subtitle: "Rail concourse · 32.7M-splat chunk-LOD stream · .sog environment",
     category: "Architecture",
     sourceEngine: "Hosted chunk-LOD stream + .sog environment",
@@ -567,6 +572,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
     id: "sculpted-bear-studio",
     code: "WORLD-04",
     title: "Object Turntable",
+    titleZh: "物体转台",
     subtitle: "Object capture · .sog splat",
     category: "Object",
     sourceEngine: "Hosted .sog object capture",
@@ -608,6 +614,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
     id: "spatialgen-coffee-bar",
     code: "WORLD-05",
     title: "Coffee Bar · SpatialGen",
+    titleZh: "咖啡吧 · SpatialGen",
     subtitle: "Generated from one prompt with Aholo SpatialGen (world 3FO4K4V99KMD)",
     category: "Indoor",
     sourceEngine: "Aholo SpatialGen · world.generations.create",

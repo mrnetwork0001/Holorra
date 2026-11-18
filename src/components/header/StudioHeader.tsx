@@ -7,6 +7,8 @@ import { AHOLO_WORLD_PRESETS, type AholoWorldPreset } from "@/config/aholo-prese
 import { Glyph } from "@/components/brand/Glyph";
 import { Logo } from "@/components/brand/Logo";
 import { BurgerButton } from "@/components/brand/MobileDrawer";
+import LangSwitch, { useLang } from "@/components/brand/LangSwitch";
+import { T, tx } from "@/lib/i18n";
 
 export interface StudioHeaderProps {
   /** ≤ 900px: burger that opens the docks drawer (state owned by the page) */
@@ -25,15 +27,15 @@ export interface StudioHeaderProps {
 }
 
 const NAV = [
-  { href: "/studio", label: "Studio" },
-  { href: "/report", label: "Report" },
-  { href: "/mcp", label: "MCP" },
-  { href: "/docs", label: "Docs" },
+  { href: "/studio", label: "Studio", zh: "创作台" },
+  { href: "/report", label: "Report", zh: "报告" },
+  { href: "/mcp", label: "MCP", zh: "MCP" },
+  { href: "/docs", label: "Docs", zh: "文档" },
 ];
 
-const REGIONS: { id: "com" | "cn"; label: string; host: string }[] = [
-  { id: "com", label: "Global", host: "api.aholo.ai" },
-  { id: "cn", label: "China", host: "api.aholo.cn" },
+const REGIONS: { id: "com" | "cn"; label: string; zh: string; host: string }[] = [
+  { id: "com", label: "Global", zh: "全球", host: "api.aholo.ai" },
+  { id: "cn", label: "China", zh: "中国", host: "api.aholo.cn" },
 ];
 
 export default function StudioHeader({
@@ -51,6 +53,7 @@ export default function StudioHeader({
   onToggleMenu,
 }: StudioHeaderProps) {
   const pathname = usePathname();
+  const lang = useLang();
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [showRenderPopover, setShowRenderPopover] = useState(false);
   const [draftKey, setDraftKey] = useState(apiKey);
@@ -75,7 +78,9 @@ export default function StudioHeader({
         {/* World switcher, phone / tablet: compact native select (16px, no iOS zoom) */}
         {isStudio && (
           <label className="relative min-w-0 flex-1 min-[901px]:hidden">
-            <span className="sr-only">World</span>
+            <span className="sr-only">
+              <T en="World" zh="世界" />
+            </span>
             <select
               value={activeWorldPreset.id}
               onChange={(e) => {
@@ -86,7 +91,7 @@ export default function StudioHeader({
             >
               {AHOLO_WORLD_PRESETS.map((preset) => (
                 <option key={preset.id} value={preset.id}>
-                  {preset.code.replace("WORLD-", "")} · {preset.title}
+                  {preset.code.replace("WORLD-", "")} · {lang === "zh" && preset.titleZh ? preset.titleZh : preset.title}
                 </option>
               ))}
             </select>
@@ -124,7 +129,9 @@ export default function StudioHeader({
                   <span className={`font-mono text-[11px] tabular ${active ? "text-accent" : "text-ink-3"}`}>
                     {preset.code.replace("WORLD-", "")}
                   </span>
-                  <span className="hidden xl:inline">{preset.title}</span>
+                  <span className="hidden xl:inline">
+                    <T en={preset.title} zh={preset.titleZh ?? preset.title} />
+                  </span>
                 </button>
               );
             })}
@@ -142,7 +149,7 @@ export default function StudioHeader({
                   pathname === n.href ? "text-ink" : "text-ink-3 hover:text-ink"
                 }`}
               >
-                {n.label}
+                <T en={n.label} zh={n.zh} />
               </Link>
             ))}
           </nav>
@@ -155,17 +162,21 @@ export default function StudioHeader({
                 type="button"
                 onClick={() => setShowRenderPopover(!showRenderPopover)}
                 aria-expanded={showRenderPopover}
-                title="Splat rendering settings"
+                title={tx(lang, { en: "Splat rendering settings", zh: "高斯点渲染设置" })}
                 className="btn btn-sm btn-ghost"
               >
                 <Glyph name="sliders" size={15} />
-                <span className="hidden xl:inline">Render</span>
+                <span className="hidden xl:inline">
+                  <T en="Render" zh="渲染" />
+                </span>
               </button>
 
               {showRenderPopover && (
                 <div className="panel absolute right-0 top-full z-50 mt-2 w-64 p-3 shadow-[0_12px_32px_rgba(0,0,0,0.5)]">
                   <div className="mb-3 flex items-center justify-between">
-                    <span className="label">Splat rendering</span>
+                    <span className="label">
+                      <T en="Splat rendering" zh="高斯点渲染" />
+                    </span>
                     <button
                       type="button"
                       onClick={() => setShowRenderPopover(false)}
@@ -178,7 +189,9 @@ export default function StudioHeader({
                   <div className="space-y-3 text-[13px]">
                     <div>
                       <div className="mb-1.5 flex justify-between text-ink-2">
-                        <span>Exposure</span>
+                        <span>
+                          <T en="Exposure" zh="曝光" />
+                        </span>
                         <span className="font-mono text-ink tabular">{splatExposure.toFixed(2)}</span>
                       </div>
                       <input
@@ -192,7 +205,9 @@ export default function StudioHeader({
                       />
                     </div>
                     <label className="flex cursor-pointer items-center justify-between text-ink-2">
-                      <span>Radial depth sort</span>
+                      <span>
+                        <T en="Radial depth sort" zh="径向深度排序" />
+                      </span>
                       <input
                         type="checkbox"
                         checked={radialSort}
@@ -214,12 +229,20 @@ export default function StudioHeader({
               setShowKeyModal(true);
             }}
             className="btn btn-sm"
-            title={isKeyConfigured ? "Aholo API key is set" : "Add an Aholo API key for live jobs"}
+            title={
+              isKeyConfigured
+                ? tx(lang, { en: "Aholo API key is set", zh: "已设置 Aholo API 密钥" })
+                : tx(lang, { en: "Add an Aholo API key for live jobs", zh: "添加 Aholo API 密钥以运行实时任务" })
+            }
           >
             <span className={`dot ${isKeyConfigured ? "dot-ok" : ""}`} />
             <span className="font-mono text-[11px] text-ink-2">{region.toUpperCase()}</span>
-            <span className="hidden md:inline">{isKeyConfigured ? "Key set" : "API key"}</span>
+            <span className="hidden md:inline">
+              {isKeyConfigured ? <T en="Key set" zh="密钥已设置" /> : <T en="API key" zh="API 密钥" />}
+            </span>
           </button>
+
+          <LangSwitch size="sm" className="ml-1" />
 
           {onToggleMenu && <BurgerButton open={menuOpen} onClick={onToggleMenu} label="Studio panels" />}
         </div>
@@ -237,7 +260,7 @@ export default function StudioHeader({
             <div className="mb-2 flex items-center justify-between">
               <h3 id="aholo-key-title" className="flex items-center gap-2 text-[15px] font-semibold text-ink">
                 <Glyph name="key" size={16} className="text-ink-2" />
-                Aholo API key
+                <T en="Aholo API key" zh="Aholo API 密钥" />
               </h3>
               <button
                 type="button"
@@ -250,15 +273,31 @@ export default function StudioHeader({
             </div>
 
             <p className="mb-5 text-[13px] leading-relaxed text-ink-2">
-              The hosted worlds work without a key. Add one to send live SpatialGen, Reality and Lux3D jobs to
-              your own account. It&apos;s kept in this browser and sent with each request as{" "}
-              <code className="font-mono text-[12px] text-ink">x-aholo-api-key</code>. A server key in{" "}
-              <code className="font-mono text-[12px] text-ink">.env.local</code> also works.
+              <T
+                en={
+                  <>
+                    The hosted worlds work without a key. Add one to send live SpatialGen, Reality and Lux3D jobs to
+                    your own account. It&apos;s kept in this browser and sent with each request as{" "}
+                    <code className="font-mono text-[12px] text-ink">x-aholo-api-key</code>. A server key in{" "}
+                    <code className="font-mono text-[12px] text-ink">.env.local</code> also works.
+                  </>
+                }
+                zh={
+                  <>
+                    托管世界无需密钥即可使用。添加密钥后，可以用你自己的账户发送实时 SpatialGen、Reality 和 Lux3D
+                    任务。密钥只保存在本浏览器中，每次请求通过{" "}
+                    <code className="font-mono text-[12px] text-ink">x-aholo-api-key</code> 发送。也可以在{" "}
+                    <code className="font-mono text-[12px] text-ink">.env.local</code> 中配置服务端密钥。
+                  </>
+                }
+              />
             </p>
 
             <div className="space-y-4">
               <div>
-                <div className="label mb-1.5">Region</div>
+                <div className="label mb-1.5">
+                  <T en="Region" zh="区域" />
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                   {REGIONS.map((r) => {
                     const active = draftRegion === r.id;
@@ -273,7 +312,7 @@ export default function StudioHeader({
                         }`}
                       >
                         <div className="flex items-center justify-between text-[13px] text-ink">
-                          {r.label}
+                          <T en={r.label} zh={r.zh} />
                           <span className="font-mono text-[11px] text-ink-3">{r.id.toUpperCase()}</span>
                         </div>
                         <div className="font-mono text-[11px] text-ink-3">{r.host}</div>
@@ -285,14 +324,18 @@ export default function StudioHeader({
 
               <div>
                 <label htmlFor="aholo-key" className="label mb-1.5 block">
-                  Key
+                  <T en="Key" zh="密钥" />
                 </label>
                 <input
                   id="aholo-key"
                   type="password"
                   value={draftKey}
                   onChange={(e) => setDraftKey(e.target.value)}
-                  placeholder={hasServerKey ? "Server key active — optional override" : "Paste the raw key, no “Bearer”"}
+                  placeholder={
+                    hasServerKey
+                      ? tx(lang, { en: "Server key active, optional override", zh: "服务端密钥已生效，可选覆盖" })
+                      : tx(lang, { en: "Paste the raw key, no “Bearer”", zh: "粘贴原始密钥，不要加 “Bearer”" })
+                  }
                   className="field font-mono"
                   autoComplete="off"
                 />
@@ -305,7 +348,7 @@ export default function StudioHeader({
                   rel="noreferrer"
                   className="inline-flex items-center gap-1 text-ink-2 hover:text-ink"
                 >
-                  Get a key at labs.aholo.ai
+                  <T en="Get a key at labs.aholo.ai" zh="在 labs.aholo.ai 获取密钥" />
                   <Glyph name="external" size={12} />
                 </a>
                 <a
@@ -314,14 +357,14 @@ export default function StudioHeader({
                   rel="noreferrer"
                   className="inline-flex items-center gap-1 text-ink-2 hover:text-ink"
                 >
-                  Lux3D portal
+                  <T en="Lux3D portal" zh="Lux3D 官网" />
                   <Glyph name="external" size={12} />
                 </a>
               </div>
 
               <div className="flex items-center justify-end gap-2 border-t border-line pt-4">
                 <button type="button" onClick={() => setShowKeyModal(false)} className="btn btn-sm btn-ghost">
-                  Cancel
+                  <T en="Cancel" zh="取消" />
                 </button>
                 <button
                   type="button"
@@ -331,7 +374,7 @@ export default function StudioHeader({
                   }}
                   className="btn btn-sm btn-primary"
                 >
-                  Save
+                  <T en="Save" zh="保存" />
                 </button>
               </div>
             </div>
