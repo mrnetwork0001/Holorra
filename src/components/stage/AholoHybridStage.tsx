@@ -1823,7 +1823,7 @@ export default function AholoHybridStage({
           </span>
         </div>
 
-        {play.active && (
+        {play.active && !play.wrapped && (
           <div className="pointer-events-auto w-64 rounded-[6px] border border-line bg-surface/95 p-2.5 max-[900px]:w-auto max-[900px]:max-w-[calc(100vw-24px)]">
             <div className="flex items-center justify-between">
               <span className="label">
@@ -2139,7 +2139,7 @@ export default function AholoHybridStage({
 
       {/* Quest complete */}
       {play.wrapped && (
-        <div className="absolute left-1/2 top-16 z-20 w-[min(360px,calc(100%-24px))] -translate-x-1/2 rounded-[8px] border border-line bg-surface/95 p-4 text-center max-[900px]:top-14">
+        <div className="absolute left-1/2 top-[88px] z-20 w-[min(360px,calc(100%-24px))] -translate-x-1/2 rounded-[8px] border border-line bg-surface/95 p-4 text-center max-[900px]:top-14">
           <div className="font-mono text-[11px] text-accent">
             <T en="SCENE WRAPPED" zh="本场杀青" />
           </div>
