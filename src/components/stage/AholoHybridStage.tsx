@@ -1445,8 +1445,8 @@ export default function AholoHybridStage({
       <div ref={containerRef} className="h-full w-full cursor-grab touch-none active:cursor-grabbing" />
 
       {/* Top-left: telemetry */}
-      <div className="pointer-events-none absolute left-3 top-3 z-20 flex flex-col items-start gap-1.5 max-[900px]:left-2 max-[900px]:top-2">
-        <div className="flex h-7 items-center gap-2.5 rounded-[6px] border border-line bg-surface/95 px-2.5 font-mono text-[11px] text-ink-2 tabular max-[900px]:h-10">
+      <div className="pointer-events-none absolute left-3 top-3 z-20 flex flex-col items-start gap-1.5 max-[900px]:left-2 max-[900px]:top-[58px]">
+        <div className="flex h-7 items-center gap-2.5 rounded-[6px] border border-line bg-surface/95 px-2.5 font-mono text-[11px] text-ink-2 tabular max-[900px]:h-8 max-[600px]:hidden">
           <span className="flex items-center gap-1.5 text-ink">
             <span className={`dot ${isReady ? "dot-live" : ""}`} />
             {fps} fps
@@ -1532,7 +1532,7 @@ export default function AholoHybridStage({
       </div>
 
       {/* Top-right: camera mode + keyframe capture */}
-      <div className="absolute right-3 top-3 z-20 flex items-center gap-1.5 max-[900px]:right-2 max-[900px]:top-2">
+      <div className="absolute right-3 top-3 z-20 flex items-center gap-1.5 max-[900px]:left-2 max-[900px]:right-2 max-[900px]:top-2 max-[900px]:flex-wrap max-[900px]:justify-end">
         <button
           type="button"
           onClick={play.active ? stopPlay : startPlay}
@@ -1544,10 +1544,11 @@ export default function AholoHybridStage({
                   zh: "游玩：操控 Lux3D 角色完成一段简短的场景任务",
                 })
           }
-          className={`btn btn-sm h-8 max-[900px]:h-10 ${play.active ? "border-line bg-surface/95" : "btn-primary"}`}
+          aria-label={play.active ? tx(lang, { en: "Exit play mode", zh: "退出游玩" }) : tx(lang, { en: "Play", zh: "游玩" })}
+          className={`btn btn-sm h-8 max-[900px]:h-10 max-[400px]:w-10 max-[400px]:justify-center max-[400px]:px-0 ${play.active ? "border-line bg-surface/95" : "btn-primary"}`}
         >
           <Glyph name={play.active ? "stop" : "play"} size={11} />
-          {play.active ? <T en="Exit" zh="退出" /> : <T en="Play" zh="游玩" />}
+          <span className="max-[400px]:hidden">{play.active ? <T en="Exit" zh="退出" /> : <T en="Play" zh="游玩" />}</span>
         </button>
         <div
           role="radiogroup"
