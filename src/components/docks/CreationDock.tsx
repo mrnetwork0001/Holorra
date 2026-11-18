@@ -1,7 +1,7 @@
 "use client";
 
 import type { ActorId } from "@/config/aholo-presets";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   AHOLO_WORLD_PRESETS,
   LUX3D_HERO_BLUEPRINTS,
@@ -11,6 +11,7 @@ import {
 } from "@/config/aholo-presets";
 import type { PartOverrideState } from "@/components/stage/AholoHybridStage";
 import { Glyph, type GlyphName } from "@/components/brand/Glyph";
+import type { PendingJob } from "@/lib/spawned-assets";
 
 export interface ApiReceiptLog {
   id: string;
@@ -20,6 +21,28 @@ export interface ApiReceiptLog {
   taskIdOrWorldId: string;
   statusLabel: string;
   executionMode: string;
+}
+
+/** A Lux3D generation the studio should follow until its model can drop into the stage. */
+export interface SubmittedJob {
+  taskId: number;
+  label: string;
+  method: string;
+  /** true when the job really went to the Aholo cloud (not a no-key preview) */
+  live: boolean;
+}
+
+/** First words of a prompt, for labels on the stage and in the dock. */
+export function shortLabel(prompt: string, max = 48) {
+  const t = prompt.trim().replace(/\s+/g, " ");
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max);
+  return `${cut.slice(0, Math.max(cut.lastIndexOf(" "), 24))}…`;
+}
+
+function mmss(ms: number) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 }
 
 export interface CreationDockProps {
@@ -36,6 +59,10 @@ export interface CreationDockProps {
   onAddReceipt: (receipt: ApiReceiptLog) => void;
   apiKey: string;
   region: "com" | "cn";
+  /** called after a Text to 3D job is accepted (live or preview) */
+  onJobSubmitted?: (job: SubmittedJob) => void;
+  /** live jobs the studio is polling, shown under the Text to 3D button */
+  pendingJobs?: PendingJob[];
 }
 
 /* ---------------------------------------------------------------------------
@@ -196,6 +223,8 @@ export default function CreationDock({
   onAddReceipt,
   apiKey,
   region,
+  onJobSubmitted,
+  pendingJobs = [],
 }: CreationDockProps) {
   const [activeTab, setActiveTab] = useState<"world" | "lux3d" | "scene">("lux3d");
 
@@ -228,6 +257,14 @@ export default function CreationDock({
     "3mf",
   ]);
   const [isSubmittingLux, setIsSubmittingLux] = useState(false);
+
+  // tick once a second while jobs are running so the elapsed timers move
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (pendingJobs.length === 0) return;
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [pendingJobs.length]);
 
   const buildHeaders = () => {
     const h: Record<string, string> = {
@@ -315,7 +352,15 @@ export default function CreationDock({
           statusLabel: data.status === 3 ? "SUCCEEDED (3)" : "RUNNING (1)",
           executionMode: data.executionMode,
         });
-        if (data.matchedBlueprintId && LUX3D_HERO_BLUEPRINTS[data.matchedBlueprintId]) {
+        if (operation === "textTo3d" && data.taskId != null) {
+          // the studio follows the job and drops the finished model into the stage
+          onJobSubmitted?.({
+            taskId: Number(data.taskId),
+            label: shortLabel(luxPrompt),
+            method: data.sdkMethod || "lux3d.textTo3d.create",
+            live: data.executionMode === "LIVE_AHOLO_CLOUD_SDK",
+          });
+        } else if (data.matchedBlueprintId && LUX3D_HERO_BLUEPRINTS[data.matchedBlueprintId]) {
           onSelectHeroBlueprint(LUX3D_HERO_BLUEPRINTS[data.matchedBlueprintId]);
         }
       }
@@ -587,6 +632,29 @@ export default function CreationDock({
                     busy={isSubmittingLux}
                   />
                 </div>
+                {pendingJobs.length > 0 && (
+                  <ul className="space-y-1.5" aria-live="polite">
+                    {pendingJobs.map((j) => {
+                      const failed = j.status === "failed";
+                      return (
+                        <li key={j.taskId} className="card px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            <Glyph
+                              name={failed ? "cross" : "loader"}
+                              size={13}
+                              className={failed ? "text-err" : "text-accent"}
+                            />
+                            <span className="min-w-0 flex-1 truncate text-[12px] text-ink">{j.label}</span>
+                            <span className="font-mono text-[11px] text-ink-2 tabular">{mmss(now - j.startedAt)}</span>
+                          </div>
+                          <div className="mt-1 truncate font-mono text-[10.5px] text-ink-3">
+                            {failed ? `task ${j.taskId} · failed` : `task ${j.taskId} · drops into the stage when ready`}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </div>
             </Section>
 

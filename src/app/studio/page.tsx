@@ -1,7 +1,7 @@
 "use client";
 
 import type { ActorId } from "@/config/aholo-presets";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import {
   AHOLO_WORLD_PRESETS,
@@ -17,13 +17,14 @@ import type {
 } from "@/components/stage/AholoHybridStage";
 import Link from "next/link";
 import StudioHeader from "@/components/header/StudioHeader";
-import CreationDock, { type ApiReceiptLog } from "@/components/docks/CreationDock";
+import CreationDock, { type ApiReceiptLog, type SubmittedJob } from "@/components/docks/CreationDock";
 import InspectorDock from "@/components/docks/InspectorDock";
 import LuxRealTimeline from "@/components/docks/LuxRealTimeline";
 import { MobileDrawer } from "@/components/brand/MobileDrawer";
 import { Glyph } from "@/components/brand/Glyph";
 import type { CameraKeyframe } from "@/lib/luxreal-exporter";
 import type { DirectorStageMutation } from "@/app/api/aholo/director/route";
+import type { PendingJob, SpawnedAsset } from "@/lib/spawned-assets";
 
 const AholoHybridStage = dynamic(
   () => import("@/components/stage/AholoHybridStage"),
@@ -45,11 +46,32 @@ function useIsMobile() {
   return mobile;
 }
 
+/** Without an API key, Text to 3D drops this stored real Lux3D result instead (labelled as cached). */
+const CACHED_LUX3D_RESULT = {
+  url: "/assets/lux3d/espresso-g1turbo.glb",
+  label: "Cached Lux3D result · task 8353472 (no API key)",
+  source: "cached" as const,
+};
+
+/** The finished task's GLB: an https output URL ending in .glb (JSON outputs are ignored). */
+function pickGlbUrl(outputs: unknown): string | null {
+  if (!Array.isArray(outputs)) return null;
+  const urls = outputs
+    .map((o) =>
+      o && typeof o === "object" && typeof (o as { content?: unknown }).content === "string"
+        ? (o as { content: string }).content.trim()
+        : ""
+    )
+    .filter((c) => /^https:\/\//i.test(c));
+  return urls.find((u) => u.split("?")[0].toLowerCase().endsWith(".glb")) ?? null;
+}
+
 const DRAWER_LINKS = [
   { href: "/", label: "Home", glyph: "back" as const },
   { href: "/lab", label: "Lux3D bench", glyph: "mesh" as const },
   { href: "/report", label: "Report", glyph: "doc" as const },
   { href: "/mcp", label: "MCP hub", glyph: "plug" as const },
+  { href: "/docs", label: "Docs", glyph: "doc" as const },
 ];
 
 export default function HolorraStudioPage() {
@@ -113,10 +135,10 @@ export default function HolorraStudioPage() {
       id: "boot-rig",
       timestamp: "BOOT",
       sdkPackage: "@manycore/aholo-viewer@1.14.0",
-      sdkMethod: "GLTFLoader.loadGLTF (pre-rigged actor)",
-      taskIdOrWorldId: "robot.0765006a.glb (idle / walk / fall)",
+      sdkMethod: "GLTFLoader.loadGLTF (Lux3D rigged actor)",
+      taskIdOrWorldId: "character-animated.glb (retarget task 8359816 · 8 clips)",
       statusLabel: "LOADED",
-      executionMode: "MANYCORE_OSS_CDN",
+      executionMode: "LUX3D_RESULT",
     },
   ]);
 
@@ -152,6 +174,15 @@ export default function HolorraStudioPage() {
     setIsPlayingSpline(false);
   }, []);
 
+  // Deep links from the landing page: /studio?world=<preset id> and /studio?play=1
+  const [autoPlay, setAutoPlay] = useState(false);
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const preset = AHOLO_WORLD_PRESETS.find((w) => w.id === q.get("world"));
+    if (preset) handleSelectWorldPreset(preset);
+    if (q.get("play") === "1") setAutoPlay(true);
+  }, [handleSelectWorldPreset]);
+
   const handleTogglePartVisible = useCallback((partId: string) => {
     setPartOverrides((prev) => {
       const cur = prev[partId] ?? { visible: true };
@@ -181,6 +212,122 @@ export default function HolorraStudioPage() {
   const handleAddReceipt = useCallback((receipt: ApiReceiptLog) => {
     setReceipts((prev) => [receipt, ...prev.slice(0, 24)]);
   }, []);
+
+  // ---------------------------------------------------------------- generate → drops into the stage
+  const [pendingJobs, setPendingJobs] = useState<PendingJob[]>([]);
+  const [spawnedAssets, setSpawnedAssets] = useState<SpawnedAsset[]>([]);
+  const pendingJobsRef = useRef(pendingJobs);
+  pendingJobsRef.current = pendingJobs;
+  const handledTasksRef = useRef<Set<number>>(new Set());
+  const timersRef = useRef<number[]>([]);
+  useEffect(() => () => timersRef.current.forEach((t) => window.clearTimeout(t)), []);
+  const later = useCallback((fn: () => void, ms: number) => {
+    timersRef.current.push(window.setTimeout(fn, ms));
+  }, []);
+
+  const handleJobSubmitted = useCallback(
+    (job: SubmittedJob) => {
+      if (job.live) {
+        setPendingJobs((prev) =>
+          prev.some((p) => p.taskId === job.taskId)
+            ? prev
+            : [...prev, { taskId: job.taskId, label: job.label, method: job.method, startedAt: Date.now(), status: "running" }]
+        );
+        return;
+      }
+      // No API key: the preview drops a stored real Lux3D result, and says so.
+      later(() => {
+        setSpawnedAssets((prev) => [...prev, { id: `cached-${Date.now()}`, ...CACHED_LUX3D_RESULT }]);
+        handleAddReceipt({
+          id: `rcpt_${Date.now()}`,
+          timestamp: new Date().toLocaleTimeString(),
+          sdkPackage: "@manycore/aholo-viewer@1.14.0",
+          sdkMethod: "GLTFLoader.loadGLTF (cached Lux3D result)",
+          taskIdOrWorldId: "task_8353472 · cached result dropped (no API key)",
+          statusLabel: "DROPPED · no API key",
+          executionMode: "INSTANT_STAGE_BLUEPRINT",
+        });
+      }, 2500);
+    },
+    [handleAddReceipt, later]
+  );
+
+  // Poll live jobs every 10 s with the same BYOK headers the docks send.
+  const hasRunningJobs = pendingJobs.some((j) => j.status === "running");
+  useEffect(() => {
+    if (!hasRunningJobs) return;
+    let cancelled = false;
+    const headers: Record<string, string> = { "x-aholo-region": region };
+    if (apiKey) headers["x-aholo-api-key"] = apiKey;
+
+    const fail = (job: PendingJob, why: string) => {
+      setPendingJobs((prev) => prev.map((p) => (p.taskId === job.taskId ? { ...p, status: "failed" } : p)));
+      handleAddReceipt({
+        id: `rcpt_${Date.now()}_${job.taskId}`,
+        timestamp: new Date().toLocaleTimeString(),
+        sdkPackage: "@manycore/aholo-sdk-lux3d@1.10.0",
+        sdkMethod: "lux3d.tasks.retrieve",
+        taskIdOrWorldId: `task_${job.taskId} · ${why.toLowerCase()}`,
+        statusLabel: why,
+        executionMode: "LIVE_AHOLO_CLOUD_SDK",
+      });
+      later(() => setPendingJobs((prev) => prev.filter((p) => p.taskId !== job.taskId)), 8000);
+    };
+
+    const poll = async () => {
+      for (const job of pendingJobsRef.current.filter((j) => j.status === "running")) {
+        if (handledTasksRef.current.has(job.taskId)) continue;
+        try {
+          const d = await (await fetch(`/api/aholo/tasks?taskId=${job.taskId}`, { headers })).json();
+          const task = d?.task;
+          if (cancelled || !task) continue;
+          if (task.status === 3) {
+            handledTasksRef.current.add(job.taskId);
+            const glb = pickGlbUrl(task.outputs);
+            if (!glb) {
+              fail(job, "SUCCEEDED (3) · no GLB output");
+              continue;
+            }
+            setSpawnedAssets((prev) =>
+              prev.some((a) => a.id === `task-${job.taskId}`)
+                ? prev
+                : [
+                    ...prev,
+                    {
+                      id: `task-${job.taskId}`,
+                      url: `/api/aholo/asset?url=${encodeURIComponent(glb)}`,
+                      label: job.label,
+                      source: "live",
+                      taskId: job.taskId,
+                    },
+                  ]
+            );
+            setPendingJobs((prev) => prev.filter((p) => p.taskId !== job.taskId));
+            handleAddReceipt({
+              id: `rcpt_${Date.now()}_${job.taskId}`,
+              timestamp: new Date().toLocaleTimeString(),
+              sdkPackage: "@manycore/aholo-sdk-lux3d@1.10.0",
+              sdkMethod: "lux3d.tasks.retrieve",
+              taskIdOrWorldId: `task_${job.taskId} · done, dropped into stage`,
+              statusLabel: "SUCCEEDED (3) · dropped into stage",
+              executionMode: "LIVE_AHOLO_CLOUD_SDK",
+            });
+          } else if (task.status === 4 || task.status === 6) {
+            handledTasksRef.current.add(job.taskId);
+            fail(job, task.status === 4 ? "FAILED (4)" : "CANCELED (6)");
+          }
+        } catch {
+          // transient network error: try again on the next tick
+        }
+      }
+    };
+    void poll();
+    const id = window.setInterval(poll, 10_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, [hasRunningJobs, apiKey, region, handleAddReceipt, later]);
 
   const handleCaptureKeyframe = useCallback(
     (pose: {
@@ -281,6 +428,8 @@ export default function HolorraStudioPage() {
       onAddReceipt={handleAddReceipt}
       apiKey={apiKey}
       region={region}
+      onJobSubmitted={thenClose(handleJobSubmitted)}
+      pendingJobs={pendingJobs}
     />
   );
 
@@ -417,6 +566,9 @@ export default function HolorraStudioPage() {
               onCaptureKeyframe={handleCaptureKeyframe}
               splatExposure={splatExposure}
               radialSort={radialSort}
+              spawnedAssets={spawnedAssets}
+              pendingJobs={pendingJobs}
+              autoPlay={autoPlay}
             />
           </div>
 
