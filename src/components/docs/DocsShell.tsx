@@ -6,12 +6,14 @@ import { useCallback, useEffect, useState } from "react";
 import { Logo } from "@/components/brand/Logo";
 import { BurgerButton, MobileDrawer } from "@/components/brand/MobileDrawer";
 import { DOC_GROUPS, REPO_URL } from "@/components/docs/nav";
+import LangSwitch from "@/components/brand/LangSwitch";
+import { T } from "@/lib/i18n";
 
 const TOP_LINKS = [
-  { label: "App", href: "/studio" },
-  { label: "Bench", href: "/lab" },
-  { label: "Report", href: "/report" },
-  { label: "GitHub", href: REPO_URL, external: true },
+  { label: "App", zh: "应用", href: "/studio" },
+  { label: "Bench", zh: "测试台", href: "/lab" },
+  { label: "Report", zh: "报告", href: "/report" },
+  { label: "GitHub", zh: "GitHub", href: REPO_URL, external: true },
 ];
 
 function SideNav({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
@@ -19,7 +21,9 @@ function SideNav({ pathname, onNavigate }: { pathname: string; onNavigate?: () =
     <nav aria-label="Documentation" className="space-y-8">
       {DOC_GROUPS.map((g) => (
         <div key={g.label}>
-          <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent/80">{g.label}</div>
+          <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent/80">
+            <T en={g.label} zh={g.zh} />
+          </div>
           <ul className="mt-3 border-l border-line">
             {g.items.map((d) => {
               const active = pathname === d.href;
@@ -35,7 +39,7 @@ function SideNav({ pathname, onNavigate }: { pathname: string; onNavigate?: () =
                         : "border-transparent text-ink-2 hover:border-line-strong hover:text-ink"
                     }`}
                   >
-                    {d.title}
+                    <T en={d.title} zh={d.zh.title} />
                   </Link>
                 </li>
               );
@@ -69,7 +73,7 @@ export default function DocsShell({ children }: { children: React.ReactNode }) {
           </Link>
           <span className="h-6 w-px bg-line" />
           <Link href="/docs" className="font-mono text-[11px] uppercase tracking-[0.24em] text-ink-3 hover:text-ink">
-            Docs
+            <T en="Docs" zh="文档" />
           </Link>
           <nav aria-label="Site" className="ml-auto hidden items-center gap-8 min-[901px]:flex">
             {TOP_LINKS.map((l) =>
@@ -81,16 +85,18 @@ export default function DocsShell({ children }: { children: React.ReactNode }) {
                   rel="noreferrer"
                   className="font-mono text-[12px] uppercase tracking-[0.2em] text-ink-2 hover:text-accent"
                 >
-                  {l.label}
+                  <T en={l.label} zh={l.zh} />
                 </a>
               ) : (
                 <Link key={l.label} href={l.href} className="font-mono text-[12px] uppercase tracking-[0.2em] text-ink-2 hover:text-accent">
-                  {l.label}
+                  <T en={l.label} zh={l.zh} />
                 </Link>
               )
             )}
+            <LangSwitch size="sm" />
           </nav>
-          <div className="ml-auto min-[901px]:hidden">
+          <div className="ml-auto flex items-center gap-2 min-[901px]:hidden">
+            <LangSwitch size="sm" />
             <BurgerButton open={drawer} onClick={() => setDrawer((d) => !d)} label="Docs menu" />
           </div>
         </div>
@@ -102,10 +108,10 @@ export default function DocsShell({ children }: { children: React.ReactNode }) {
         footer={
           <div className="grid grid-cols-2 gap-2">
             <Link href="/studio" className="btn btn-primary" onClick={close}>
-              Launch App
+              <T en="Launch App" zh="启动应用" />
             </Link>
             <Link href="/report" className="btn" onClick={close}>
-              Report
+              <T en="Report" zh="报告" />
             </Link>
           </div>
         }

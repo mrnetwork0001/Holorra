@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { docNeighbours } from "@/components/docs/nav";
+import { T } from "@/lib/i18n";
 
 /** Building blocks for docs pages. Server components; plain markup, no client JS. */
 
-export function DocArticle({ href, title, lead, children }: { href: string; title: string; lead: React.ReactNode; children: React.ReactNode }) {
+export function DocArticle({ href, title, lead, children }: { href: string; title: React.ReactNode; lead: React.ReactNode; children: React.ReactNode }) {
   const { prev, next } = docNeighbours(href);
   return (
     <article className="max-w-[780px]">
@@ -13,16 +14,24 @@ export function DocArticle({ href, title, lead, children }: { href: string; titl
       <nav aria-label="Pager" className="mt-16 grid gap-4 border-t border-line pt-8 sm:grid-cols-2">
         {prev ? (
           <Link href={prev.href} className="group block">
-            <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-ink-3">Previous</div>
-            <div className="mt-1.5 text-[15px] text-ink-2 group-hover:text-accent">{prev.title}</div>
+            <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-ink-3">
+              <T en="Previous" zh="上一篇" />
+            </div>
+            <div className="mt-1.5 text-[15px] text-ink-2 group-hover:text-accent">
+              <T en={prev.title} zh={prev.zh.title} />
+            </div>
           </Link>
         ) : (
           <span />
         )}
         {next && (
           <Link href={next.href} className="group block sm:text-right">
-            <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-ink-3">Next</div>
-            <div className="mt-1.5 text-[15px] text-ink-2 group-hover:text-accent">{next.title}</div>
+            <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-ink-3">
+              <T en="Next" zh="下一篇" />
+            </div>
+            <div className="mt-1.5 text-[15px] text-ink-2 group-hover:text-accent">
+              <T en={next.title} zh={next.zh.title} />
+            </div>
           </Link>
         )}
       </nav>
@@ -98,6 +107,66 @@ export function KV({ rows }: { rows: [React.ReactNode, React.ReactNode][] }) {
   );
 }
 
+/** Column headers used across the docs, in 简体中文 (unknown headers stay as written). */
+const HEAD_ZH: Record<string, string> = {
+  "Task": "任务",
+  "Method": "方法",
+  "Result": "结果",
+  "Time": "耗时",
+  "World": "世界",
+  "Place": "位置",
+  "What is there": "内容",
+  "Field": "字段",
+  "Meaning": "含义",
+  "Input": "输入",
+  "Action": "操作",
+  "Area": "区域",
+  "What it holds": "包含什么",
+  "Key": "密钥",
+  "Lives in": "存放位置",
+  "Can": "可以",
+  "Can never": "永远不能",
+  "Variable": "变量",
+  "Default": "默认值",
+  "What it does": "作用",
+  "Joint": "关节",
+  "Type": "类型",
+  "Child link": "子连杆",
+  "Limit": "范围",
+  "Axis": "轴",
+  "Part": "部件",
+  "Our reading": "我们的判读",
+  "Triangles": "三角面",
+  "Clip in the file": "文件中的片段",
+  "Lux3D animation": "Lux3D 动作",
+  "Length": "时长",
+  "Used for": "用途",
+  "Group": "分组",
+  "Clips": "动作数",
+  "Examples": "示例",
+  "Route": "接口",
+  "Does": "作用",
+  "Header": "请求头",
+  "Operation": "操作",
+  "Fields": "字段",
+  "Rule": "规则",
+  "Value": "取值",
+  "In the app": "应用中",
+  "Status": "状态",
+  "Family": "类别",
+  "Tools": "工具",
+  "In the World tab": "在世界标签页",
+  "SDK call": "SDK 调用",
+  "Inputs": "输入",
+  "Asset": "资产",
+  "Native up axis": "原生朝上轴",
+  "What the stage does": "舞台如何处理",
+  "Source": "来源",
+  "Splats": "高斯点",
+  "Collision": "碰撞",
+  "Open": "打开"
+};
+
 /** Full table with a header row. Scrolls inside itself on narrow screens. */
 export function Table({ head, rows }: { head: string[]; rows: React.ReactNode[][] }) {
   return (
@@ -107,7 +176,7 @@ export function Table({ head, rows }: { head: string[]; rows: React.ReactNode[][
           <tr className="border-y border-line">
             {head.map((h) => (
               <th key={h} className="label px-3 py-2.5 font-medium first:pl-1">
-                {h}
+                <T en={h} zh={HEAD_ZH[h] ?? h} />
               </th>
             ))}
           </tr>
