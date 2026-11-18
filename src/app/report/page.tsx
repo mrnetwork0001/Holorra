@@ -1007,7 +1007,7 @@ export default function ProjectReportDeckPage() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <span className="font-mono text-[12px] text-ink-2">/studio · /lab · /mcp · #Manycorehackathon</span>
+              <span className="font-mono text-[12px] text-ink-2">holorra.xyz · /studio?play=1 · /lab · /docs · #Manycorehackathon</span>
               <Link href="/studio" className="no-print btn btn-primary btn-sm">
                 <T en="Open the studio" zh="打开创作台" />
               </Link>
