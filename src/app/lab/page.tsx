@@ -11,6 +11,7 @@ import {
   ESPRESSO_PARTS,
   ESPRESSO_PROMPT,
   LUX3D_RESULTS,
+  SPATIALGEN_RESULT as SG,
 } from "@/config/lux3d-results";
 
 export const metadata = {
@@ -62,6 +63,7 @@ export default function LabPage() {
           { label: "Studio", href: "/studio" },
           { label: "Lux3D bench", href: "/lab" },
           { label: "MCP", href: "/mcp" },
+          { label: "Docs", href: "/docs" },
         ]}
       />
 
@@ -116,6 +118,27 @@ export default function LabPage() {
                   <td className="py-3 pr-5 text-[13px] text-ink">Rig of attempt-1 courier</td>
                   <td className="py-3 pr-5 font-mono text-[12px] text-ink tabular">315 s</td>
                   <td className="py-3 pr-5 font-mono text-[12px] text-err">failed · RIG_ELIGIBILITY_FAILED</td>
+                </tr>
+                <tr className="border-b border-line">
+                  <td className="py-3 pr-5 font-mono text-[12px] text-ink-2 tabular">8355366</td>
+                  <td className="py-3 pr-5 font-mono text-[12px] text-ink">lux3d.humanoidAnimationRetarget.create</td>
+                  <td className="py-3 pr-5 font-mono text-[12px] text-ink-2">—</td>
+                  <td className="py-3 pr-5 text-[13px] text-ink">First retarget (5 clips), superseded by 8359816</td>
+                  <td className="py-3 pr-5 font-mono text-[12px] text-ink tabular">17 s</td>
+                  <td className="py-3 pr-5 font-mono text-[12px] text-ink-2">52 joints · 5 clips</td>
+                </tr>
+                <tr className="border-b border-line">
+                  <td className="py-3 pr-5 font-mono text-[12px] text-ink-2">{SG.worldId}</td>
+                  <td className="py-3 pr-5 font-mono text-[12px] text-ink">world.generations.create</td>
+                  <td className="py-3 pr-5 font-mono text-[12px] text-ink-2">SpatialGen</td>
+                  <td className="py-3 pr-5 text-[13px] text-ink">
+                    {SG.title} world,{" "}
+                    <Link href="/studio?world=spatialgen-coffee-bar" className="text-accent hover:underline">
+                      world 05 in the studio
+                    </Link>
+                  </td>
+                  <td className="py-3 pr-5 font-mono text-[12px] text-ink tabular">{SG.seconds} s</td>
+                  <td className="py-3 pr-5 font-mono text-[12px] text-ink-2 tabular">{SG.splats.toLocaleString("en-US")} splats</td>
                 </tr>
               </tbody>
             </table>
@@ -203,7 +226,7 @@ export default function LabPage() {
             <div>
               <ClipBench result={R.characterAnimated} clips={RETARGET_CLIPS} />
               <p className="mt-3 text-[13px] leading-relaxed text-ink-2">
-                Five official clips retargeted in one job. The GLB names them animation_1…5; we map them in the order requested.
+                Eight official clips retargeted in one 17 s job, including Interact and Chest_Open for the studio's play mode. The GLB names them animation_1…8; we map them in the order requested.
               </p>
             </div>
           </div>
