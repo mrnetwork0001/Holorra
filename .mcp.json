@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "aholo-sdk-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@manycore/aholo-sdk-mcp"],
+      "env": {
+        "AHOLO_API_KEY": "${AHOLO_API_KEY}",
+        "AHOLO_REGION": "com"
+      }
+    }
+  }
+}
