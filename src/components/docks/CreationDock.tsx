@@ -12,6 +12,8 @@ import {
 import type { PartOverrideState } from "@/components/stage/AholoHybridStage";
 import { Glyph, type GlyphName } from "@/components/brand/Glyph";
 import type { PendingJob } from "@/lib/spawned-assets";
+import { T, tx } from "@/lib/i18n";
+import { useLang } from "@/components/brand/LangSwitch";
 
 export interface ApiReceiptLog {
   id: string;
@@ -74,7 +76,7 @@ function Section({
   meta,
   children,
 }: {
-  title: string;
+  title: React.ReactNode;
   meta?: React.ReactNode;
   children: React.ReactNode;
 }) {
@@ -89,7 +91,7 @@ function Section({
   );
 }
 
-function FieldLabel({ children, hint }: { children: React.ReactNode; hint?: string }) {
+function FieldLabel({ children, hint }: { children: React.ReactNode; hint?: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between mb-1.5">
       <span className="text-[12px] text-ink-2">{children}</span>
@@ -104,7 +106,7 @@ function Segmented<T extends string>({
   onChange,
 }: {
   value: T;
-  options: { value: T; label: string }[];
+  options: { value: T; label: React.ReactNode }[];
   onChange: (v: T) => void;
 }) {
   return (
@@ -136,7 +138,7 @@ function RunButton({
   busy,
   primary,
 }: {
-  label: string;
+  label: React.ReactNode;
   method: string;
   glyph: GlyphName;
   onClick: () => void;
@@ -183,21 +185,28 @@ function SelectRow({
   );
 }
 
-/** How a receipt was produced, in plain words. */
-export function describeExecutionMode(mode: string): { label: string; live: boolean } {
+/** How a receipt was produced, in plain words (`zh` is the same label in Simplified Chinese). */
+export function describeExecutionMode(mode: string): { label: string; zh: string; live: boolean } {
   switch (mode) {
     case "LIVE_AHOLO_CLOUD_SDK":
-      return { label: "live", live: true };
+      return { label: "live", zh: "实时", live: true };
     case "INSTANT_STAGE_BLUEPRINT":
     case "STAGE_BLUEPRINT":
-      return { label: "preview", live: false };
+      return { label: "preview", zh: "预览", live: false };
     case "VERIFIED_MANYCORE_CDN_PRESET":
     case "MANYCORE_OSS_CDN":
-      return { label: "cdn preset", live: false };
+      return { label: "cdn preset", zh: "CDN 预设", live: false };
     case "MCP_AGENT_PLAN":
-      return { label: "plan", live: false };
-    default:
-      return { label: mode.toLowerCase().replace(/_/g, " "), live: false };
+      return { label: "plan", zh: "规划", live: false };
+    default: {
+      const label = mode.toLowerCase().replace(/_/g, " ");
+      const zh = label.includes("cached")
+        ? "缓存结果"
+        : label === "lux3d result"
+          ? "Lux3D 结果"
+          : label;
+      return { label, zh, live: false };
+    }
   }
 }
 
@@ -226,6 +235,7 @@ export default function CreationDock({
   onJobSubmitted,
   pendingJobs = [],
 }: CreationDockProps) {
+  const lang = useLang();
   const [activeTab, setActiveTab] = useState<"world" | "lux3d" | "scene">("lux3d");
 
   // World SpatialGen & Reality state
@@ -375,10 +385,10 @@ export default function CreationDock({
     );
   };
 
-  const tabs: { id: typeof activeTab; label: string; glyph: GlyphName }[] = [
-    { id: "world", label: "World", glyph: "world" },
+  const tabs: { id: typeof activeTab; label: React.ReactNode; glyph: GlyphName }[] = [
+    { id: "world", label: <T en="World" zh="世界" />, glyph: "world" },
     { id: "lux3d", label: "Lux3D", glyph: "mesh" },
-    { id: "scene", label: "Scene", glyph: "layers" },
+    { id: "scene", label: <T en="Scene" zh="场景" />, glyph: "layers" },
   ];
 
   const actor = AHOLO_RIGGED_ACTORS[actorId];
@@ -405,26 +415,34 @@ export default function CreationDock({
         {/* ------------------------------------------------------------ WORLD */}
         {activeTab === "world" && (
           <>
-            <Section title="New world" meta="aholo-sdk-world 1.5">
+            <Section title={<T en="New world" zh="新建世界" />} meta="aholo-sdk-world 1.5">
               <Segmented
                 value={worldMode}
                 onChange={setWorldMode}
                 options={[
-                  { value: "generate", label: "Generate" },
-                  { value: "reconstruct", label: "Reconstruct" },
+                  { value: "generate", label: <T en="Generate" zh="生成" /> },
+                  { value: "reconstruct", label: <T en="Reconstruct" zh="重建" /> },
                 ]}
               />
               <p className="mt-2.5 text-[12px] leading-relaxed text-ink-3">
-                {worldMode === "generate"
-                  ? "SpatialGen builds a 3DGS world from a prompt and up to one reference image."
-                  : "Aholo Reality rebuilds a real space or object from video, Insta360 or 20+ photos."}
+                {worldMode === "generate" ? (
+                  <T
+                    en="SpatialGen builds a 3DGS world from a prompt and up to one reference image."
+                    zh="SpatialGen 根据提示词和至多 1 张参考图生成 3DGS 世界。"
+                  />
+                ) : (
+                  <T
+                    en="Aholo Reality rebuilds a real space or object from video, Insta360 or 20+ photos."
+                    zh="Aholo Reality 用视频、Insta360 全景或 20 张以上照片重建真实空间或物体。"
+                  />
+                )}
               </p>
 
               <div className="mt-4 space-y-3">
                 {worldMode === "generate" ? (
                   <>
                     <div>
-                      <FieldLabel>Prompt</FieldLabel>
+                      <FieldLabel><T en="Prompt" zh="提示词" /></FieldLabel>
                       <textarea
                         rows={3}
                         value={worldPrompt}
@@ -433,7 +451,9 @@ export default function CreationDock({
                       />
                     </div>
                     <div>
-                      <FieldLabel hint="optional">Reference image URL</FieldLabel>
+                      <FieldLabel hint={<T en="optional" zh="可选" />}>
+                        <T en="Reference image URL" zh="参考图 URL" />
+                      </FieldLabel>
                       <input
                         type="text"
                         value={worldRefImage}
@@ -446,7 +466,7 @@ export default function CreationDock({
                 ) : (
                   <>
                     <div>
-                      <FieldLabel>Capture URL</FieldLabel>
+                      <FieldLabel><T en="Capture URL" zh="采集素材 URL" /></FieldLabel>
                       <input
                         type="text"
                         value={reconVideoUrl}
@@ -455,20 +475,20 @@ export default function CreationDock({
                       />
                     </div>
                     <div>
-                      <FieldLabel>Source type</FieldLabel>
+                      <FieldLabel><T en="Source type" zh="素材类型" /></FieldLabel>
                       <Segmented
                         value={reconType}
                         onChange={setReconType}
                         options={[
-                          { value: "video", label: "Video" },
+                          { value: "video", label: <T en="Video" zh="视频" /> },
                           { value: "insv", label: "Insta360" },
-                          { value: "image", label: "Photos" },
+                          { value: "image", label: <T en="Photos" zh="照片" /> },
                         ]}
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <FieldLabel>Quality</FieldLabel>
+                        <FieldLabel><T en="Quality" zh="质量" /></FieldLabel>
                         <select
                           value={reconQuality}
                           onChange={(e) =>
@@ -476,20 +496,20 @@ export default function CreationDock({
                           }
                           className="field"
                         >
-                          <option value="low">Low · fast</option>
-                          <option value="normal">Normal</option>
-                          <option value="high">High</option>
+                          <option value="low">{tx(lang, { en: "Low · fast", zh: "低 · 快速" })}</option>
+                          <option value="normal">{tx(lang, { en: "Normal", zh: "标准" })}</option>
+                          <option value="high">{tx(lang, { en: "High", zh: "高" })}</option>
                         </select>
                       </div>
                       <div>
-                        <FieldLabel>Subject</FieldLabel>
+                        <FieldLabel><T en="Subject" zh="重建对象" /></FieldLabel>
                         <select
                           value={reconScene}
                           onChange={(e) => setReconScene(e.target.value as "space" | "model")}
                           className="field"
                         >
-                          <option value="space">Space</option>
-                          <option value="model">Object</option>
+                          <option value="space">{tx(lang, { en: "Space", zh: "空间" })}</option>
+                          <option value="model">{tx(lang, { en: "Object", zh: "物体" })}</option>
                         </select>
                       </div>
                     </div>
@@ -499,7 +519,13 @@ export default function CreationDock({
                 <RunButton
                   primary
                   glyph={worldMode === "generate" ? "world" : "reconstruct"}
-                  label={worldMode === "generate" ? "Generate world" : "Reconstruct world"}
+                  label={
+                    worldMode === "generate" ? (
+                      <T en="Generate world" zh="生成世界" />
+                    ) : (
+                      <T en="Reconstruct world" zh="重建世界" />
+                    )
+                  }
                   method={
                     worldMode === "generate"
                       ? "world.generations.create"
@@ -511,7 +537,7 @@ export default function CreationDock({
               </div>
             </Section>
 
-            <Section title="Hosted worlds" meta="Manycore CDN">
+            <Section title={<T en="Hosted worlds" zh="托管世界" />} meta="Manycore CDN">
               <div className="-mx-1 space-y-0.5">
                 {AHOLO_WORLD_PRESETS.map((preset) => (
                   <SelectRow
@@ -522,7 +548,7 @@ export default function CreationDock({
                     <div className="flex items-baseline justify-between gap-2">
                       <span className="text-[13px] text-ink truncate">{preset.title}</span>
                       <span className="font-mono text-[10.5px] text-ink-3 shrink-0">
-                        {preset.splatMode === "lod" ? "LOD" : "direct"}
+                        {preset.splatMode === "lod" ? "LOD" : <T en="direct" zh="直接加载" />}
                       </span>
                     </div>
                     <div className="mt-0.5 font-mono text-[11px] text-ink-3 truncate">
@@ -538,7 +564,15 @@ export default function CreationDock({
         {/* ------------------------------------------------------------ LUX3D */}
         {activeTab === "lux3d" && (
           <>
-            <Section title="Stage prop" meta={`${Object.keys(LUX3D_HERO_BLUEPRINTS).length} props`}>
+            <Section
+              title={<T en="Stage prop" zh="舞台道具" />}
+              meta={
+                <T
+                  en={`${Object.keys(LUX3D_HERO_BLUEPRINTS).length} props`}
+                  zh={`${Object.keys(LUX3D_HERO_BLUEPRINTS).length} 个道具`}
+                />
+              }
+            >
               <div className="-mx-1 space-y-0.5">
                 {Object.values(LUX3D_HERO_BLUEPRINTS).map((bp) => (
                   <SelectRow
@@ -553,14 +587,26 @@ export default function CreationDock({
                     <div className="text-[13px] text-ink truncate">{bp.name}</div>
                     <div className="mt-0.5 flex items-center gap-1.5 font-mono text-[11px] text-ink-3 tabular">
                       {bp.procedural ? (
-                        <span>procedural preview / {bp.parts.length} parts</span>
+                        <span>
+                          <T
+                            en={`procedural preview / ${bp.parts.length} parts`}
+                            zh={`程序化预览 / ${bp.parts.length} 个部件`}
+                          />
+                        </span>
                       ) : (
                         <>
                           <span>{bp.lux3dVersion}</span>
                           <span className="text-line-strong">/</span>
-                          <span>{bp.parts.length} parts</span>
+                          <span>
+                            <T en={`${bp.parts.length} parts`} zh={`${bp.parts.length} 个部件`} />
+                          </span>
                           <span className="text-line-strong">/</span>
-                          <span>{(bp.totalFaces / 1000).toFixed(1)}k faces</span>
+                          <span>
+                            <T
+                              en={`${(bp.totalFaces / 1000).toFixed(1)}k faces`}
+                              zh={`${(bp.totalFaces / 1000).toFixed(1)}k 面`}
+                            />
+                          </span>
                         </>
                       )}
                     </div>
@@ -569,10 +615,10 @@ export default function CreationDock({
               </div>
             </Section>
 
-            <Section title="Generate" meta="aholo-sdk-lux3d 1.10">
+            <Section title={<T en="Generate" zh="生成" />} meta="aholo-sdk-lux3d 1.10">
               <div className="space-y-3">
                 <div>
-                  <FieldLabel>Prompt</FieldLabel>
+                  <FieldLabel><T en="Prompt" zh="提示词" /></FieldLabel>
                   <textarea
                     rows={4}
                     value={luxPrompt}
@@ -582,7 +628,7 @@ export default function CreationDock({
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <FieldLabel>Engine</FieldLabel>
+                    <FieldLabel><T en="Engine" zh="引擎" /></FieldLabel>
                     <select
                       value={luxVersion}
                       onChange={(e) => setLuxVersion(e.target.value as "G1" | "G1-Turbo")}
@@ -593,7 +639,7 @@ export default function CreationDock({
                     </select>
                   </div>
                   <div>
-                    <FieldLabel>Face budget</FieldLabel>
+                    <FieldLabel><T en="Face budget" zh="面数预算" /></FieldLabel>
                     <select
                       value={luxFaceCount}
                       onChange={(e) => setLuxFaceCount(Number(e.target.value))}
@@ -607,7 +653,9 @@ export default function CreationDock({
                   </div>
                 </div>
                 <label className="flex items-center justify-between gap-3 cursor-pointer">
-                  <span className="text-[12px] text-ink-2">PBR metallic / roughness maps</span>
+                  <span className="text-[12px] text-ink-2">
+                    <T en="PBR metallic / roughness maps" zh="PBR 金属度 / 粗糙度贴图" />
+                  </span>
                   <input
                     type="checkbox"
                     checked={luxEnablePbr}
@@ -619,14 +667,14 @@ export default function CreationDock({
                   <RunButton
                     primary
                     glyph="generate"
-                    label="Text to 3D"
+                    label={<T en="Text to 3D" zh="文生 3D" />}
                     method="textTo3d"
                     onClick={() => handleDispatchLux3dJob("textTo3d")}
                     busy={isSubmittingLux}
                   />
                   <RunButton
                     glyph="fourview"
-                    label="Four views"
+                    label={<T en="Four views" zh="四视图" />}
                     method="imageToFourView"
                     onClick={() => handleDispatchLux3dJob("imageToFourView")}
                     busy={isSubmittingLux}
@@ -648,7 +696,14 @@ export default function CreationDock({
                             <span className="font-mono text-[11px] text-ink-2 tabular">{mmss(now - j.startedAt)}</span>
                           </div>
                           <div className="mt-1 truncate font-mono text-[10.5px] text-ink-3">
-                            {failed ? `task ${j.taskId} · failed` : `task ${j.taskId} · drops into the stage when ready`}
+                            {failed ? (
+                              <T en={`task ${j.taskId} · failed`} zh={`任务 ${j.taskId} · 失败`} />
+                            ) : (
+                              <T
+                                en={`task ${j.taskId} · drops into the stage when ready`}
+                                zh={`任务 ${j.taskId} · 完成后自动投放到舞台`}
+                              />
+                            )}
                           </div>
                         </li>
                       );
@@ -658,10 +713,10 @@ export default function CreationDock({
               </div>
             </Section>
 
-            <Section title="Material transfer" meta="v3.0-standard">
+            <Section title={<T en="Material transfer" zh="材质迁移" />} meta="v3.0-standard">
               <div className="space-y-3">
                 <div>
-                  <FieldLabel>Reference image URL</FieldLabel>
+                  <FieldLabel><T en="Reference image URL" zh="参考图 URL" /></FieldLabel>
                   <input
                     type="text"
                     value={materialImgUrl}
@@ -671,7 +726,7 @@ export default function CreationDock({
                 </div>
                 <RunButton
                   glyph="material"
-                  label="Transfer material"
+                  label={<T en="Transfer material" zh="迁移材质" />}
                   method="lux3d.materialTransfer.create"
                   onClick={() => handleDispatchLux3dJob("materialTransfer")}
                   busy={isSubmittingLux}
@@ -679,7 +734,10 @@ export default function CreationDock({
               </div>
             </Section>
 
-            <Section title="Export" meta={`${exportFormats.length} selected`}>
+            <Section
+              title={<T en="Export" zh="导出" />}
+              meta={<T en={`${exportFormats.length} selected`} zh={`已选 ${exportFormats.length} 种`} />}
+            >
               <div className="grid grid-cols-5 gap-1.5">
                 {EXPORT_FORMATS.map((fmt) => {
                   const on = exportFormats.includes(fmt.id);
@@ -702,9 +760,14 @@ export default function CreationDock({
                 <RunButton
                   glyph="export"
                   label={
-                    exportFormats.length
-                      ? `Export ${exportFormats.length} format${exportFormats.length > 1 ? "s" : ""}`
-                      : "Select a format"
+                    exportFormats.length ? (
+                      <T
+                        en={`Export ${exportFormats.length} format${exportFormats.length > 1 ? "s" : ""}`}
+                        zh={`导出 ${exportFormats.length} 种格式`}
+                      />
+                    ) : (
+                      <T en="Select a format" zh="请选择格式" />
+                    )
                   }
                   method="lux3d.multiFormatExport.create"
                   onClick={() => handleDispatchLux3dJob("multiFormatExport")}
@@ -718,7 +781,7 @@ export default function CreationDock({
         {/* ------------------------------------------------------------ SCENE */}
         {activeTab === "scene" && (
           <>
-            <Section title="Scene graph">
+            <Section title={<T en="Scene graph" zh="场景图" />}>
               <ul className="space-y-1 text-[12.5px]">
                 <li className="flex items-start gap-2.5 rounded-md px-2 py-2">
                   <Glyph name="splat" size={14} className="mt-0.5 text-ink-3" />
@@ -726,7 +789,7 @@ export default function CreationDock({
                     <div className="text-ink truncate">{activeWorldPreset.title}</div>
                     <div className="mt-0.5 font-mono text-[11px] text-ink-3 truncate">
                       {activeWorldPreset.splatCountLabel}
-                      {activeWorldPreset.voxelMetaUrl ? " · voxel collision" : ""}
+                      {activeWorldPreset.voxelMetaUrl ? <T en=" · voxel collision" zh=" · 体素碰撞" /> : ""}
                     </div>
                   </div>
                 </li>
@@ -735,7 +798,10 @@ export default function CreationDock({
                   <div className="min-w-0">
                     <div className="text-ink truncate">{actor.name}</div>
                     <div className="mt-0.5 font-mono text-[11px] text-ink-3">
-                      skinned mesh · {actor.clipCount} clips
+                      <T
+                        en={`skinned mesh · ${actor.clipCount} clips`}
+                        zh={`蒙皮网格 · ${actor.clipCount} 个动作片段`}
+                      />
                     </div>
                   </div>
                 </li>
@@ -745,7 +811,10 @@ export default function CreationDock({
                     <div className="min-w-0">
                       <div className="text-ink truncate">{activeHeroBlueprint.name}</div>
                       <div className="mt-0.5 font-mono text-[11px] text-ink-3">
-                        {activeHeroBlueprint.parts.length} parts
+                        <T
+                          en={`${activeHeroBlueprint.parts.length} parts`}
+                          zh={`${activeHeroBlueprint.parts.length} 个部件`}
+                        />
                       </div>
                     </div>
                   </div>
@@ -786,7 +855,11 @@ export default function CreationDock({
                           <button
                             type="button"
                             onClick={() => onTogglePartVisible(part.id)}
-                            title={isVisible ? "Hide part" : "Show part"}
+                            title={
+                              isVisible
+                                ? tx(lang, { en: "Hide part", zh: "隐藏部件" })
+                                : tx(lang, { en: "Show part", zh: "显示部件" })
+                            }
                             className="flex h-6 w-6 items-center justify-center rounded text-ink-3 hover:text-ink max-[900px]:h-10 max-[900px]:w-10"
                           >
                             <Glyph name={isVisible ? "eye" : "eye-off"} size={13} />
@@ -799,9 +872,11 @@ export default function CreationDock({
               </ul>
             </Section>
 
-            <Section title="Activity" meta={receipts.length}>
+            <Section title={<T en="Activity" zh="调用回执" />} meta={receipts.length}>
               {receipts.length === 0 ? (
-                <p className="text-[12px] text-ink-3">No SDK calls yet.</p>
+                <p className="text-[12px] text-ink-3">
+                  <T en="No SDK calls yet." zh="还没有 SDK 调用。" />
+                </p>
               ) : (
                 <ol className="space-y-px">
                   {receipts.map((r) => {
@@ -820,7 +895,7 @@ export default function CreationDock({
                             className={`chip h-[18px] text-[10px] ${mode.live ? "chip-accent" : ""}`}
                           >
                             {mode.live && <span className="dot dot-live" />}
-                            {mode.label}
+                            <T en={mode.label} zh={mode.zh} />
                           </span>
                         </div>
                       </li>

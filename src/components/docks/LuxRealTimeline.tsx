@@ -6,6 +6,8 @@ import {
   type CameraKeyframe,
 } from "@/lib/luxreal-exporter";
 import { Glyph } from "@/components/brand/Glyph";
+import { T, tx } from "@/lib/i18n";
+import { useLang } from "@/components/brand/LangSwitch";
 
 export interface LuxRealTimelineProps {
   worldPresetId: string;
@@ -32,6 +34,7 @@ export default function LuxRealTimeline({
   onTogglePlaySpline,
   onDeleteKeyframe,
 }: LuxRealTimelineProps) {
+  const lang = useLang();
   const [copiedPrompt, setCopiedPrompt] = useState(false);
 
   const totalDuration = keyframes.reduce((acc, k) => acc + k.durationSec, 0);
@@ -69,7 +72,7 @@ export default function LuxRealTimeline({
 
   return (
     <section
-      aria-label="Camera path"
+      aria-label={tx(lang, { en: "Camera path", zh: "镜头路径" })}
       className="flex h-[136px] shrink-0 select-none flex-col border-t border-line bg-surface max-[900px]:h-auto max-[900px]:pb-[env(safe-area-inset-bottom)]"
     >
       {/* Header row (wraps to title + full-width actions on phones) */}
@@ -77,10 +80,13 @@ export default function LuxRealTimeline({
         <div className="flex min-w-0 items-center gap-3 max-[900px]:flex-1">
           <span className="flex items-center gap-2 text-[13px] font-medium text-ink">
             <Glyph name="spline" size={15} className="text-ink-2" />
-            Camera path
+            <T en="Camera path" zh="镜头路径" />
           </span>
           <span className="truncate font-mono text-[11px] text-ink-3 tabular">
-            {keyframes.length} keyframes · {totalDuration.toFixed(1)} s · Catmull-Rom
+            <T
+              en={`${keyframes.length} keyframes · ${totalDuration.toFixed(1)} s · Catmull-Rom`}
+              zh={`${keyframes.length} 个关键帧 · ${totalDuration.toFixed(1)} s · Catmull-Rom`}
+            />
           </span>
         </div>
 
@@ -92,29 +98,33 @@ export default function LuxRealTimeline({
             className={`btn btn-sm max-[900px]:flex-1 ${isPlayingSpline ? "" : "btn-primary"}`}
           >
             <Glyph name={isPlayingSpline ? "stop" : "play"} size={12} />
-            {isPlayingSpline ? "Stop" : "Play path"}
+            {isPlayingSpline ? <T en="Stop" zh="停止" /> : <T en="Play path" zh="播放路径" />}
           </button>
 
           <button
             type="button"
             onClick={handleCopyMasterPrompt}
             className="btn btn-sm btn-ghost max-[900px]:w-10 max-[900px]:px-0"
-            title="Copy the LuxReal video prompt"
-            aria-label="Copy the LuxReal video prompt"
+            title={tx(lang, { en: "Copy the LuxReal video prompt", zh: "复制 LuxReal 视频提示词" })}
+            aria-label={tx(lang, { en: "Copy the LuxReal video prompt", zh: "复制 LuxReal 视频提示词" })}
           >
             <Glyph name={copiedPrompt ? "check" : "copy"} size={14} className={copiedPrompt ? "text-ok" : ""} />
-            <span className="hidden lg:inline">{copiedPrompt ? "Copied" : "Copy prompt"}</span>
+            <span className="hidden lg:inline">
+              {copiedPrompt ? <T en="Copied" zh="已复制" /> : <T en="Copy prompt" zh="复制提示词" />}
+            </span>
           </button>
 
           <button
             type="button"
             onClick={handleExportBundle}
             className="btn btn-sm btn-ghost max-[900px]:w-10 max-[900px]:px-0"
-            title="Download the storyboard as JSON"
-            aria-label="Download the storyboard as JSON"
+            title={tx(lang, { en: "Download the storyboard as JSON", zh: "下载分镜 JSON" })}
+            aria-label={tx(lang, { en: "Download the storyboard as JSON", zh: "下载分镜 JSON" })}
           >
             <Glyph name="download" size={14} />
-            <span className="hidden lg:inline">Storyboard JSON</span>
+            <span className="hidden lg:inline">
+              <T en="Storyboard JSON" zh="分镜 JSON" />
+            </span>
           </button>
 
           <a
@@ -122,9 +132,9 @@ export default function LuxRealTimeline({
             target="_blank"
             rel="noreferrer"
             className="btn btn-sm"
-            title="Open LuxReal's video creator"
+            title={tx(lang, { en: "Open LuxReal's video creator", zh: "打开 LuxReal 视频创作页" })}
           >
-            Open in LuxReal
+            <T en="Open in LuxReal" zh="在 LuxReal 中打开" />
             <Glyph name="external" size={12} className="text-ink-3" />
           </a>
         </div>
@@ -170,8 +180,8 @@ export default function LuxRealTimeline({
                 type="button"
                 onClick={() => onDeleteKeyframe(kf.id)}
                 className="self-start rounded p-1 text-ink-3 opacity-0 transition hover:text-err group-hover:opacity-100 focus-visible:opacity-100 max-[900px]:p-2 max-[900px]:opacity-100"
-                title="Remove keyframe"
-                aria-label={`Remove ${kf.label}`}
+                title={tx(lang, { en: "Remove keyframe", zh: "删除关键帧" })}
+                aria-label={tx(lang, { en: `Remove ${kf.label}`, zh: `删除 ${kf.label}` })}
               >
                 <Glyph name="trash" size={13} />
               </button>
