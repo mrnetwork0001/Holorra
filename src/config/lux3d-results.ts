@@ -54,13 +54,17 @@ export const ESPRESSO_JOINTS = [
   { name: "drawer_handle_joint", type: "fixed", child: "drawer_handle", limit: "—", axis: "follows drawer" },
 ];
 
-/** The combined retarget GLB names its clips animation_1…5; they map to our request order. */
+/** The combined retarget GLB names its clips animation_1…8; they map to our request order
+ *  (confirmed: the five clips shared with the first retarget have identical lengths). */
 export const RETARGET_CLIPS = [
   { clip: "animation_1", id: "Idle_Loop", seconds: 2.5 },
   { clip: "animation_2", id: "Walk_Loop", seconds: 1.33 },
   { clip: "animation_3", id: "Jog_Fwd_Loop", seconds: 0.93 },
-  { clip: "animation_4", id: "Dance_Loop", seconds: 1.0 },
-  { clip: "animation_5", id: "Sword_Attack", seconds: 1.53 },
+  { clip: "animation_4", id: "Interact", seconds: 2.0 },
+  { clip: "animation_5", id: "Chest_Open", seconds: 1.37 },
+  { clip: "animation_6", id: "Yes", seconds: 2.5 },
+  { clip: "animation_7", id: "Dance_Loop", seconds: 1.0 },
+  { clip: "animation_8", id: "Sword_Attack", seconds: 1.53 },
 ];
 
 export const LUX3D_RESULTS: Record<string, Lux3dResult> = {
@@ -152,18 +156,19 @@ export const LUX3D_RESULTS: Record<string, Lux3dResult> = {
   },
   characterAnimated: {
     id: "characterAnimated",
-    label: "Character · 5 retargeted clips",
+    label: "Character · 8 retargeted clips",
     method: "lux3d.humanoidAnimationRetarget.create",
-    taskId: 8355366,
-    input: "character-rigged.glb (task 8355123) · Idle_Loop, Walk_Loop, Jog_Fwd_Loop, Dance_Loop, Sword_Attack",
+    taskId: 8359816,
+    input:
+      "character-rigged.glb (task 8355123) · Idle_Loop, Walk_Loop, Jog_Fwd_Loop, Interact, Chest_Open, Yes, Dance_Loop, Sword_Attack",
     seconds: 17, // upper bound from the 15 s poll
     file: "/assets/lux3d/character-animated.glb",
-    sizeMB: 36.8,
+    sizeMB: 37.0,
     triangles: 284608,
     textureMaps: 2,
     meshes: 1,
     joints: 52,
-    clips: ["animation_1", "animation_2", "animation_3", "animation_4", "animation_5"],
+    clips: ["animation_1", "animation_2", "animation_3", "animation_4", "animation_5", "animation_6", "animation_7", "animation_8"],
     bounds: { min: [-0.806, -0.825, -0.156], max: [0.806, 0.825, 0.156] },
   },
   characterStatic: {
@@ -183,3 +188,21 @@ export const LUX3D_RESULTS: Record<string, Lux3dResult> = {
     bounds: { min: [-0.536, -0.9, -0.199], max: [0.536, 0.9, 0.199] },
   },
 };
+
+/** The SpatialGen world generated through Holorra's /api/aholo/world route (world 05 in the studio).
+ *  Splat count and up-axis read from the returned .spz; time is wall-clock from submit to done. */
+export const SPATIALGEN_PROMPT =
+  "A cozy Scandinavian coffee bar interior with a long light-oak counter, a tiled back wall with open shelves of ceramic mugs, pendant lamps, potted plants, wooden stools and tall windows with warm morning light. Clean open floor in the middle.";
+
+export const SPATIALGEN_RESULT = {
+  worldId: "3FO4K4V99KMD",
+  title: "Scandinavian Coffee Bar",
+  method: "world.generations.create",
+  input: SPATIALGEN_PROMPT,
+  seconds: 625,
+  splats: 266895,
+  file: "/assets/spatialgen/coffee-bar.spz",
+  sizeMB: 4.4,
+  panorama: "/assets/spatialgen/coffee-bar-pano.jpg",
+  upAxis: "z",
+} as const;

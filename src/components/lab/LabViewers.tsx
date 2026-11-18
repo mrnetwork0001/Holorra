@@ -108,7 +108,7 @@ export function ResultViewer({
   );
 }
 
-/** Retargeted character: one skinned GLB, five clips, switchable in place. */
+/** Retargeted character: one skinned GLB, eight clips, switchable in place. */
 export function ClipBench({
   result,
   clips,
