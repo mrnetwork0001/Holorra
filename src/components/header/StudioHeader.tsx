@@ -28,6 +28,7 @@ const NAV = [
   { href: "/studio", label: "Studio" },
   { href: "/report", label: "Report" },
   { href: "/mcp", label: "MCP" },
+  { href: "/docs", label: "Docs" },
 ];
 
 const REGIONS: { id: "com" | "cn"; label: string; host: string }[] = [

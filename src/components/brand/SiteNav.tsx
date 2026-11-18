@@ -90,6 +90,11 @@ export default function SiteNav({
           <Link href="/mcp" onClick={close} className="drawer-link">
             MCP hub
           </Link>
+          {!links.some((l) => l.href === "/docs") && (
+            <Link href="/docs" onClick={close} className="drawer-link">
+              Docs
+            </Link>
+          )}
         </nav>
       </MobileDrawer>
     </>
