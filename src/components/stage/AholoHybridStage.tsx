@@ -1159,7 +1159,14 @@ export default function AholoHybridStage({
               envSplat.destroy();
               return;
             }
-            scene.add(envSplat);
+            if (worldPreset.mirrorXY) {
+              const envFix = new Aholo.Object3D();
+              envFix.rotation.z = Math.PI;
+              envFix.add(envSplat);
+              scene.add(envFix);
+            } else {
+              scene.add(envSplat);
+            }
           }
 
           setLoadProgress(60);
@@ -1174,7 +1181,9 @@ export default function AholoHybridStage({
           lodSplat = new Aholo.SplatUtils.LodSplat(
             metaJson,
             {
-              minLevel: Math.max(0, (metaJson.levels || 4) - 1),
+              // level 0 is the finest: admit every level and let the splat budget decide
+              minLevel: 0,
+              movingMinLevel: 1,
               maxBudget: worldPreset.lodBudgetSplats || 3_500_000,
               pixelLimitEnabled: true,
               schedulerParallelCounts: 8,
@@ -1192,7 +1201,15 @@ export default function AholoHybridStage({
               );
             }
           );
-          scene.add(lodSplat.container);
+          if (worldPreset.mirrorXY) {
+            // stored +Y up: half a turn about Z into the stage's −Y-up frame (see the preset)
+            const lodFix = new Aholo.Object3D();
+            lodFix.rotation.z = Math.PI;
+            lodFix.add(lodSplat.container);
+            scene.add(lodFix);
+          } else {
+            scene.add(lodSplat.container);
+          }
           lodSplat.tick(camera);
           lodSplat.start();
         }
