@@ -118,6 +118,8 @@ export interface RiggedActor {
   upAxis?: "y";
   /** model scale applied in the stage */
   scale?: number;
+  /** metres from the model origin down to the soles, after scale (0 when the origin is at the feet) */
+  feetBelowOrigin?: number;
   /** generic clip names in the GLB → official Lux3D clip ids */
   clipMap?: Record<string, string>;
   /** public URL of the rigged model, for live retarget jobs (the cloud cannot fetch app-relative paths) */
@@ -135,6 +137,7 @@ export const AHOLO_RIGGED_ACTORS: Record<ActorId, RiggedActor> = {
     heightMeters: 1.65,
     upAxis: "y",
     scale: 1,
+    feetBelowOrigin: 0.8,
     // humanoidAutoRig task 8355123 output
     sourceRigUrl: "https://qhsmodel.kujiale.com/ai-generate/3/8355173-1.glb",
     clipMap: {
@@ -462,7 +465,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
     },
     floorY: 0.36,
     beanArea: [0.9, 6.0, -3.45, 0.45],
-    actorSpot: [3.3, -1.55],
+    actorSpot: [3.35, -1.95],
     defaultHeroAssetId: "cyber-barista-station",
     defaultActorId: "lux3d",
     defaultKeyframes: [
@@ -615,10 +618,10 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
       lookAt: [0, 0, 0],
       yaw: -1.57,
       pitch: 0.15,
-      thirdPersonDistance: 2.2,
+      thirdPersonDistance: 3.0,
       up: [0, -1, 0],
     },
-    actorSpot: [0.15, 1.0],
+    actorSpot: [1.0, 0.75],
     defaultHeroAssetId: "cyber-barista-station",
     defaultActorId: "lux3d",
     defaultKeyframes: [
@@ -656,7 +659,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
     upAxis: "z",
     // floor plane measured at z = -1.15 in the generated splat (-> +1.15 in the stage frame)
     floorY: 1.15,
-    actorSpot: [-0.95, 0.35],
+    actorSpot: [-0.3, 0.45],
     pose: {
       px: -2.5,
       py: 0,
@@ -664,7 +667,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
       lookAt: [0.5, 0.1, 0],
       yaw: -1.5708,
       pitch: 0.08,
-      thirdPersonDistance: 2.6,
+      thirdPersonDistance: 3.6,
       up: [0, -1, 0],
     },
     defaultHeroAssetId: "cyber-barista-station",

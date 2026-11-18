@@ -1051,6 +1051,8 @@ export default function AholoHybridStage({
             model.scale.setScalar(actorConfig.scale ?? 0.75);
             const body = new Aholo.Object3D();
             if (actorConfig.upAxis === "y") body.rotation.x = Math.PI; // glTF Y-up → OpenCV
+            // The rig's origin is at the hips, not the soles: raise it so actorRoot is the feet.
+            if (actorConfig.upAxis === "y") body.position.y = -(actorConfig.feetBelowOrigin ?? 0);
             body.add(model);
             actorRoot.add(body);
             if (actorConfig.upAxis === "y") {
@@ -1288,7 +1290,8 @@ export default function AholoHybridStage({
         (window as unknown as { __holorraStage?: unknown }).__holorraStage = {
           pose: () => poseStateRef.current,
           solid: (x: number, y: number, z: number) => voxelCollisionRef.current?.isWorldPointSolid(x, y, z) ?? null,
-          hero: () => ({ x: heroRoot.position.x, z: heroRoot.position.z }),
+          hero: () => ({ x: heroRoot.position.x, y: heroRoot.position.y, z: heroRoot.position.z }),
+          actor: () => ({ x: actorRoot.position.x, y: actorRoot.position.y, z: actorRoot.position.z, floor: actorFloorRef.current }),
           beans: () => beans.map((b) => ({ x: b.x, z: b.z, got: b.got })),
           drops: () => drops.map((d) => ({ x: d.x, z: d.z, y: d.y, floor: d.floor, landed: d.landed, settled: d.settled })),
         };
