@@ -197,7 +197,7 @@ export const AHOLO_MCP_TOOL_CATALOG: AholoMcpToolSpec[] = [
     description: "Reconstruct a full indoor or outdoor 3DGS environment from video (.mp4/.mov), Insta360 (.insv), or >=20 photos via Aholo Reality.",
     sampleArgs: {
       name: "Coohom Smart Kitchen Capture",
-      resources: [{ url: "https://labs.aholo.ai/samples/kitchen-walkthrough.mp4", type: "video" }],
+      resources: [{ url: "https://example.com/your-walkthrough.mp4", type: "video" }],
       taskQuality: "high",
       scene: "space",
     },
@@ -209,7 +209,7 @@ export const AHOLO_MCP_TOOL_CATALOG: AholoMcpToolSpec[] = [
     description: "Reconstruct a real-world physical product or sculpture into a high-density 3DGS model with foreground mask segmentation.",
     sampleArgs: {
       name: "Artisan Ceramic Vase Scan",
-      resources: [{ url: "https://labs.aholo.ai/samples/turntable-capture.mp4", type: "video" }],
+      resources: [{ url: "https://example.com/your-turntable.mp4", type: "video" }],
       useMask: true,
       taskQuality: "high",
       scene: "model",
@@ -246,7 +246,7 @@ export const AHOLO_MCP_TOOL_CATALOG: AholoMcpToolSpec[] = [
     sdkMethod: "lux3d.imgTo3d.create",
     description: "Convert a single reference image or multi-view image set into a 10k-300k polygon PBR 3D asset with AI size prediction.",
     sampleArgs: {
-      img: "https://labs.aholo.ai/samples/espresso-concept.png",
+      img: "https://holorra.xyz/landing/lux3d/g1.jpg",
       version: "G1",
       faceCount: 200000,
       enablePbr: true,
@@ -287,7 +287,7 @@ export const AHOLO_MCP_TOOL_CATALOG: AholoMcpToolSpec[] = [
     sdkMethod: "lux3d.articulationAnimation.create",
     description: "Infer kinematic hinge/slider joints on a 3D object and animate functional opening/closing motion from a text prompt.",
     sampleArgs: {
-      glbUrl: "https://labs.aholo.ai/samples/smart-espresso-unit.glb",
+      glbUrl: "https://holorra.xyz/assets/lux3d/espresso-g1.glb",
       prompt: "The upper brewing hood hinges upward 65 degrees while the front capsule drawer slides open",
     },
   },
@@ -318,8 +318,8 @@ export const AHOLO_MCP_TOOL_CATALOG: AholoMcpToolSpec[] = [
     sdkMethod: "lux3d.materialTransfer.create",
     description: "Transfer high-resolution PBR material appearance from a reference texture photo onto a target 3D GLB mesh (v3.0-standard).",
     sampleArgs: {
-      img: "https://labs.aholo.ai/samples/brushed-anodized-gold.jpg",
-      meshUrl: "https://labs.aholo.ai/samples/smart-espresso-unit.glb",
+      img: "https://holorra.xyz/landing/world-cafe.jpg",
+      meshUrl: "https://holorra.xyz/assets/lux3d/espresso-g1.glb",
       version: "v3.0-standard",
       outputFormat: ["glb", "usdz"],
       aiPredictSize: false,
@@ -332,7 +332,7 @@ export const AHOLO_MCP_TOOL_CATALOG: AholoMcpToolSpec[] = [
     sdkMethod: "lux3d.multiFormatExport.create",
     description: "Convert a Lux3D model into industry CAD, AR, game engine, and 3D-printing formats (USDZ, OBJ, FBX, STL, 3MF).",
     sampleArgs: {
-      modelUrl: "https://labs.aholo.ai/samples/smart-espresso-unit.glb",
+      modelUrl: "https://holorra.xyz/assets/lux3d/espresso-g1.glb",
       outputFormat: ["usdz", "fbx_zip", "obj_zip", "stl", "3mf"],
     },
   },

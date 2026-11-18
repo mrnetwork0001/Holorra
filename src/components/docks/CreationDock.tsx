@@ -13,6 +13,7 @@ import type { PartOverrideState } from "@/components/stage/AholoHybridStage";
 import { Glyph, type GlyphName } from "@/components/brand/Glyph";
 import type { PendingJob } from "@/lib/spawned-assets";
 import { T, tx } from "@/lib/i18n";
+import { publicAssetUrl, PUBLIC_SITE } from "@/lib/public-url";
 import { useLang } from "@/components/brand/LangSwitch";
 
 export interface ApiReceiptLog {
@@ -25,13 +26,26 @@ export interface ApiReceiptLog {
   executionMode: string;
 }
 
-/** A Lux3D generation the studio should follow until its model can drop into the stage. */
+/** A Lux3D job the studio should follow; a finished GLB drops into the stage. */
 export interface SubmittedJob {
   taskId: number;
   label: string;
   method: string;
   /** true when the job really went to the Aholo cloud (not a no-key preview) */
   live: boolean;
+}
+
+/** Receipt for a call the Aholo API refused, so a failed click is never silent. */
+export function failureReceipt(sdkMethod: string, error: unknown): ApiReceiptLog {
+  return {
+    id: `rcpt_${Date.now()}`,
+    timestamp: new Date().toLocaleTimeString(),
+    sdkPackage: "@manycore/aholo-sdk-lux3d@1.10.0",
+    sdkMethod,
+    taskIdOrWorldId: String(error || "request failed").slice(0, 160),
+    statusLabel: "FAILED",
+    executionMode: "LIVE_AHOLO_CLOUD_SDK",
+  };
 }
 
 /** First words of a prompt, for labels on the stage and in the dock. */
@@ -244,9 +258,8 @@ export default function CreationDock({
     "Sunlit designer smart loft with open kitchen island, glass partition, and oak floor"
   );
   const [worldRefImage, setWorldRefImage] = useState("");
-  const [reconVideoUrl, setReconVideoUrl] = useState(
-    "https://labs.aholo.ai/samples/smart-loft-walkthrough.mp4"
-  );
+  // no sample video ships with the app: without a URL the request stays a preview
+  const [reconVideoUrl, setReconVideoUrl] = useState("");
   const [reconType, setReconType] = useState<"video" | "insv" | "image">("video");
   const [reconQuality, setReconQuality] = useState<"low" | "normal" | "high">("high");
   const [reconScene, setReconScene] = useState<"space" | "model">("space");
@@ -257,9 +270,7 @@ export default function CreationDock({
   const [luxVersion, setLuxVersion] = useState<"G1" | "G1-Turbo">("G1");
   const [luxFaceCount, setLuxFaceCount] = useState<number>(200_000);
   const [luxEnablePbr, setLuxEnablePbr] = useState<boolean>(true);
-  const [materialImgUrl, setMaterialImgUrl] = useState(
-    "https://labs.aholo.ai/samples/anodized-brushed-titanium.jpg"
-  );
+  const [materialImgUrl, setMaterialImgUrl] = useState(`${PUBLIC_SITE}/landing/world-cafe.jpg`);
   const [exportFormats, setExportFormats] = useState<string[]>([
     "usdz",
     "fbx_zip",
@@ -297,6 +308,7 @@ export default function CreationDock({
           imageUrl: worldRefImage || undefined,
           name: "Holorra 3DGS Capture",
           resourceUrl: reconVideoUrl,
+          previewOnly: worldMode === "reconstruct" && !reconVideoUrl.trim(),
           resourceType: reconType,
           taskQuality: reconQuality,
           scene: reconScene,
@@ -317,7 +329,11 @@ export default function CreationDock({
           const found = AHOLO_WORLD_PRESETS.find((p) => p.id === data.matchedPresetId);
           if (found) onSelectWorldPreset(found);
         }
+      } else {
+        onAddReceipt({ ...failureReceipt(`world.${worldMode}`, data.error), sdkPackage: "@manycore/aholo-sdk-world@1.5.0" });
       }
+    } catch (err) {
+      onAddReceipt({ ...failureReceipt(`world.${worldMode}`, err), sdkPackage: "@manycore/aholo-sdk-world@1.5.0" });
     } finally {
       setIsSubmittingWorld(false);
     }
@@ -332,6 +348,9 @@ export default function CreationDock({
       | "multiFormatExport"
   ) => {
     setIsSubmittingLux(true);
+    // material transfer and export work on the selected prop's real mesh; preview props have none
+    const needsMesh = operation === "materialTransfer" || operation === "multiFormatExport";
+    const meshUrl = activeHeroBlueprint.modelPath ? publicAssetUrl(activeHeroBlueprint.modelPath) : undefined;
     try {
       const res = await fetch("/api/aholo/lux3d", {
         method: "POST",
@@ -343,8 +362,9 @@ export default function CreationDock({
           faceCount: luxFaceCount,
           enablePbr: luxEnablePbr,
           img: materialImgUrl,
-          meshUrl: "https://labs.aholo.ai/stage/active-hero-model.glb",
-          modelUrl: "https://labs.aholo.ai/stage/active-hero-model.glb",
+          meshUrl,
+          modelUrl: meshUrl,
+          previewOnly: needsMesh && !meshUrl,
           outputFormat:
             operation === "multiFormatExport"
               ? exportFormats
@@ -362,8 +382,9 @@ export default function CreationDock({
           statusLabel: data.status === 3 ? "SUCCEEDED (3)" : "RUNNING (1)",
           executionMode: data.executionMode,
         });
-        if (operation === "textTo3d" && data.taskId != null) {
-          // the studio follows the job and drops the finished model into the stage
+        const live = data.executionMode === "LIVE_AHOLO_CLOUD_SDK";
+        if ((operation === "textTo3d" || live) && data.taskId != null) {
+          // the studio follows the job; a finished GLB drops into the stage
           onJobSubmitted?.({
             taskId: Number(data.taskId),
             label: shortLabel(luxPrompt),
@@ -373,7 +394,11 @@ export default function CreationDock({
         } else if (data.matchedBlueprintId && LUX3D_HERO_BLUEPRINTS[data.matchedBlueprintId]) {
           onSelectHeroBlueprint(LUX3D_HERO_BLUEPRINTS[data.matchedBlueprintId]);
         }
+      } else {
+        onAddReceipt(failureReceipt(`lux3d.${operation}.create`, data.error));
       }
+    } catch (err) {
+      onAddReceipt(failureReceipt(`lux3d.${operation}.create`, err));
     } finally {
       setIsSubmittingLux(false);
     }

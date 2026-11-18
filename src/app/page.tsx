@@ -381,12 +381,13 @@ function Section({
   );
 }
 
-function Figure({ src, alt, caption, n }: { src: string; alt: string; caption: React.ReactNode; n: number }) {
+function Figure({ src, alt, caption, n, w, h }: { src: string; alt: string; caption: React.ReactNode; n: number; w: number; h: number }) {
   return (
     <figure>
       <Reveal variant="figure" className="overflow-hidden border border-line bg-canvas">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt={alt} loading="lazy" className="block h-auto w-full" />
+        {/* width/height reserve the space, so anchor links land right before the image loads */}
+        <img src={src} alt={alt} width={w} height={h} loading="lazy" className="block h-auto w-full" />
       </Reveal>
       <figcaption className="mt-3 flex gap-3 text-[13px] text-ink-3">
         <span className="font-mono text-ink-2">
@@ -524,6 +525,8 @@ export default function LandingPage() {
             <Figure
               n={1}
               src="/landing/studio.jpg"
+              w={2400}
+              h={1440}
               alt="The Holorra studio on the SpatialGen coffee bar world, with the Lux3D actor and espresso machine on the stage, creation dock on the left and part inspector on the right."
               caption={
                 <T
@@ -900,6 +903,8 @@ export default function LandingPage() {
             <Figure
               n={2}
               src="/landing/drop-in.jpg"
+              w={1400}
+              h={1131}
               alt="A generated espresso machine dropped onto the floor of the SpatialGen coffee bar next to the Lux3D actor"
               caption={
                 <T
@@ -1044,6 +1049,8 @@ export default function LandingPage() {
             <Figure
               n={3}
               src="/landing/hybrid-concourse.jpg"
+              w={1400}
+              h={1187}
               alt="A Gaussian Splatting rail yard with exploded mesh parts in front of it"
               caption={
                 <T

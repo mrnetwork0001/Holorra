@@ -41,7 +41,8 @@ export async function POST(req: NextRequest) {
   }
 
   // 1. Live Aholo Lux3D Cloud Execution when AHOLO_API_KEY or x-aholo-api-key header is present
-  if (ctx.hasApiKey) {
+  // previewOnly: the client has no real input for this job (e.g. a procedural preview prop)
+  if (ctx.hasApiKey && !body.previewOnly) {
     try {
       const lux3d = getLux3dClient(ctx);
       let taskId: number;

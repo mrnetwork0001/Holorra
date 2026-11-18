@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
       mcpTool: "lux3d_part_split",
       sdkMethod: "lux3d.partSplit.create",
       arguments: {
-        glbUrl: "https://labs.aholo.ai/stage/active-hero-model.glb",
+        glbUrl: "https://holorra.xyz/assets/lux3d/espresso-g1.glb",
       },
       rationale: `Semantically segment the hero GLB into independent sub-meshes and radially explode parts to ${mutation.explodePercent}%.`,
     });
@@ -163,7 +163,7 @@ export async function POST(req: NextRequest) {
       mcpTool: "lux3d_articulation_animation",
       sdkMethod: "lux3d.articulationAnimation.create",
       arguments: {
-        glbUrl: "https://labs.aholo.ai/stage/active-hero-model.glb",
+        glbUrl: "https://holorra.xyz/assets/lux3d/espresso-g1.glb",
         prompt: "Open the upper hinged hood 65 degrees and extend the front actuator drawer",
       },
       rationale: "Infer kinematic hinge & slider joints via lux3d.articulationAnimation.create and play real-time joint motion.",
@@ -219,7 +219,7 @@ export async function POST(req: NextRequest) {
         step: 1,
         mcpTool: "lux3d_part_split",
         sdkMethod: "lux3d.partSplit.create",
-        arguments: { glbUrl: "https://labs.aholo.ai/stage/active-hero-model.glb" },
+        arguments: { glbUrl: "https://holorra.xyz/assets/lux3d/espresso-g1.glb" },
         rationale: "Split active Lux3D hero prop into 6 semantic sub-parts and set explosion to 65%.",
       },
       {
@@ -227,7 +227,7 @@ export async function POST(req: NextRequest) {
         mcpTool: "lux3d_articulation_animation",
         sdkMethod: "lux3d.articulationAnimation.create",
         arguments: {
-          glbUrl: "https://labs.aholo.ai/stage/active-hero-model.glb",
+          glbUrl: "https://holorra.xyz/assets/lux3d/espresso-g1.glb",
           prompt: "Open the articulated top hood and extend the front capsule tray",
         },
         rationale: "Activate kinematic joint articulation on the segmented sub-meshes.",
@@ -253,6 +253,6 @@ export async function POST(req: NextRequest) {
     mcpServer: "@manycore/aholo-sdk-mcp@1.10.0",
     steps,
     mutation,
-    summary: `Planned ${steps.length} Aholo MCP tool call(s) and updated the stage to match. Add an Aholo API key to run them live.`,
+    summary: `Planned ${steps.length} Aholo MCP tool call(s) and updated the stage to match. Run the jobs from the Lux3D and World tabs or an MCP client.`,
   });
 }

@@ -31,6 +31,8 @@ export interface Lux3dHeroAssetBlueprint {
   name: string;
   /** 简体中文 display name for the 中 / EN switch */
   nameZh?: string;
+  /** /public path of the real Lux3D mesh; live jobs on this prop send its public URL. Unset: preview only. */
+  modelPath?: string;
   tagline: string;
   lux3dVersion: "G1" | "G1-Turbo";
   sourcePrompt: string;
@@ -145,6 +147,7 @@ export const LUX3D_HERO_BLUEPRINTS: Record<string, Lux3dHeroAssetBlueprint> = {
     id: "cyber-barista-station",
     name: "Espresso machine (Lux3D)",
     nameZh: "意式咖啡机（Lux3D）",
+    modelPath: "/assets/lux3d/espresso-g1.glb",
     tagline: "4 URDF links · hinge + slide",
     lux3dVersion: "G1",
     sourcePrompt:

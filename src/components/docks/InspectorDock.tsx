@@ -21,6 +21,8 @@ import type {
 } from "@/app/api/aholo/director/route";
 import { Glyph, type GlyphName } from "@/components/brand/Glyph";
 import { T, tx } from "@/lib/i18n";
+import { publicAssetUrl } from "@/lib/public-url";
+import { failureReceipt, type SubmittedJob } from "@/components/docks/CreationDock";
 import { useLang } from "@/components/brand/LangSwitch";
 
 export interface InspectorDockProps {
@@ -43,6 +45,8 @@ export interface InspectorDockProps {
   onCameraModeChange: (mode: StageCameraMode) => void;
   onApplyDirectorMutation: (mutation: DirectorStageMutation) => void;
   onAddReceipt: (receipt: ApiReceiptLog) => void;
+  /** live jobs the studio should follow until they finish */
+  onJobSubmitted?: (job: SubmittedJob) => void;
   apiKey: string;
   region: "com" | "cn";
 }
@@ -67,8 +71,8 @@ const EXPLODE_STOPS = [
 ];
 
 const DIRECTOR_PRESETS = [
-  "Explode the espresso synthesizer parts to 75%, open its articulated hood, and make the robot dance",
-  "Switch to the Juguo Urban Plaza world, spawn the Aegis patrol turret, and split parts to 50%",
+  "Explode the espresso machine parts to 75%, open its articulated hood, and make the actor dance",
+  "Switch to the Juguo Urban Plaza world, spawn the Aegis patrol drone, and split parts to 50%",
   "Switch to Grand Transit Concourse, load the ChronoGate holo-kiosk, and run a cinematic camera flythrough",
 ];
 
@@ -89,8 +93,8 @@ const ANIMATION_GROUP_ZH: Record<string, { label: string; short: string }> = {
  * only the displayed copy switches. Unknown text is shown as is.
  */
 const DIRECTOR_TEXT_ZH: Record<string, string> = {
-  [DIRECTOR_PRESETS[0]]: "把咖啡机部件爆炸到 75%，打开铰链顶盖，再让机器人跳支舞",
-  [DIRECTOR_PRESETS[1]]: "切换到 Juguo Urban Plaza 世界，放出 Aegis 巡逻炮塔，并把部件拆分到 50%",
+  [DIRECTOR_PRESETS[0]]: "把咖啡机部件爆炸到 75%，打开铰链顶盖，再让角色跳支舞",
+  [DIRECTOR_PRESETS[1]]: "切换到 Juguo Urban Plaza 世界，放出 Aegis 巡逻无人机，并把部件拆分到 50%",
   [DIRECTOR_PRESETS[2]]: "切换到 Grand Transit Concourse，载入 ChronoGate 全息信息亭，播放一段电影感的飞越镜头",
   "Initialize hybrid 3DGS loft stage with segmented Lux3D appliance & rigged Lux3D actor":
     "初始化混合 3DGS 阁楼舞台：载入已拆分部件的 Lux3D 家电和已绑骨的 Lux3D 角色",
@@ -106,10 +110,10 @@ function directorTextZh(text: string): string {
   const known = DIRECTOR_TEXT_ZH[text];
   if (known) return known;
   const planned = text.match(
-    /^Planned (\d+) Aholo MCP tool call\(s\) and updated the stage to match\. Add an Aholo API key to run them live\.$/
+    /^Planned (\d+) Aholo MCP tool call\(s\) and updated the stage to match\. Run the jobs from the Lux3D and World tabs or an MCP client\.$/
   );
   if (planned) {
-    return `已规划 ${planned[1]} 个 Aholo MCP 工具调用，舞台已同步更新。添加 Aholo API 密钥即可实时运行。`;
+    return `已规划 ${planned[1]} 个 Aholo MCP 工具调用，舞台已同步更新。可在 Lux3D、世界标签页或 MCP 客户端中运行这些任务。`;
   }
   return text;
 }
@@ -189,6 +193,7 @@ export default function InspectorDock({
   onCameraModeChange,
   onApplyDirectorMutation,
   onAddReceipt,
+  onJobSubmitted,
   apiKey,
   region,
 }: InspectorDockProps) {
@@ -233,7 +238,7 @@ export default function InspectorDock({
           step: 2,
           mcpTool: "lux3d_part_split",
           sdkMethod: "lux3d.partSplit.create",
-          arguments: { glbUrl: "https://labs.aholo.ai/stage/kinetix-espresso.glb" },
+          arguments: { glbUrl: "https://holorra.xyz/assets/lux3d/espresso-g1.glb" },
           rationale: "Segment the hero mesh into semantic parts for explosion and joints.",
         },
       ],
@@ -253,13 +258,16 @@ export default function InspectorDock({
     operation: "partSplit" | "articulationAnimation"
   ) => {
     setIsCallingPartApi(true);
+    // the cloud needs a URL it can fetch: the prop's real mesh. Preview props have none.
+    const glbUrl = activeHeroBlueprint.modelPath ? publicAssetUrl(activeHeroBlueprint.modelPath) : undefined;
     try {
       const res = await fetch("/api/aholo/lux3d", {
         method: "POST",
         headers: buildHeaders(),
         body: JSON.stringify({
           operation,
-          glbUrl: "https://labs.aholo.ai/stage/active-hero-model.glb",
+          glbUrl,
+          previewOnly: !glbUrl,
           prompt: articulationPrompt,
         }),
       });
@@ -280,7 +288,14 @@ export default function InspectorDock({
         if (operation === "articulationAnimation") {
           onArticulateToggle(true);
         }
+        if (data.executionMode === "LIVE_AHOLO_CLOUD_SDK" && data.taskId != null) {
+          onJobSubmitted?.({ taskId: Number(data.taskId), label: `${activeHeroBlueprint.name} · ${operation}`, method: data.sdkMethod, live: true });
+        }
+      } else {
+        onAddReceipt(failureReceipt(`lux3d.${operation}.create`, data.error));
       }
+    } catch (err) {
+      onAddReceipt(failureReceipt(`lux3d.${operation}.create`, err));
     } finally {
       setIsCallingPartApi(false);
     }
@@ -317,7 +332,19 @@ export default function InspectorDock({
           statusLabel: data.status === 3 ? "SUCCEEDED (3)" : "RUNNING (1)",
           executionMode: data.executionMode,
         });
+        if (data.executionMode === "LIVE_AHOLO_CLOUD_SDK" && data.taskId != null) {
+          onJobSubmitted?.({
+            taskId: Number(data.taskId),
+            label: operation === "humanoidAutoRig" ? "Auto-rig" : `Retarget ${clip}`,
+            method: data.sdkMethod,
+            live: true,
+          });
+        }
+      } else {
+        onAddReceipt(failureReceipt(`lux3d.${operation}.create`, data.error));
       }
+    } catch (err) {
+      onAddReceipt(failureReceipt(`lux3d.${operation}.create`, err));
     } finally {
       setIsCallingRigApi(false);
     }
@@ -679,6 +706,16 @@ export default function InspectorDock({
                   <T en="Auto-rig" zh="自动绑骨" />
                 </button>
               </div>
+              <button
+                type="button"
+                onClick={() => triggerRigOrRetargetSdk("humanoidAnimationRetarget", activeAnimationId)}
+                disabled={isCallingRigApi}
+                title="lux3d.humanoidAnimationRetarget.create"
+                className="btn mt-2 w-full"
+              >
+                <Glyph name={isCallingRigApi ? "loader" : "generate"} size={14} />
+                <T en="Retarget" zh="重定向" /> <span className="font-mono text-[11.5px]">{activeAnimationId}</span>
+              </button>
               <div className="mt-2.5 flex items-center justify-between">
                 <div className="flex items-center gap-1">
                   {["W", "A", "S", "D"].map((k) => (
@@ -768,7 +805,6 @@ export default function InspectorDock({
                               type="button"
                               onClick={() => {
                                 onSelectAnimation(clip.id);
-                                void triggerRigOrRetargetSdk("humanoidAnimationRetarget", clip.id);
                               }}
                               title={`${clip.label} · ${clip.recommendedUse}`}
                               className={`relative flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left transition-colors ${
@@ -804,8 +840,8 @@ export default function InspectorDock({
               </div>
               <p className="mt-3 font-mono text-[10.5px] text-ink-3">
                 <T
-                  en="Selecting a clip calls humanoidAnimationRetarget"
-                  zh="选择动作片段会调用 humanoidAnimationRetarget"
+                  en="Selecting a clip plays it on the actor. Retarget sends it to humanoidAnimationRetarget."
+                  zh="选择动作片段会在角色上播放；点击「重定向」才会调用 humanoidAnimationRetarget。"
                 />
               </p>
             </Section>

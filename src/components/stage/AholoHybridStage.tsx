@@ -1571,7 +1571,7 @@ export default function AholoHybridStage({
                 }`}
               >
                 <Glyph name={item.glyph} size={14} className={active ? "text-accent" : ""} />
-                <span className="hidden 2xl:inline">
+                <span className="hidden @min-[1180px]:inline">
                   <T en={item.label.en} zh={item.label.zh} />
                 </span>
               </button>

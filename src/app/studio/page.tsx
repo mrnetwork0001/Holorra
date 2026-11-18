@@ -221,12 +221,21 @@ export default function HolorraStudioPage() {
     setSelectedPartId(null);
   }, []);
 
-  const handleAddReceipt = useCallback((receipt: ApiReceiptLog) => {
-    setReceipts((prev) => [receipt, ...prev.slice(0, 24)]);
-  }, []);
-
   // ---------------------------------------------------------------- generate → drops into the stage
   const [pendingJobs, setPendingJobs] = useState<PendingJob[]>([]);
+
+  const handleAddReceipt = useCallback((receipt: ApiReceiptLog) => {
+    setReceipts((prev) => [receipt, ...prev.slice(0, 24)]);
+    // a request the API refused also shows on the stage for 8 s, so a failed click is never silent
+    if (receipt.statusLabel === "FAILED") {
+      const id = -Date.now();
+      setPendingJobs((prev) => [
+        { taskId: id, label: `${receipt.sdkMethod}: ${receipt.taskIdOrWorldId}`, method: receipt.sdkMethod, startedAt: Date.now(), status: "failed" },
+        ...prev,
+      ]);
+      window.setTimeout(() => setPendingJobs((prev) => prev.filter((p) => p.taskId !== id)), 8000);
+    }
+  }, []);
   const [spawnedAssets, setSpawnedAssets] = useState<SpawnedAsset[]>([]);
   const pendingJobsRef = useRef(pendingJobs);
   pendingJobsRef.current = pendingJobs;
@@ -300,7 +309,17 @@ export default function HolorraStudioPage() {
             handledTasksRef.current.add(job.taskId);
             const glb = pickGlbUrl(task.outputs);
             if (!glb) {
-              fail(job, "SUCCEEDED (3) · no GLB output");
+              // finished, but the result is not a mesh (images, a URDF pack, an export archive…)
+              setPendingJobs((prev) => prev.filter((p) => p.taskId !== job.taskId));
+              handleAddReceipt({
+                id: `rcpt_${Date.now()}_${job.taskId}`,
+                timestamp: new Date().toLocaleTimeString(),
+                sdkPackage: "@manycore/aholo-sdk-lux3d@1.10.0",
+                sdkMethod: job.method,
+                taskIdOrWorldId: `task_${job.taskId} · done, see the task on labs.aholo.ai`,
+                statusLabel: "SUCCEEDED (3)",
+                executionMode: "LIVE_AHOLO_CLOUD_SDK",
+              });
               continue;
             }
             setSpawnedAssets((prev) =>
@@ -451,6 +470,7 @@ export default function HolorraStudioPage() {
 
   const inspectorDock = (
     <InspectorDock
+      onJobSubmitted={handleJobSubmitted}
       activeHeroBlueprint={activeHeroBlueprint}
       explodePercent={explodePercent}
       onExplodePercentChange={setExplodePercent}

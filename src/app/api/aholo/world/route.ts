@@ -51,8 +51,8 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const action = body.action as "generate" | "reconstruct";
 
-  // 1. Live Aholo World SDK Execution when API Key is provided
-  if (ctx.hasApiKey) {
+  // 1. Live Aholo World SDK Execution when API Key is provided (previewOnly: no real input to send)
+  if (ctx.hasApiKey && !body.previewOnly) {
     try {
       const worldClient = getWorldClient(ctx);
       if (action === "reconstruct") {
