@@ -22,10 +22,39 @@ export interface DirectorStageMutation {
   playCameraSpline?: boolean;
 }
 
+/** 中文 keywords → the English words the deterministic planner already understands. */
+const ZH_KEYWORDS: [RegExp, string][] = [
+  [/广场|户外|城市|街道/, "plaza outdoor"],
+  [/车站|火车站|交通|大厅|枢纽/, "station concourse"],
+  [/公寓|房间|室内|厨房|客厅/, "loft indoor"],
+  [/无人机|机甲/, "drone"],
+  [/导览|终端|服务台/, "kiosk terminal"],
+  [/咖啡|意式|家电/, "espresso coffee"],
+  [/拆分|爆炸|部件|拆开/, "split explode"],
+  [/打开|开启|铰链|抽屉|顶盖|关节/, "open articulate"],
+  [/角色|人物|演员|人形|机器人/, "actor"],
+  [/跳舞|舞蹈|庆祝|欢呼/, "dance"],
+  [/剑|战斗|攻击/, "sword"],
+  [/跳跃|忍者/, "jump"],
+  [/冲刺|奔跑/, "sprint"],
+  [/走|行走|巡逻/, "walk"],
+  [/说话|对话|交谈/, "talk"],
+  [/修理|维修/, "fix"],
+  [/镜头|运镜|飞行|电影|预告片/, "camera cinematic"],
+  [/第三人称/, "third"],
+];
+
+function zhKeywords(prompt: string): string {
+  return ZH_KEYWORDS.filter(([re]) => re.test(prompt))
+    .map(([, en]) => ` ${en}`)
+    .join("");
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const prompt = String(body.prompt || "").trim();
-  const lower = prompt.toLowerCase();
+  // Chinese briefs (中文) map onto the same English keywords the planner matches below
+  const lower = (prompt + zhKeywords(prompt)).toLowerCase();
 
   const steps: McpDirectorStep[] = [];
   const mutation: DirectorStageMutation = {};
