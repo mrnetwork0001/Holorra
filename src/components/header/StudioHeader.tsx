@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AHOLO_WORLD_PRESETS, type AholoWorldPreset } from "@/config/aholo-presets";
@@ -24,6 +24,8 @@ export interface StudioHeaderProps {
   onExposureChange?: (val: number) => void;
   radialSort?: boolean;
   onRadialSortChange?: (val: boolean) => void;
+  /** bump to open the API key dialog from elsewhere (e.g. the daily-limit notice) */
+  openKeySignal?: number;
 }
 
 const NAV = [
@@ -51,6 +53,7 @@ export default function StudioHeader({
   onRadialSortChange,
   menuOpen = false,
   onToggleMenu,
+  openKeySignal = 0,
 }: StudioHeaderProps) {
   const pathname = usePathname();
   const lang = useLang();
@@ -58,6 +61,14 @@ export default function StudioHeader({
   const [showRenderPopover, setShowRenderPopover] = useState(false);
   const [draftKey, setDraftKey] = useState(apiKey);
   const [draftRegion, setDraftRegion] = useState<"com" | "cn">(region);
+
+  useEffect(() => {
+    if (!openKeySignal) return;
+    setDraftKey(apiKey);
+    setDraftRegion(region);
+    setShowKeyModal(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openKeySignal]);
 
   const isKeyConfigured = Boolean(apiKey || hasServerKey);
   const isStudio = pathname === "/studio";

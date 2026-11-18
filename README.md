@@ -265,6 +265,7 @@ flowchart TB
 - **A visitor's key is theirs.** It stays in their browser and goes only to Holorra's own routes, which hand it to the SDK for one request. No route logs request headers (there are no `console` calls under `src/app/api`).
 - **No key, no outbound jobs.** Without a key, Lux3D requests return `INSTANT_STAGE_BLUEPRINT` previews and world requests return `VERIFIED_MANYCORE_CDN_PRESET` hosted worlds. Nothing is sent to Aholo and nothing is billed.
 - **The asset proxy is narrow** (`src/app/api/aholo/asset/route.ts`): https only, a fixed host allowlist, every redirect hop re-checked, 60 s and 120 MB limits.
+- **The server key has a daily budget** (`src/lib/usage-guard.ts`): 5 live jobs per visitor and 25 site-wide per day by default. Past that, requests get a 429 and the studio points the visitor to their own key.
 - **Nothing secret is committed.** `.env.local` is git-ignored, `.mcp.json` ships a placeholder, and the full git history was checked for the project key before pushing (18 Nov 2026: not present).
 - **Checks, not a test suite.** There are no unit tests yet. What does run: `npm run typecheck`, `npm run verify:aholo` (SDK exports and CDN reachability) and a production build. During development, headless-Chrome scripts (Playwright) also played the quest end to end, exercised Expand and the drop-in, and measured 0 px horizontal overflow at 390, 768 and 1440 px on every page; those scripts are not in the repository.
 
@@ -301,6 +302,7 @@ npm run build && npm start      # http://localhost:3000
 | --- | --- |
 | `AHOLO_API_KEY` | Server-side key for live Lux3D and World jobs. Unset: the app runs on hosted worlds, stored results and labelled previews, and visitors can still paste their own key. |
 | `AHOLO_REGION` | `com` (default, api.aholo.ai) or `cn` (api.aholo.cn). A visitor's `x-aholo-region` header overrides it per request. |
+| `HOLORRA_DAILY_JOBS_PER_VISITOR`, `HOLORRA_DAILY_JOBS_TOTAL` | Daily caps on live jobs that spend the server key (defaults 5 per visitor, 25 site-wide, per UTC day). Over the cap, the studio asks the visitor to add their own key; jobs on a visitor's key are never limited. |
 | `NEXT_DIST_DIR` | Optional build folder (default `.next`), for building a new version next to a running one. |
 | `NEXT_SKIP_TYPECHECK` | `1` skips type errors in preview builds only. Never set it for a release. |
 

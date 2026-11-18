@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkLiveQuota } from "@/lib/usage-guard";
 import { getWorldClient, resolveAholoContext } from "@/lib/aholo-server";
 import { AHOLO_WORLD_PRESETS } from "@/config/aholo-presets";
 
@@ -53,6 +54,8 @@ export async function POST(req: NextRequest) {
 
   // 1. Live Aholo World SDK Execution when API Key is provided (previewOnly: no real input to send)
   if (ctx.hasApiKey && !body.previewOnly) {
+    const quota = checkLiveQuota(req, ctx);
+    if (!quota.allowed) return NextResponse.json({ ok: false, limit: true, error: quota.error }, { status: 429 });
     try {
       const worldClient = getWorldClient(ctx);
       if (action === "reconstruct") {
@@ -63,6 +66,7 @@ export async function POST(req: NextRequest) {
           scene: body.scene || "space",
           useMask: Boolean(body.useMask),
         });
+        quota.count();
         return NextResponse.json({
           ok: true,
           executionMode: "LIVE_AHOLO_CLOUD_SDK",
@@ -78,6 +82,7 @@ export async function POST(req: NextRequest) {
         if (body.prompt) payload.prompt = body.prompt;
         if (body.imageUrl) payload.resources = [{ url: body.imageUrl, type: "image" }];
         const res = await worldClient.generations.create(payload);
+        quota.count();
         return NextResponse.json({
           ok: true,
           executionMode: "LIVE_AHOLO_CLOUD_SDK",

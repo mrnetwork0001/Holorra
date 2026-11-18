@@ -4,6 +4,7 @@ import {
   type HumanoidAnimationId,
 } from "@manycore/aholo-sdk-lux3d";
 import { getLux3dClient, resolveAholoContext } from "@/lib/aholo-server";
+import { checkLiveQuota } from "@/lib/usage-guard";
 import { AHOLO_RIGGED_ACTORS, LUX3D_HERO_BLUEPRINTS } from "@/config/aholo-presets";
 
 const HUMANOID_ANIMATION_ID_SET = new Set<string>(HUMANOID_ANIMATION_IDS);
@@ -43,6 +44,9 @@ export async function POST(req: NextRequest) {
   // 1. Live Aholo Lux3D Cloud Execution when AHOLO_API_KEY or x-aholo-api-key header is present
   // previewOnly: the client has no real input for this job (e.g. a procedural preview prop)
   if (ctx.hasApiKey && !body.previewOnly) {
+    // daily cap on jobs that spend the server's own key (a visitor's own key is never limited)
+    const quota = checkLiveQuota(req, ctx);
+    if (!quota.allowed) return NextResponse.json({ ok: false, limit: true, error: quota.error }, { status: 429 });
     try {
       const lux3d = getLux3dClient(ctx);
       let taskId: number;
@@ -141,6 +145,7 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ ok: false, error: `Unknown operation: ${operation}` }, { status: 400 });
       }
 
+      quota.count();
       return NextResponse.json({
         ok: true,
         executionMode: "LIVE_AHOLO_CLOUD_SDK",

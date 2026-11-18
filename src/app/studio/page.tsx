@@ -226,6 +226,11 @@ export default function HolorraStudioPage() {
 
   const handleAddReceipt = useCallback((receipt: ApiReceiptLog) => {
     setReceipts((prev) => [receipt, ...prev.slice(0, 24)]);
+    // the demo's free live jobs ran out: explain it and point to the visitor's own key
+    if (receipt.statusLabel === "FAILED" && receipt.taskIdOrWorldId.startsWith("DAILY_LIMIT")) {
+      setLimitNotice(/your \d+ free/.test(receipt.taskIdOrWorldId) ? "visitor" : "site");
+      return;
+    }
     // a request the API refused also shows on the stage for 8 s, so a failed click is never silent
     if (receipt.statusLabel === "FAILED") {
       const id = -Date.now();
@@ -237,6 +242,8 @@ export default function HolorraStudioPage() {
     }
   }, []);
   const [spawnedAssets, setSpawnedAssets] = useState<SpawnedAsset[]>([]);
+  const [limitNotice, setLimitNotice] = useState<"visitor" | "site" | null>(null);
+  const [openKeySignal, setOpenKeySignal] = useState(0);
   const pendingJobsRef = useRef(pendingJobs);
   pendingJobsRef.current = pendingJobs;
   const handledTasksRef = useRef<Set<number>>(new Set());
@@ -505,6 +512,7 @@ export default function HolorraStudioPage() {
         region={region}
         hasServerKey={hasServerKey}
         onSaveApiConfig={handleSaveApiConfig}
+        openKeySignal={openKeySignal}
         splatExposure={splatExposure}
         onExposureChange={setSplatExposure}
         radialSort={radialSort}
@@ -625,6 +633,74 @@ export default function HolorraStudioPage() {
             onDeleteKeyframe={handleDeleteKeyframe}
           />
         </main>
+
+        {/* Daily limit on the demo's own key: send the visitor to their own key */}
+        {limitNotice && (
+          <div className="fixed inset-0 z-[95] flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-labelledby="limit-title">
+            <div className="panel w-full p-5 shadow-[0_24px_64px_rgba(0,0,0,0.6)]" style={{ maxWidth: 460 }}>
+              <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
+                <T en="Free live jobs used up" zh="免费实时任务已用完" />
+              </div>
+              <h3 id="limit-title" className="mt-2 text-[17px] font-semibold text-ink">
+                <T en="Keep generating with your own Aholo key" zh="用你自己的 Aholo 密钥继续生成" />
+              </h3>
+              <p className="mt-2 text-[13.5px] leading-relaxed text-ink-2">
+                {limitNotice === "visitor" ? (
+                  <T
+                    en="You have used today's free live jobs on this demo. Everything else still works: play mode, the worlds, explode, the camera path and cached drop-ins."
+                    zh="你今天在本演示中的免费实时任务已用完。其他功能照常可用：游玩模式、各个世界、爆炸视图、镜头路径和缓存结果投放。"
+                  />
+                ) : (
+                  <T
+                    en="This demo's free live jobs for today are used up. Everything else still works: play mode, the worlds, explode, the camera path and cached drop-ins."
+                    zh="本演示今天的免费实时任务已用完。其他功能照常可用：游玩模式、各个世界、爆炸视图、镜头路径和缓存结果投放。"
+                  />
+                )}
+              </p>
+              <ol className="mt-4 space-y-2.5 text-[13.5px] leading-relaxed text-ink-2">
+                <li className="flex gap-3">
+                  <span className="font-mono text-[12px] text-accent">01</span>
+                  <span>
+                    <T en="Get a key at " zh="前往 " />
+                    <a href="https://labs.aholo.ai/api-keys" target="_blank" rel="noreferrer" className="text-accent underline-offset-4 hover:underline">
+                      labs.aholo.ai/api-keys
+                    </a>
+                    <T en=" (or labs.aholo.cn in China)." zh=" 获取密钥（中国区为 labs.aholo.cn）。" />
+                  </span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-mono text-[12px] text-accent">02</span>
+                  <span>
+                    <T
+                      en="Paste it under API key in the studio header. It stays in your browser and jobs run on your own credits, with no limit here."
+                      zh="把它粘贴到创作台顶部的「API 密钥」里。密钥只保存在你的浏览器中，任务消耗你自己的额度，这里不再限制次数。"
+                    />
+                  </span>
+                </li>
+              </ol>
+              <div className="mt-5 flex flex-wrap justify-end gap-2 border-t border-line pt-4">
+                <button type="button" className="btn btn-sm btn-ghost" onClick={() => setLimitNotice(null)}>
+                  <T en="Not now" zh="暂不" />
+                </button>
+                <a href="https://labs.aholo.ai/api-keys" target="_blank" rel="noreferrer" className="btn btn-sm">
+                  <Glyph name="external" size={12} />
+                  <T en="Get a key" zh="获取密钥" />
+                </a>
+                <button
+                  type="button"
+                  className="btn btn-sm btn-primary"
+                  onClick={() => {
+                    setLimitNotice(null);
+                    setOpenKeySignal((n) => n + 1);
+                  }}
+                >
+                  <Glyph name="key" size={12} />
+                  <T en="Add my key" zh="填入我的密钥" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Right dock (inspect: parts, rig, co-director). Wrapper owns the width. */}
         {!isMobile && (

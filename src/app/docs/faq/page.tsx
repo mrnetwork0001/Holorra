@@ -202,6 +202,23 @@ export default function FaqDoc() {
           <T
             en={
               <>
+                <strong>Free live jobs are capped.</strong> On the hosted demo, jobs that run on the server key are limited to 5
+                per visitor and 25 site-wide per day. Past that, the studio asks you to add your own key from{" "}
+                <A href="https://labs.aholo.ai/api-keys">labs.aholo.ai/api-keys</A>; jobs on your own key are never limited.
+              </>
+            }
+            zh={
+              <>
+                <strong>免费实时任务有每日上限。</strong>在线演示中，使用服务端密钥的任务每位访客每天 5 个、全站每天 25 个。超出后，创作台会提示你到{" "}
+                <A href="https://labs.aholo.ai/api-keys">labs.aholo.ai/api-keys</A> 获取并填入自己的密钥；用自己的密钥运行的任务不受限制。
+              </>
+            }
+          />
+        </li>
+        <li>
+          <T
+            en={
+              <>
                 <strong>Your key</strong>, if you paste one, is stored in your browser&apos;s local storage and sent only to
                 Holorra&apos;s own <C>/api/aholo/*</C> routes as <C>x-aholo-api-key</C>. The routes pass it to the SDK for that
                 request and do not log or store it.

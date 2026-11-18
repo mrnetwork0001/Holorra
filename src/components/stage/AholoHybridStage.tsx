@@ -1780,8 +1780,8 @@ export default function AholoHybridStage({
           </span>
           <HudDivider className="max-[600px]:hidden" />
           <span className="max-[600px]:hidden">{worldPreset.splatCountLabel}</span>
-          <HudDivider className="max-[600px]:hidden" />
-          <span className={`max-[600px]:hidden ${voxel.active ? "text-ink-2" : "text-ink-3"}`} title={tx(lang, voxel.title)}>
+          <HudDivider className="max-[600px]:hidden @max-[900px]:hidden" />
+          <span className={`max-[600px]:hidden @max-[900px]:hidden ${voxel.active ? "text-ink-2" : "text-ink-3"}`} title={tx(lang, voxel.title)}>
             <T en={voxel.label.en} zh={voxel.label.zh} />
           </span>
         </div>
