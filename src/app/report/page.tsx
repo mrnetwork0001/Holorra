@@ -43,6 +43,12 @@ const WORLDS = [
     splats: "single object capture",
     collision: "Free camera",
   },
+  {
+    title: "Coffee Bar · SpatialGen (ours)",
+    format: "Direct .spz, Z-up",
+    splats: "266,895 · 625 s",
+    collision: "Fixed floor height",
+  },
 ];
 
 const PIPELINE = [
@@ -80,12 +86,12 @@ const RUBRIC = [
   {
     criterion: "Use of Manycore tools",
     weight: "30%",
-    how: "The stage runs on @manycore/aholo-viewer (direct splats, chunk-LOD, GLTF skinning). Server routes under /api/aholo call the official World, Lux3D and Asset clients: all 10 Lux3D methods plus SpatialGen and Reality. Nine live Lux3D jobs ran through those routes (textTo3d ×3, partSplit, articulationAnimation, humanoidAutoRig ×2, humanoidAnimationRetarget); every result is inspectable on /lab. @manycore/aholo-sdk-mcp is pre-wired for agents.",
+    how: "The stage runs on @manycore/aholo-viewer (direct splats, chunk-LOD, GLTF skinning). Server routes under /api/aholo call the official World, Lux3D and Asset clients: all 10 Lux3D methods plus SpatialGen and Reality. Eleven live jobs ran through those routes: ten Lux3D (textTo3d ×3, partSplit, articulationAnimation, humanoidAutoRig ×2, humanoidAnimationRetarget ×2) and one SpatialGen world, now world 05 in the studio; every Lux3D result is inspectable on /lab. @manycore/aholo-sdk-mcp is pre-wired for agents.",
   },
   {
     criterion: "Fun and engagement",
     weight: "25%",
-    how: "Opens on four hosted 3DGS worlds with no generation wait. Explode and recolor parts, toggle joints, walk an actor in first or third person, and fly a recorded camera path.",
+    how: "Press Play for a one-minute scene quest: walk the Lux3D actor to the articulated espresso machine, brew (the URDF joints open in a camera close-up), frame the shot, celebrate. Text to 3D results drop into the world when ready, phones get a joystick, and Expand gives the render the full screen. Opens with no generation wait.",
   },
   {
     criterion: "Innovation",
@@ -95,7 +101,7 @@ const RUBRIC = [
   {
     criterion: "Completeness",
     weight: "20%",
-    how: "Studio, landing page, Lux3D bench, MCP hub and this report ship in one Next.js app, with bring-your-own-key support (x-aholo-api-key, COM / CN regions) and five export formats.",
+    how: "Studio, landing page, Lux3D bench, MCP hub, a 13-page /docs section and this report ship in one Next.js app, with bring-your-own-key support (x-aholo-api-key, COM / CN regions) and five export formats.",
   },
   {
     criterion: "Reach",
@@ -338,8 +344,8 @@ export default function ProjectReportDeckPage() {
           <SlideTitle
             n={4}
             section="The stage"
-            title="Four hosted worlds, playable without waiting for generation."
-            lead="Live jobs take minutes, so the studio opens on Gaussian Splatting scenes hosted on Manycore's CDN while new worlds and assets render in the background."
+            title="Five worlds, playable without waiting. One we generated."
+            lead="Live jobs take minutes, so the studio opens on four Gaussian Splatting scenes hosted on Manycore's CDN. The fifth came from one SpatialGen prompt through Holorra's own route."
           />
           <div className="grid min-h-0 flex-1 grid-cols-1 gap-8 grid-cols-12">
             <div className="grid min-h-0 grid-rows-2 gap-4 col-span-4">
@@ -349,9 +355,9 @@ export default function ProjectReportDeckPage() {
                 caption={<><span className="text-ink-2">Fig. 2</span> — Grand Transit Concourse, chunk-LOD stream.</>}
               />
               <Figure
-                src="/landing/world-bear.jpg"
-                alt="Teddy bear object splat"
-                caption={<><span className="text-ink-2">Fig. 3</span> — Object turntable, .sog capture.</>}
+                src="/landing/world-cafe.jpg"
+                alt="The SpatialGen coffee bar with the Lux3D actor and espresso machine"
+                caption={<><span className="text-ink-2">Fig. 3</span> — Coffee bar, generated with SpatialGen (world 3FO4K4V99KMD).</>}
               />
             </div>
             <div className="col-span-8">
@@ -530,7 +536,7 @@ export default function ProjectReportDeckPage() {
             lead={
               <>
                 The first character was refused by the auto-rig. Regenerated in a strict T-pose it rigged in {LX.characterRigged.seconds} s,
-                and one retarget job mapped five official clips onto its {LX.characterRigged.joints}-joint skeleton.
+                and one retarget job mapped eight official clips onto its {LX.characterRigged.joints}-joint skeleton.
               </>
             }
           />
@@ -597,7 +603,7 @@ export default function ProjectReportDeckPage() {
                 ))}
               </ol>
               <p className="mt-auto pt-3 text-[11px] text-ink-3">
-                The retarget GLB names its clips animation_1…5; mapped here in the order requested. All {CLIP_TOTAL} official clips are
+                The retarget GLB names its clips animation_1…8; mapped here in the order requested. All {CLIP_TOTAL} official clips are
                 selectable in the studio.
               </p>
             </div>
