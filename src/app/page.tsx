@@ -7,8 +7,10 @@ import PipelineLoop from "@/components/landing/PipelineLoop";
 import { CountUp, Reveal } from "@/components/landing/Reveal";
 import SiteNav from "@/components/brand/SiteNav";
 import { HUMANOID_ANIMATION_GROUPS } from "@/config/humanoid-animations";
+import { SPATIALGEN_PROMPT, SPATIALGEN_RESULT as SG } from "@/config/lux3d-results";
 
 const STUDIO = "/studio";
+const PLAY = "/studio?play=1";
 const ANIMATION_TOTAL = HUMANOID_ANIMATION_GROUPS.reduce((n, g) => n + g.clips.length, 0);
 
 /* ----------------------------------------------------------------------------
@@ -16,11 +18,11 @@ const ANIMATION_TOTAL = HUMANOID_ANIMATION_GROUPS.reduce((n, g) => n + g.clips.l
  * ------------------------------------------------------------------------- */
 
 const FIGURES = [
-  { value: "4", label: "3DGS worlds, live on load" },
+  { value: "5", label: "3DGS worlds, one generated with SpatialGen" },
   { value: "41.8M", label: "splats in the largest LOD stream" },
   { value: "10", label: "Lux3D capabilities wired in" },
   { value: String(ANIMATION_TOTAL), label: "retargetable humanoid clips" },
-  { value: "9", label: "live Lux3D jobs, all on the bench" },
+  { value: "11", label: "live Aholo jobs, every result in the app" },
 ];
 
 const PIPELINE: { n: string; title: string; glyph: GlyphName; body: string; calls: string[] }[] = [
@@ -28,21 +30,21 @@ const PIPELINE: { n: string; title: string; glyph: GlyphName; body: string; call
     n: "01",
     title: "Generate the world",
     glyph: "world",
-    body: "Prompt or photograph a space with SpatialGen, or reconstruct one from video, photos or Insta360 footage with Aholo Reality. It streams in as a walkable Gaussian Splatting field.",
+    body: "Prompt or photograph a space with SpatialGen, or reconstruct one from video, photos or Insta360 footage with Aholo Reality. Our coffee bar came back from one sentence in 625 s, ready to walk.",
     calls: ["world.generations.create", "world.reconstructions.create"],
   },
   {
     n: "02",
     title: "Split the parts",
     glyph: "split",
-    body: "Forge props with Lux3D G1 or G1-Turbo, break them into semantic sub-meshes, and give them joints from one sentence.",
+    body: "Forge props with Lux3D G1 or G1-Turbo, break them into semantic sub-meshes, and give them joints from one sentence. Finished models drop into the world you are standing in.",
     calls: ["textTo3d", "imgTo3d", "partSplit", "articulationAnimation"],
   },
   {
     n: "03",
     title: "Rig the actors",
     glyph: "rig",
-    body: `Auto-rig a humanoid mesh, retarget any of the ${ANIMATION_TOTAL} Lux3D clips onto it, and walk it through the world with voxel collision.`,
+    body: `Auto-rig a humanoid mesh, retarget any of the ${ANIMATION_TOTAL} Lux3D clips onto it, then play it through the world on its voxel floor.`,
     calls: ["humanoidAutoRig", "humanoidAnimationRetarget"],
   },
   {
@@ -56,6 +58,7 @@ const PIPELINE: { n: string; title: string; glyph: GlyphName; body: string; call
 
 const WORLDS = [
   {
+    id: "smart-loft-indoor",
     code: "W-01",
     title: "Designer Smart Loft",
     img: "/landing/world-loft.jpg" as string | null,
@@ -63,6 +66,7 @@ const WORLDS = [
     detail: "Indoor apartment with a 336 × 112 × 296 voxel collision grid at 5 cm.",
   },
   {
+    id: "juguo-urban-plaza",
     code: "W-02",
     title: "Juguo Urban Plaza",
     img: null,
@@ -70,6 +74,7 @@ const WORLDS = [
     detail: "41.8M splats across 5 LOD levels in 528 chunk files, with a 20 cm collision grid.",
   },
   {
+    id: "huochezhan-concourse",
     code: "W-03",
     title: "Grand Transit Concourse",
     img: "/landing/world-concourse.jpg",
@@ -77,11 +82,74 @@ const WORLDS = [
     detail: "32.7M splats with degree-2 spherical harmonics, wrapped in a .sog environment.",
   },
   {
+    id: "sculpted-bear-studio",
     code: "W-04",
     title: "Object Turntable",
     img: "/landing/world-bear.jpg",
     format: ".sog",
     detail: "A single dense object capture for close inspection next to meshes.",
+  },
+];
+
+/** Play mode, captured from the studio (Designer Smart Loft, third person). */
+const PLAY_STEPS = [
+  {
+    src: "/landing/play-near.jpg",
+    step: "Walk",
+    title: "Walk to the espresso machine",
+    meta: "WASD, Shift to jog · Walk_Loop / Jog_Fwd_Loop on the voxel floor",
+  },
+  {
+    src: "/landing/play-brew.jpg",
+    step: "Brew",
+    title: "Press E to brew a coffee",
+    meta: "The camera cuts in as hood_top_joint and drawer_front_joint open",
+  },
+  {
+    src: "/landing/play-wrapped.jpg",
+    step: "Wrap",
+    title: "Frame the shot, then celebrate",
+    meta: "K drops a keyframe · F plays Dance_Loop · scene wrapped",
+  },
+];
+
+const CONTROLS: { keys: string[]; label: string }[] = [
+  { keys: ["W", "A", "S", "D"], label: "walk" },
+  { keys: ["Shift"], label: "jog" },
+  { keys: ["Drag"], label: "look" },
+  { keys: ["E"], label: "brew" },
+  { keys: ["K"], label: "frame" },
+  { keys: ["F"], label: "cheer" },
+];
+
+const DROP_STEPS: { glyph: GlyphName; title: string; body: React.ReactNode }[] = [
+  {
+    glyph: "generate",
+    title: "Submit",
+    body: (
+      <>
+        Text to 3D calls <span className="font-mono text-ink">lux3d.textTo3d.create</span> through /api/aholo/lux3d.
+      </>
+    ),
+  },
+  {
+    glyph: "loader",
+    title: "Track",
+    body: (
+      <>
+        A timer chip on the stage follows <span className="font-mono text-ink">lux3d.tasks.retrieve</span>, polled every 10 s.
+      </>
+    ),
+  },
+  {
+    glyph: "download",
+    title: "Fetch",
+    body: "The finished GLB comes in through an allowlisted asset proxy, so no expiring links reach the browser.",
+  },
+  {
+    glyph: "voxel",
+    title: "Drop",
+    body: "Scaled to about 70 cm, it falls in front of you onto the floor found in the voxel grid and bounces to rest.",
   },
 ];
 
@@ -93,7 +161,7 @@ const RESULT_FIGS = [
   { src: "/landing/lux3d/artic-open.jpg", title: "“The hood hinges open”", meta: "articulationAnimation · task 8354168 · 298 s · URDF" },
   { src: "/landing/lux3d/char-rejected.jpg", title: "Attempt 1 · rig rejected", meta: "humanoidAutoRig · RIG_ELIGIBILITY_FAILED" },
   { src: "/landing/lux3d/char-rigged.jpg", title: "Attempt 2 · auto-rigged", meta: "humanoidAutoRig · task 8355123 · 81 s · 52 joints" },
-  { src: "/landing/lux3d/char-walk.jpg", title: "Retargeted · Walk_Loop", meta: "humanoidAnimationRetarget · task 8355366 · 5 clips" },
+  { src: "/landing/lux3d/char-walk.jpg", title: "Retargeted · Walk_Loop", meta: "humanoidAnimationRetarget · task 8359816 · 8 clips" },
 ];
 
 function ResultFig({ src, title, meta, i, tall = false }: { src: string; title: string; meta: string; i: number; tall?: boolean }) {
@@ -115,26 +183,28 @@ const STACK = [
   ["@manycore/aholo-viewer", "1.14.0", "WebGL2 stage: splat loading, chunk-LOD streaming, GLTF meshes, skeletal animation, tone-mapped compositing."],
   ["@manycore/aholo-sdk-world", "1.5.0", "SpatialGen generation and Aholo Reality reconstruction, with task status and history."],
   ["@manycore/aholo-sdk-lux3d", "1.10.0", "All 10 Lux3D methods: generation, four-view, concept art, part split, articulation, rig, retarget, material, export."],
-  ["@manycore/aholo-sdk-asset", "1.4.0", "Uploads local media to Aholo's CDN for generation and reconstruction jobs."],
+  ["@manycore/aholo-sdk-asset", "1.4.0", "Asset client for staging media on Aholo's CDN; local-file uploads run through the MCP upload_asset tool."],
   ["@manycore/aholo-sdk-mcp", "1.10.0", "The Aholo MCP server, pre-wired in .mcp.json for Claude Code, Cursor and the in-app co-director."],
   ["LuxReal", "hand-off", "Camera paths and shot prompts exported as a storyboard pack for LuxReal's video creator."],
 ];
 
 const TRY: { title: string; body: React.ReactNode }[] = [
   { title: "Launch the app", body: "The Smart Loft streams in from Manycore's CDN. No sign-up, no key." },
-  { title: "Switch worlds", body: "Use the world tabs in the header to move between the four scenes." },
-  { title: "Explode a prop", body: "Drag the explode control, select a part to isolate or recolor it, toggle articulation." },
   {
-    title: "Walk it",
+    title: "Press Play",
     body: (
       <>
-        Choose third or first person and move with <span className="kbd">W</span> <span className="kbd">A</span>{" "}
-        <span className="kbd">S</span> <span className="kbd">D</span>. <span className="kbd">Q</span>{" "}
-        <span className="kbd">E</span> change height.
+        Walk to the espresso machine with <span className="kbd">W</span> <span className="kbd">A</span>{" "}
+        <span className="kbd">S</span> <span className="kbd">D</span>, brew with <span className="kbd">E</span>, frame with{" "}
+        <span className="kbd">K</span>, cheer with <span className="kbd">F</span>. Phones get a joystick.
       </>
     ),
   },
+  { title: "Switch worlds", body: "Five scenes in the header tabs, including the coffee bar SpatialGen generated." },
+  { title: "Explode a prop", body: "Drag the explode control, select a part to isolate or recolor it, toggle articulation." },
+  { title: "Drop in a model", body: "Press Text to 3D. The model lands in front of you when the job finishes; without a key a cached result drops in." },
   { title: "Direct a shot", body: "Add keyframes at a few viewpoints, play the path, then export the storyboard or open LuxReal." },
+  { title: "Expand the stage", body: "The Expand button in the stage toolbar hides the panels and shows only the render. Esc returns." },
   { title: "Go live", body: "Add your labs.aholo.ai key under API key to send real SpatialGen and Lux3D jobs to your own account." },
 ];
 
@@ -250,6 +320,7 @@ export default function LandingPage() {
           { label: "Worlds", href: "#worlds" },
           { label: "Features", href: "#features" },
           { label: "Lux3D bench", href: "/lab" },
+          { label: "Docs", href: "/docs" },
         ]}
       />
 
@@ -274,14 +345,18 @@ export default function LandingPage() {
                 className="rise mt-7 max-w-xl text-[18px] leading-relaxed text-ink-2"
                 style={{ "--d": "180ms" } as React.CSSProperties}
               >
-                Holorra puts walkable Gaussian Splatting worlds, part-split and articulated props, rigged actors and a
-                camera director on one WebGL stage in your browser. It is built on the Manycore Aholo stack.
+                Holorra puts walkable Gaussian Splatting worlds, part-split and articulated props, a rigged actor you play
+                and a camera director on one WebGL stage in your browser. It is built on the Manycore Aholo stack.
               </p>
               <div className="rise mt-9 flex flex-wrap gap-3" style={{ "--d": "260ms" } as React.CSSProperties}>
                 <Link href={STUDIO} className="btn btn-primary btn-lg">
                   Launch App
                 </Link>
-                <Link href="/report" className="btn btn-lg">
+                <Link href={PLAY} className="btn btn-lg">
+                  <Glyph name="play" size={12} />
+                  Play the scene
+                </Link>
+                <Link href="/report" className="btn btn-lg btn-ghost">
                   Read the report
                 </Link>
               </div>
@@ -291,6 +366,7 @@ export default function LandingPage() {
               >
                 <span>WebGL2</span>
                 <span>3D Gaussian Splatting</span>
+                <span>SpatialGen</span>
                 <span>Lux3D</span>
                 <span>Aholo MCP</span>
                 <span>LuxReal</span>
@@ -306,8 +382,8 @@ export default function LandingPage() {
             <Figure
               n={1}
               src="/landing/studio.jpg"
-              alt="The Holorra studio with a Gaussian Splatting loft on the stage, creation dock on the left and part inspector on the right."
-              caption="The studio running the Designer Smart Loft. Real capture of the app, no mock-up."
+              alt="The Holorra studio on the SpatialGen coffee bar world, with the Lux3D actor and espresso machine on the stage, creation dock on the left and part inspector on the right."
+              caption="The studio in the coffee bar SpatialGen generated from one sentence, with the Lux3D actor and espresso machine. Real capture of the app, no mock-up."
             />
           </div>
 
@@ -339,7 +415,7 @@ export default function LandingPage() {
             {[
               ["Place", "A lone .glb on a grey grid.", "Props sit inside a photoreal splat world with collision you can walk on."],
               ["Parts", "One fused shell. Nothing opens.", "Semantic sub-meshes you can explode, isolate, recolor and hinge."],
-              ["Motion", "Characters frozen in a T-pose.", `Auto-rigged actors with ${ANIMATION_TOTAL} retargetable clips.`],
+              ["Motion", "Characters frozen in a T-pose.", `An auto-rigged actor you play, with ${ANIMATION_TOTAL} retargetable clips.`],
               ["Camera", "A turntable at best.", "Keyframed camera paths that export to LuxReal for video."],
             ].map(([k, before, after]) => (
               <div key={k} className="grid grid-cols-[88px_1fr] gap-4 border-b border-line py-5 md:odd:pr-8 md:even:border-l md:even:pl-8">
@@ -353,10 +429,94 @@ export default function LandingPage() {
           </div>
         </Section>
 
+        {/* -------------------------------------------------------------- play */}
+        <Section
+          id="play"
+          n="02"
+          name="Play"
+          title={
+            <>
+              Don&apos;t just look at the scene. <span className="text-accent">Play it.</span>
+            </>
+          }
+          lead="Press Play and the studio turns into a short scene quest. You steer the auto-rigged Lux3D actor through the splat loft and work the espresso machine Lux3D generated and articulated. Nothing is faked: the hood and drawer move on the joints in the returned URDF, and the actor plays its retargeted clips."
+        >
+          <Reveal variant="stagger" className="grid gap-6 md:grid-cols-3">
+            {PLAY_STEPS.map((f, i) => (
+              <figure key={f.src} style={{ "--i": i } as React.CSSProperties}>
+                <div className="relative aspect-[5/4] overflow-hidden border border-line bg-canvas">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={f.src} alt={f.title} loading="lazy" className="h-full w-full object-cover" />
+                  <span className="absolute left-3 top-3 rounded-[4px] bg-accent px-2 py-0.5 font-mono text-[11px] text-accent-ink">
+                    {String(i + 1).padStart(2, "0")} {f.step}
+                  </span>
+                </div>
+                <figcaption className="mt-3">
+                  <div className="text-[15px] text-ink">{f.title}</div>
+                  <div className="mt-0.5 font-mono text-[11.5px] text-ink-3">{f.meta}</div>
+                </figcaption>
+              </figure>
+            ))}
+          </Reveal>
+          <div className="mt-10 grid gap-8 border-t border-line pt-8 lg:grid-cols-[1.1fr_1fr]">
+            <div>
+              <div className="label">Controls</div>
+              <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-3">
+                {CONTROLS.map((c) => (
+                  <li key={c.label} className="flex items-center gap-1.5 text-[14px] text-ink-2">
+                    {c.keys.map((k) => (
+                      <span key={k} className="kbd">
+                        {k}
+                      </span>
+                    ))}
+                    <span className="ml-1">{c.label}</span>
+                  </li>
+                ))}
+              </ul>
+              <ul className="mt-6 space-y-3 text-[14px] leading-relaxed text-ink-2">
+                <li className="flex gap-3">
+                  <Glyph name="walk" size={16} className="mt-0.5 text-ink-3" />
+                  <span>
+                    <span className="text-ink">On a phone</span>, a thumb joystick walks the actor and Brew, Frame and Cheer
+                    buttons sit beside it.
+                  </span>
+                </li>
+                <li className="flex gap-3">
+                  <Glyph name="expand" size={16} className="mt-0.5 text-ink-3" />
+                  <span>
+                    <span className="text-ink">Expand</span> hides every panel and gives the render the whole screen.
+                  </span>
+                </li>
+                <li className="flex gap-3">
+                  <Glyph name="spline" size={16} className="mt-0.5 text-ink-3" />
+                  <span>
+                    <span className="text-ink">Your keyframe stays</span> on the camera path, ready to play back or send to
+                    LuxReal.
+                  </span>
+                </li>
+              </ul>
+            </div>
+            <div className="flex flex-col justify-between gap-6 border-line lg:border-l lg:pl-8">
+              <p className="font-serif text-[30px] leading-[1.1] text-ink sm:text-[36px]">
+                Walk in, brew a coffee, frame the shot. About a minute, no key needed.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Link href={PLAY} className="btn btn-primary btn-lg">
+                  <Glyph name="play" size={12} />
+                  Play the scene
+                </Link>
+                <Link href={STUDIO} className="btn btn-lg btn-ghost">
+                  Open the studio
+                </Link>
+              </div>
+            </div>
+          </div>
+        </Section>
+
         {/* -------------------------------------------------------------- pipeline */}
         <Section
           id="pipeline"
-          n="02"
+          n="03"
           name="Pipeline"
           title={
             <>
@@ -393,14 +553,14 @@ export default function LandingPage() {
         {/* -------------------------------------------------------------- results */}
         <Section
           id="results"
-          n="03"
+          n="04"
           name="Results"
           title="Real Lux3D output, not mock-ups."
           lead={
             <>
-              Nine jobs ran through Holorra&apos;s own <span className="font-mono text-[15px] text-ink">/api/aholo/lux3d</span> route on
-              18 November. Every image below is the asset Lux3D returned, rendered in @manycore/aholo-viewer, with its real task ID and
-              wall-clock time.
+              Ten Lux3D jobs and one SpatialGen world ran through Holorra&apos;s own{" "}
+              <span className="font-mono text-[15px] text-ink">/api/aholo</span> routes on 18 November. Every image below is what the
+              API returned, rendered in @manycore/aholo-viewer, with its real task ID and wall-clock time.
             </>
           }
         >
@@ -414,6 +574,31 @@ export default function LandingPage() {
               <ResultFig key={f.src} {...f} i={i} tall />
             ))}
           </Reveal>
+          <Reveal variant="figure" className="mt-12">
+            <figure>
+              <div className="relative aspect-[2/1] overflow-hidden border border-line bg-canvas">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/landing/spatialgen-pano.jpg"
+                  alt="The 360° panorama SpatialGen returned for the coffee bar world"
+                  loading="lazy"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <figcaption className="mt-3 grid gap-2 md:grid-cols-[1fr_1.4fr] md:gap-8">
+                <div>
+                  <div className="text-[14px] text-ink">SpatialGen · {SG.title}</div>
+                  <div className="mt-0.5 font-mono text-[11.5px] text-ink-3">
+                    {SG.method} · world {SG.worldId} · {SG.seconds} s · {SG.splats.toLocaleString("en-US")} splats
+                  </div>
+                </div>
+                <p className="text-[13px] leading-relaxed text-ink-3">
+                  <span className="text-ink-2">Prompt:</span> &ldquo;{SPATIALGEN_PROMPT}&rdquo; The panorama above came back with
+                  the splat file; the splats are world 05 in the studio.
+                </p>
+              </figcaption>
+            </figure>
+          </Reveal>
           <div className="mt-10 flex flex-wrap items-center gap-4">
             <Link href="/lab" className="btn btn-lg">
               <Glyph name="mesh" size={16} />
@@ -423,17 +608,89 @@ export default function LandingPage() {
           </div>
         </Section>
 
+        {/* -------------------------------------------------------------- drop-in */}
+        <Section
+          n="05"
+          name="Drop-in"
+          title="Generate a model. It lands at your feet."
+          lead="Keep playing while Lux3D works. When the job finishes, the model appears in front of the camera in whatever world you are in, falls to the floor and settles. The wait becomes part of the scene."
+        >
+          <div className="grid gap-10 lg:grid-cols-[1.3fr_1fr]">
+            <Figure
+              n={2}
+              src="/landing/drop-in.jpg"
+              alt="A generated espresso machine dropped onto the floor of the SpatialGen coffee bar next to the Lux3D actor"
+              caption="A Lux3D model dropped into the SpatialGen coffee bar. Without a key, Holorra drops the stored G1-Turbo result from task 8353472 and labels it cached."
+            />
+            <Reveal as="ol" variant="stagger" className="self-start border-t border-line">
+              {DROP_STEPS.map((d, i) => (
+                <li
+                  key={d.title}
+                  className="grid grid-cols-[28px_1fr] gap-3 border-b border-line py-4"
+                  style={{ "--i": i } as React.CSSProperties}
+                >
+                  <Glyph name={d.glyph} size={18} className="mt-0.5 text-ink-2" />
+                  <div>
+                    <div className="flex items-baseline gap-2 text-[15px] text-ink">
+                      <span className="font-mono text-[12px] text-accent">{String(i + 1).padStart(2, "0")}</span>
+                      {d.title}
+                    </div>
+                    <div className="mt-0.5 text-[14px] leading-relaxed text-ink-2">{d.body}</div>
+                  </div>
+                </li>
+              ))}
+            </Reveal>
+          </div>
+        </Section>
+
         {/* -------------------------------------------------------------- worlds */}
         <Section
           id="worlds"
-          n="04"
+          n="06"
           name="Worlds"
-          title="Four splat worlds, playable the moment it loads."
-          lead="Live generation takes minutes, so Holorra opens on Gaussian Splatting scenes hosted on Manycore's CDN. Explore right away while your own jobs render."
+          title="Five splat worlds. We generated one of them."
+          lead="Live generation takes minutes, so Holorra opens on four Gaussian Splatting scenes hosted on Manycore's CDN. The fifth came from a single SpatialGen prompt through Holorra's own /api/aholo/world route. Each card opens its world in the studio."
         >
+          <Reveal variant="figure" className="mb-12">
+            <Link href={`${STUDIO}?world=spatialgen-coffee-bar`} className="group grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+              <div className="relative aspect-[16/10] overflow-hidden border border-line bg-canvas">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/landing/world-cafe.jpg"
+                  alt="The SpatialGen coffee bar rendered in the Holorra stage with the Lux3D actor and espresso machine"
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-[1.2s] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.04]"
+                />
+                <span className="chip chip-accent absolute left-3 top-3">Generated with SpatialGen</span>
+              </div>
+              <div className="flex flex-col justify-center">
+                <div className="flex items-baseline gap-3">
+                  <span className="font-mono text-[12px] text-ink-3">W-05</span>
+                  <h3 className="text-[20px] font-medium text-ink group-hover:text-accent">Coffee Bar · SpatialGen</h3>
+                </div>
+                <p className="mt-3 text-[15px] leading-relaxed text-ink-2">
+                  One sentence in, a walkable world out: {SG.splats.toLocaleString("en-US")} splats in {SG.seconds} s, saved as a{" "}
+                  {SG.sizeMB} MB .spz. SpatialGen returns it Z-up, so the stage turns it into Aholo&apos;s −Y-up frame and
+                  places the Lux3D espresso machine on its table.
+                </p>
+                <dl className="mt-5 grid grid-cols-3 border-l border-t border-line">
+                  {[
+                    ["world", SG.worldId],
+                    ["time", `${SG.seconds} s`],
+                    ["splats", `${Math.round(SG.splats / 1000)}K`],
+                  ].map(([k, v]) => (
+                    <div key={k} className="border-b border-r border-line px-3 py-2.5">
+                      <dt className="label">{k}</dt>
+                      <dd className="mt-1 truncate font-mono text-[13px] text-ink">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            </Link>
+          </Reveal>
           <Reveal variant="stagger" className="grid gap-x-6 gap-y-12 sm:grid-cols-2">
             {WORLDS.map((w, i) => (
-              <Link key={w.code} href={STUDIO} className="group block" style={{ "--i": i } as React.CSSProperties}>
+              <Link key={w.code} href={`${STUDIO}?world=${w.id}`} className="group block" style={{ "--i": i } as React.CSSProperties}>
                 <div className="relative aspect-[16/10] overflow-hidden border border-line bg-canvas">
                   {w.img ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
@@ -461,14 +718,14 @@ export default function LandingPage() {
         {/* -------------------------------------------------------------- features */}
         <Section
           id="features"
-          n="05"
+          n="07"
           name="Hybrid stage"
           title="Radiance fields and meshes on one stage."
           lead="Splats carry the world's look; meshes carry everything you want to touch. Both render in a single @manycore/aholo-viewer scene, lights on the meshes and tone-mapped compositing on the splats."
         >
           <div className="grid gap-10 lg:grid-cols-[1.3fr_1fr]">
             <Figure
-              n={2}
+              n={3}
               src="/landing/hybrid-concourse.jpg"
               alt="A Gaussian Splatting rail yard with exploded mesh parts in front of it"
               caption="A 32.7M-splat LOD stream with exploded mesh parts in the same scene."
@@ -495,7 +752,7 @@ export default function LandingPage() {
         </Section>
 
         <Section
-          n="06"
+          n="08"
           name="Parts"
           title="Take any generated object apart."
           lead={
@@ -510,14 +767,15 @@ export default function LandingPage() {
         </Section>
 
         <Section
-          n="07"
+          n="09"
           name="Actors"
           title={`${ANIMATION_TOTAL} clips, any character.`}
           lead={
             <>
               <span className="font-mono text-[15px] text-ink">humanoidAutoRig</span> puts a skeleton in a static mesh;{" "}
               <span className="font-mono text-[15px] text-ink">humanoidAnimationRetarget</span> maps up to ten official
-              Lux3D clips onto it per job. Drive the actor with WASD in first or third person.
+              Lux3D clips onto it per job. The actor you play went through both: a G1-Turbo character, rigged with 52 joints and
+              given eight clips.
             </>
           }
         >
@@ -555,7 +813,7 @@ export default function LandingPage() {
         </Section>
 
         <Section
-          n="08"
+          n="10"
           name="Director"
           title="Block the shot in 3D. Render it in LuxReal."
           lead="Each keyframe stores a camera position, look-at target, duration and shot prompt. Holorra plays them back as a Catmull-Rom flythrough over the live stage, grabs a reference frame per keyframe, and exports a storyboard pack for LuxReal's video creator."
@@ -622,7 +880,7 @@ export default function LandingPage() {
         </Section>
 
         <Section
-          n="09"
+          n="11"
           name="Co-director"
           title="Describe the scene. Get the tool plan."
           lead="The in-app co-director turns a plain-language brief into an ordered plan of Aholo MCP tool calls and updates the stage to match. The same MCP server is pre-configured in .mcp.json, so Claude Code or Cursor can drive SpatialGen and Lux3D directly."
@@ -651,7 +909,7 @@ export default function LandingPage() {
                 <span className="font-mono text-[12px] text-ink-3">brief → plan</span>
               </div>
               <div className="space-y-3 p-5 text-[13px]">
-                <p className="text-ink">&ldquo;Put a robot in the loft and open the espresso machine.&rdquo;</p>
+                <p className="text-ink">&ldquo;Walk the actor to the espresso machine and open the hood.&rdquo;</p>
                 <ol className="space-y-1.5 font-mono text-[12px] text-ink-2">
                   <li>
                     <span className="text-ink-3">1</span> lux3d_humanoid_animation_retarget
@@ -675,7 +933,7 @@ export default function LandingPage() {
         {/* -------------------------------------------------------------- stack */}
         <Section
           id="stack"
-          n="10"
+          n="12"
           name="Stack"
           title="Official SDKs across the whole stack."
           lead={
@@ -717,7 +975,7 @@ export default function LandingPage() {
         {/* -------------------------------------------------------------- try */}
         <Section
           id="try"
-          n="11"
+          n="13"
           name="Try it"
           title="A one-minute tour."
           lead="Everything below works without an API key. Add one at the end to send live generation jobs."
@@ -746,17 +1004,22 @@ export default function LandingPage() {
               Step onto the stage.
             </h2>
             <p className="mt-6 max-w-xl text-[17px] leading-relaxed text-ink-2">
-              A Gaussian Splatting world is already loaded and waiting. Walk in, take something apart, frame your first shot.
+              A Gaussian Splatting world is already loaded and waiting. Walk in, brew a coffee, take something apart, frame your
+              first shot.
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
               <Link href={STUDIO} className="btn btn-primary btn-lg">
                 Launch App
               </Link>
-              <Link href="/report" className="btn btn-lg">
+              <Link href={PLAY} className="btn btn-lg">
+                <Glyph name="play" size={12} />
+                Play the scene
+              </Link>
+              <Link href="/report" className="btn btn-lg btn-ghost">
                 Project report
               </Link>
-              <Link href="/mcp" className="btn btn-lg btn-ghost">
-                MCP hub
+              <Link href="/docs" className="btn btn-lg btn-ghost">
+                Read the docs
               </Link>
             </div>
           </div>
@@ -777,6 +1040,9 @@ export default function LandingPage() {
             </Link>
             <Link href="/mcp" className="hover:text-ink">
               MCP
+            </Link>
+            <Link href="/docs" className="hover:text-ink">
+              Docs
             </Link>
             <a href="https://labs.aholo.ai" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-ink">
               Aholo Labs <Glyph name="external" size={12} />
