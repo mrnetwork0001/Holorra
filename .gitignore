@@ -9,3 +9,8 @@ dist/
 *.tsbuildinfo
 next-env.d.ts
 .next-*/
+
+# Local Claude Code project instructions and scaffolding (kept on disk, not published)
+CLAUDE.md
+CLAUDE_CODE_STARTER_PROMPTS.md
+.claude/

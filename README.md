@@ -364,7 +364,7 @@ public/assets/lux3d/          mirrored Lux3D results (GLB, URDF and link meshes)
 public/assets/spatialgen/     the SpatialGen world and its panorama
 public/landing/               captures of the real app used on the landing page and in the docs
 scripts/verify-aholo-sdks.mjs SDK and CDN check (npm run verify:aholo)
-docs/                         SDK reference, design system, mobile rules, report PDF, early architecture notes
+docs/                         architecture, SDK reference, design system, mobile rules, report PDF
 .mcp.json                     Aholo MCP server for Claude Code and Cursor (placeholder key)
 ```
 
@@ -379,7 +379,7 @@ Worlds 01 to 04, their voxel grids and the demo GLBs referenced as MCP samples b
 - **Fonts:** IBM Plex Sans, IBM Plex Mono and Instrument Serif (SIL Open Font License), loaded with `next/font`.
 - **glTF-Transform** (MIT), used offline to make web copies of the results.
 - **Open-source npm packages** are listed in `package.json`.
-- **Built with Claude Code.** `CLAUDE.md` and `.claude/commands/` are its project instructions.
+- **Built with Claude Code** as a coding assistant.
 - **No prior Holorra code.** Everything else was written for this hackathon.
 
 ## License
