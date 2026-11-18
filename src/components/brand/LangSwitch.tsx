@@ -42,7 +42,8 @@ export default function LangSwitch({ className = "", size = "md" }: { className?
     <div
       role="radiogroup"
       aria-label="Language / 语言"
-      className={`inline-flex ${h} shrink-0 items-center gap-0.5 rounded-full border border-line-strong bg-canvas/60 p-[2px] ${className}`}
+      translate="no"
+      className={`notranslate inline-flex ${h} shrink-0 items-center gap-0.5 rounded-full border border-line-strong bg-canvas/60 p-[2px] ${className}`}
     >
       {(
         [

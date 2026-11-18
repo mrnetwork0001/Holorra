@@ -26,10 +26,10 @@ export interface L<TValue = string> {
 export function T({ en, zh }: { en: ReactNode; zh: ReactNode }) {
   return (
     <>
-      <span className="i18n-en" lang="en">
+      <span className="i18n-en" lang="en" translate="no">
         {en}
       </span>
-      <span className="i18n-zh" lang="zh-CN">
+      <span className="i18n-zh" lang="zh-CN" translate="no">
         {zh}
       </span>
     </>
@@ -39,10 +39,10 @@ export function T({ en, zh }: { en: ReactNode; zh: ReactNode }) {
 export function TB({ en, zh, className }: { en: ReactNode; zh: ReactNode; className?: string }) {
   return (
     <>
-      <div className={`i18n-en ${className ?? ""}`} lang="en">
+      <div className={`i18n-en ${className ?? ""}`} lang="en" translate="no">
         {en}
       </div>
-      <div className={`i18n-zh ${className ?? ""}`} lang="zh-CN">
+      <div className={`i18n-zh ${className ?? ""}`} lang="zh-CN" translate="no">
         {zh}
       </div>
     </>
