@@ -51,7 +51,8 @@ export interface Lux3dHeroAssetBlueprint {
   real?: {
     urdf: string;
     /** [x, z] spot per world id, plus the floor y used if the voxel probe fails */
-    placements: Record<string, { at: [number, number]; floorY: number; yawDeg?: number }>;
+    /** plinth: stand the prop on a display plinth this tall (m) on open floor; floorY is then the plinth top */
+    placements: Record<string, { at: [number, number]; floorY: number; yawDeg?: number; plinth?: number }>;
     /** joint names driven by the articulation toggle, 0..1 of their URDF range */
     joints: { name: string; max: number }[];
   };
@@ -63,6 +64,13 @@ export interface AholoWorldPreset {
   title: string;
   /** 简体中文 title for the 中 / EN switch */
   titleZh?: string;
+  /**
+   * This world's splat and voxel grid are stored +Y up. The stage keeps one −Y-up (OpenCV) frame,
+   * so both are turned half a turn about Z (x → −x, y → −y); poses below are in the stage frame.
+   */
+  mirrorXY?: boolean;
+  /** keep the bean hunt inside this well-reconstructed area: [minX, maxX, minZ, maxZ] */
+  beanArea?: [number, number, number, number];
   subtitle: string;
   category: "Indoor" | "Outdoor" | "Architecture" | "Object";
   sourceEngine: string;
@@ -161,8 +169,8 @@ export const LUX3D_HERO_BLUEPRINTS: Record<string, Lux3dHeroAssetBlueprint> = {
     real: {
       urdf: "/assets/lux3d/articulated/robot.urdf",
       placements: {
-        // ~1 m ahead of the loft spawn pose, left of the cabinet; floor from the voxel grid
-        "smart-loft-indoor": { at: [-2.23, 0.87], floorY: 1.912 },
+        // loft: on a 0.75 m display plinth on open marble floor (floor y = 0.36 in the stage frame)
+        "smart-loft-indoor": { at: [4.0, -1.6], floorY: -0.39, plinth: 0.75 },
         // SpatialGen coffee bar: on the table top measured in the generated splat
         // (flat patch at z = -0.46, 0.69 m above the floor -> y = 0.46 in the stage frame)
         "spatialgen-coffee-bar": { at: [0.65, -0.9], floorY: 0.46 },
@@ -433,6 +441,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
     code: "WORLD-01",
     title: "Designer Smart Loft",
     titleZh: "设计师智能公寓",
+    mirrorXY: true,
     subtitle: "Indoor apartment · .spz splat · voxel collision",
     category: "Indoor",
     sourceEngine: "Hosted .spz scene",
@@ -442,15 +451,18 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
     voxelBinUrl: `${AHOLO_OSS_BASE}/room/voxel/10c88df3/collision.voxel.bin`,
     splatCountLabel: "2.99M splats · .spz",
     pose: {
-      px: -4.148223,
-      py: 1.0,
-      pz: 1.231524,
-      lookAt: [-2.4, 0.85, -0.5],
-      yaw: -1.786,
+      px: 4.4,
+      py: -0.55,
+      pz: 0.4,
+      lookAt: [4.0, -0.4, -1.6],
+      yaw: 0.197,
       pitch: 0.082,
       thirdPersonDistance: 3.2,
       up: [0, -1, 0],
     },
+    floorY: 0.36,
+    beanArea: [0.9, 6.0, -3.45, 0.45],
+    actorSpot: [3.3, -1.55],
     defaultHeroAssetId: "cyber-barista-station",
     defaultActorId: "lux3d",
     defaultKeyframes: [
@@ -458,8 +470,8 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
         id: "kf-1",
         label: "Entrance wide",
         labelZh: "入口全景",
-        position: [-4.15, 0.85, 1.23],
-        target: [-2.3, 0.8, -0.4],
+        position: [4.6, -1.0, 0.5],
+        target: [4.0, -0.5, -1.6],
         durationSec: 3.0,
         luxrealPrompt:
           "Cinematic dolly-in through a warm sunlit designer smart loft, photorealistic 3DGS reflections, subtle depth of field",
@@ -468,18 +480,18 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
         id: "kf-2",
         label: "Appliance close-up",
         labelZh: "咖啡机特写",
-        position: [-3.1, 0.65, 0.35],
-        target: [-2.6, 0.72, -0.35],
+        position: [4.95, -0.8, -0.85],
+        target: [4.0, -0.6, -1.6],
         durationSec: 3.5,
         luxrealPrompt:
-          "Macro product orbit around the articulated titanium smart espresso synthesizer as its segmented sub-parts open smoothly",
+          "Macro product orbit around the articulated espresso machine on its plinth as the hood hinges open and the drawer slides out",
       },
       {
         id: "kf-3",
         label: "Actor tracking shot",
         labelZh: "角色跟拍",
-        position: [-2.1, 0.55, -1.1],
-        target: [-3.5, 0.9, 0.2],
+        position: [2.55, -0.7, -1.6],
+        target: [3.8, -0.4, -1.6],
         durationSec: 3.0,
         luxrealPrompt:
           "Low-angle reverse tracking shot following the rigged Lux3D actor walking across the living room floor",

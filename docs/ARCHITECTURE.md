@@ -55,6 +55,7 @@ Key resolution lives in `src/lib/aholo-server.ts` (`resolveAholoContext`): the `
 | Asset | Native up | On the stage |
 | --- | --- | --- |
 | Aholo CDN worlds | −Y (OpenCV) | used as is, `camera.up = (0, −1, 0)` |
+| Designer Smart Loft (`mirrorXY`) | +Y | splat and voxel grid turned half a turn about Z (x → −x, y → −y) into the −Y-up frame |
 | glTF (Lux3D props, actor, drop-ins) | +Y | wrapped with `rotation.x = π` |
 | SpatialGen output | +Z | wrapped with `rotation.x = π/2` |
 

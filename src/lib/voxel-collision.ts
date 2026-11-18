@@ -25,6 +25,15 @@ export class VoxelCollisionEngine {
   private treeDepth: number;
   private nodes: Uint32Array;
   private leafData: Uint32Array;
+  /**
+   * Half-turn about Z between the stage frame and the grid's own frame (x → −x, y → −y).
+   * Set for worlds whose data is stored +Y up, so the stage can keep one −Y-up convention.
+   */
+  private mirrorXY = false;
+
+  public setMirrorXY(on: boolean) {
+    this.mirrorXY = on;
+  }
 
   constructor(metadata: VoxelGridMetadata, nodes: Uint32Array, leafData: Uint32Array) {
     this.gridMinX = metadata.gridBounds.min[0];
@@ -104,6 +113,10 @@ export class VoxelCollisionEngine {
   }
 
   public isWorldPointSolid(wx: number, wy: number, wz: number): boolean {
+    if (this.mirrorXY) {
+      wx = -wx;
+      wy = -wy;
+    }
     const ix = Math.floor((wx - this.gridMinX) / this.voxelSize);
     const iy = Math.floor((wy - this.gridMinY) / this.voxelSize);
     const iz = Math.floor((wz - this.gridMinZ) / this.voxelSize);
@@ -132,12 +145,15 @@ export class VoxelCollisionEngine {
     let canMoveX = true;
     let canMoveZ = true;
 
-    for (const [ox, oz] of checkOffsets) {
-      if (this.isWorldPointSolid(nextX + ox, curY, curZ + oz)) {
-        canMoveX = false;
-      }
-      if (this.isWorldPointSolid(curX + ox, curY, nextZ + oz)) {
-        canMoveZ = false;
+    // chest height, plus knee height (+Y is down) so sofas and low tables block the walker too
+    for (const dy of [0, 0.5]) {
+      for (const [ox, oz] of checkOffsets) {
+        if (this.isWorldPointSolid(nextX + ox, curY + dy, curZ + oz)) {
+          canMoveX = false;
+        }
+        if (this.isWorldPointSolid(curX + ox, curY + dy, nextZ + oz)) {
+          canMoveZ = false;
+        }
       }
     }
 

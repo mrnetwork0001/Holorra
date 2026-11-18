@@ -806,6 +806,37 @@ export default function AholoHybridStage({
           return geom;
         }
 
+        /** A plain sharp-edged box (the part geometries are rounded), centred on the origin. */
+        function createBoxGeometry(w: number, h: number, d: number) {
+          const x = w / 2, y = h / 2, z = d / 2;
+          // prettier-ignore
+          const faces: [number[], number[][]][] = [
+            [[1, 0, 0], [[x, -y, -z], [x, y, -z], [x, y, z], [x, -y, z]]],
+            [[-1, 0, 0], [[-x, -y, z], [-x, y, z], [-x, y, -z], [-x, -y, -z]]],
+            [[0, 1, 0], [[-x, y, -z], [-x, y, z], [x, y, z], [x, y, -z]]],
+            [[0, -1, 0], [[-x, -y, z], [-x, -y, -z], [x, -y, -z], [x, -y, z]]],
+            [[0, 0, 1], [[x, -y, z], [x, y, z], [-x, y, z], [-x, -y, z]]],
+            [[0, 0, -1], [[-x, -y, -z], [-x, y, -z], [x, y, -z], [x, -y, -z]]],
+          ];
+          const pos: number[] = [], nor: number[] = [], uv: number[] = [], idx: number[] = [];
+          faces.forEach(([n, vs], f) => {
+            vs.forEach((v, i) => {
+              pos.push(...v);
+              nor.push(...n);
+              uv.push(i === 1 || i === 2 ? 1 : 0, i >= 2 ? 1 : 0);
+            });
+            const b = f * 4;
+            idx.push(b, b + 1, b + 2, b, b + 2, b + 3, b, b + 2, b + 1, b, b + 3, b + 2); // both windings: visible from any side
+          });
+          const geom = new Aholo.BufferGeometry();
+          geom.setIndex(idx);
+          geom.setAttribute("position", new Aholo.BufferAttribute(new Float32Array(pos), 3));
+          geom.setAttribute("normal", new Aholo.BufferAttribute(new Float32Array(nor), 3));
+          geom.setAttribute("uv", new Aholo.BufferAttribute(new Float32Array(uv), 2));
+          geom.computeBoundingSphere();
+          return geom;
+        }
+
         function createPartGeometry(
           type: "box" | "cylinder" | "sphere" | "torus",
           dims: [number, number, number]
@@ -892,6 +923,16 @@ export default function AholoHybridStage({
         if (heroBlueprint.real && realPlacement) {
           heroRoot.position.set(realPlacement.at[0], realPlacement.floorY, realPlacement.at[1]);
           heroRoot.scale.setScalar(1);
+          if ("plinth" in realPlacement && realPlacement.plinth) {
+            // a display plinth under the prop, standing on open floor (+Y is down)
+            const ph = realPlacement.plinth;
+            const plinth = new Aholo.Mesh(
+              createBoxGeometry(0.46, ph, 0.46),
+              new Aholo.MeshPhongMaterial({ color: 0x2a2825, specular: 0x333333, shininess: 18 })
+            );
+            plinth.position.set(realPlacement.at[0], realPlacement.floorY + ph / 2, realPlacement.at[1]);
+            scene.add(plinth);
+          }
           // face the spawn camera unless the placement says otherwise
           heroRoot.rotation.y =
             realPlacement.yawDeg !== undefined
@@ -940,9 +981,10 @@ export default function AholoHybridStage({
           loadVoxelCollisionFromCdn(worldPreset.voxelMetaUrl, worldPreset.voxelBinUrl, signal)
             .then((engine) => {
               if (signal.aborted) return;
+              engine.setMirrorXY(Boolean(worldPreset.mirrorXY));
               voxelCollisionRef.current = engine;
               const solid = (x: number, y: number, z: number) => engine.isWorldPointSolid(x, y, z);
-              if (realPlacement) {
+              if (realPlacement && !("plinth" in realPlacement && realPlacement.plinth)) {
                 const fy = findFloorY(solid, realPlacement.at[0], worldPreset.pose.py, realPlacement.at[1]);
                 if (fy !== null && Math.abs(fy - realPlacement.floorY) < 0.6) heroRoot.position.y = fy;
               }
@@ -1087,6 +1129,12 @@ export default function AholoHybridStage({
             upFix.rotation.x = Math.PI / 2;
             upFix.add(primarySplat);
             scene.add(upFix);
+          } else if (worldPreset.mirrorXY) {
+            // this world is stored +Y up: turn it half a turn about Z into the stage's −Y-up frame
+            const flipFix = new Aholo.Object3D();
+            flipFix.rotation.z = Math.PI;
+            flipFix.add(primarySplat);
+            scene.add(flipFix);
           } else {
             scene.add(primarySplat);
           }
@@ -1662,15 +1710,17 @@ export default function AholoHybridStage({
               return true;
             };
             const maxR = eng3 ? 6.5 : 2.4;
-            for (let i = 0; i < 260 && beans.length < BEAN_COUNT; i++) {
+            for (let i = 0; i < 600 && beans.length < BEAN_COUNT; i++) {
               const ang = i * 2.39996 + 0.7;
               const r = 1.1 + ((i * 7) % 11) * ((maxR - 1.1) / 10);
               const origin = sources[i % sources.length];
               const x = origin[0] + Math.cos(ang) * r;
               const z = origin[1] + Math.sin(ang) * r;
+              const area = worldPreset.beanArea;
+              if (area && (x < area[0] || x > area[1] || z < area[2] || z > area[3])) continue;
               if (Math.hypot(x - heroRoot.position.x, z - heroRoot.position.z) < 0.9) continue;
               if (Math.hypot(x - p.px, z - p.pz) < 1.0) continue;
-              if (beans.some((b) => Math.hypot(b.x - x, b.z - z) < 1.4)) continue;
+              if (beans.some((b) => Math.hypot(b.x - x, b.z - z) < (area ? 1.1 : 1.4))) continue;
               let fy = baseFloor;
               if (eng3) {
                 const f = findFloorY((a, b, c) => eng3.isWorldPointSolid(a, b, c), x, p.py, z);
@@ -1791,8 +1841,8 @@ export default function AholoHybridStage({
             <span className={`dot ${isReady ? "dot-live" : ""}`} />
             {fps} fps
           </span>
-          <HudDivider className="max-[600px]:hidden" />
-          <span className="max-[600px]:hidden">{worldPreset.splatCountLabel}</span>
+          <HudDivider className="max-[600px]:hidden @max-[720px]:hidden" />
+          <span className="max-[600px]:hidden @max-[720px]:hidden">{worldPreset.splatCountLabel}</span>
           <HudDivider className="max-[600px]:hidden @max-[900px]:hidden" />
           <span className={`max-[600px]:hidden @max-[900px]:hidden ${voxel.active ? "text-ink-2" : "text-ink-3"}`} title={tx(lang, voxel.title)}>
             <T en={voxel.label.en} zh={voxel.label.zh} />

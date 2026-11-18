@@ -146,7 +146,7 @@ flowchart LR
   KF --> LR["Storyboard pack<br/>LuxReal"]
 ```
 
-Each output is mirrored once into `public/assets/` (textures resized to 1024 px JPEG with glTF-Transform, geometry untouched) and placed by preset: the espresso machine stands on the loft floor found in the voxel grid (y = 1.912) and on a table in the coffee bar; the actor stands at the world's `actorSpot`.
+Each output is mirrored once into `public/assets/` (textures resized to 1024 px JPEG with glTF-Transform, geometry untouched) and placed by preset: the espresso machine stands on a display plinth on the loft floor (y = 0.36 in the stage frame) and on a table in the coffee bar; the actor stands at the world's `actorSpot`.
 
 ### A live Text to 3D job, end to end
 

@@ -191,6 +191,15 @@ export default function WorldsDoc() {
             />,
           ],
           [
+            <T key="a" en="Designer Smart Loft" zh="设计师智能公寓" />,
+            <T key="u" en="+Y up" zh="+Y 向上" />,
+            <T
+              key="d"
+              en="Its splat and voxel grid are turned half a turn about Z (x → −x, y → −y) into the −Y-up frame."
+              zh="高斯点和体素网格都绕 Z 轴旋转半圈（x → −x，y → −y），转换到 −Y 向上的坐标系。"
+            />,
+          ],
+          [
             <T key="a" en="glTF props and actors (Lux3D)" zh="glTF 道具与角色（Lux3D）" />,
             <T key="u" en="+Y up" zh="+Y 向上" />,
             <T
@@ -269,14 +278,14 @@ export default function WorldsDoc() {
               <>
                 <strong>Floors:</strong> <C>findFloorY</C> in <C>src/lib/urdf-assembly.ts</C> probes down the grid with{" "}
                 <C>isWorldPointSolid</C>. Props, the actor and dropped models are placed on the floor it finds. In the loft
-                that is y = 1.912.
+                that is y = 0.36.
               </>
             }
             zh={
               <>
                 <strong>地面：</strong>
                 <C>src/lib/urdf-assembly.ts</C> 中的 <C>findFloorY</C> 用 <C>isWorldPointSolid</C>{" "}
-                沿网格向下探测。道具、角色和投放到场景的模型都会放在它找到的地面上。在 Loft 中，地面高度为 y = 1.912。
+                沿网格向下探测。道具、角色和投放到场景的模型都会放在它找到的地面上。在 Loft 中，地面高度为 y = 0.36。
               </>
             }
           />
