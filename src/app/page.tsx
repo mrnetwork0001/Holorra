@@ -157,6 +157,7 @@ const CONTROLS: { keys: string[]; label: string; zh: string }[] = [
   { keys: ["E"], label: "brew", zh: "冲咖啡" },
   { keys: ["K"], label: "frame", zh: "取景" },
   { keys: ["F"], label: "cheer", zh: "欢呼" },
+  { keys: ["1–8"], label: "emotes", zh: "动作" },
 ];
 
 const DROP_STEPS: { glyph: GlyphName; key: string; title: ReactNode; body: ReactNode }[] = [
@@ -727,13 +728,98 @@ export default function LandingPage() {
                     />
                   </span>
                 </li>
+                <li className="flex gap-3">
+                  <Glyph name="bean" size={16} className="mt-0.5 text-ink-3" />
+                  <span>
+                    <T
+                      en={
+                        <>
+                          <span className="text-ink">Five coffee beans and a clock.</span> Hunt the beans hidden around the loft; a run with all five sets your best time.
+                        </>
+                      }
+                      zh={
+                        <>
+                          <span className="text-ink">五颗咖啡豆，一只计时器。</span>在公寓里找出藏起来的咖啡豆，集齐五颗的成绩才计入最佳时间。
+                        </>
+                      }
+                    />
+                  </span>
+                </li>
+                <li className="flex gap-3">
+                  <Glyph name="rig" size={16} className="mt-0.5 text-ink-3" />
+                  <span>
+                    <T
+                      en={
+                        <>
+                          <span className="text-ink">Keys 1 to 8 are emotes:</span> every clip Lux3D retargeted onto the actor, from a sword swing to a dance.
+                        </>
+                      }
+                      zh={
+                        <>
+                          <span className="text-ink">数字键 1 到 8 是动作：</span>Lux3D 重定向到角色上的每个动作片段，从挥剑到跳舞。
+                        </>
+                      }
+                    />
+                  </span>
+                </li>
+                <li className="flex gap-3">
+                  <Glyph name="mesh" size={16} className="mt-0.5 text-ink-3" />
+                  <span>
+                    <T
+                      en={
+                        <>
+                          <span className="text-ink">Kick what you generate.</span> Walk into a dropped model and it slides and tumbles across the floor.
+                        </>
+                      }
+                      zh={
+                        <>
+                          <span className="text-ink">生成的模型可以踢。</span>走过去撞上投放的模型，它会在地面上滑动翻滚。
+                        </>
+                      }
+                    />
+                  </span>
+                </li>
+                <li className="flex gap-3">
+                  <Glyph name="sound" size={16} className="mt-0.5 text-ink-3" />
+                  <span>
+                    <T
+                      en={
+                        <>
+                          <span className="text-ink">Sound, if you want it:</span> footsteps, the machine's hiss and a chime per step, all synthesized in the browser.
+                        </>
+                      }
+                      zh={
+                        <>
+                          <span className="text-ink">想要的话还有声音：</span>脚步声、咖啡机的嘶嘶声、每一步的提示音，全部在浏览器里合成。
+                        </>
+                      }
+                    />
+                  </span>
+                </li>
+                <li className="flex gap-3">
+                  <Glyph name="shot" size={16} className="mt-0.5 text-ink-3" />
+                  <span>
+                    <T
+                      en={
+                        <>
+                          <span className="text-ink">A finish card</span> turns the shot you framed into a poster with your time, ready to save or post on X.
+                        </>
+                      }
+                      zh={
+                        <>
+                          <span className="text-ink">成绩卡</span>把你取景的镜头做成带成绩的海报，可以保存或发到 X。
+                        </>
+                      }
+                    />
+                  </span>
+                </li>
               </ul>
             </div>
             <div className="flex flex-col justify-between gap-6 border-line lg:border-l lg:pl-8">
               <p className="font-serif text-[30px] leading-[1.1] text-ink sm:text-[36px]">
                 <T
-                  en="Walk in, brew a coffee, frame the shot. About a minute, no key needed."
-                  zh="走进去，冲杯咖啡，拍下这个镜头。大约一分钟，无需密钥。"
+                  en="Walk in, brew a coffee, frame the shot, then beat your own time. No key needed."
+                  zh="走进去，冲杯咖啡，拍下这个镜头，再刷新自己的成绩。无需密钥。"
                 />
               </p>
               <div className="flex flex-wrap gap-3">

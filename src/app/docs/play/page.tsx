@@ -140,8 +140,100 @@ export default function PlayDoc() {
           [<Kbd key="e">E</Kbd>, <T key="b" en="Brew, when the prompt shows next to the machine" zh="冲咖啡（在咖啡机旁出现提示时）" />],
           [<Kbd key="k">K</Kbd>, <T key="f" en="Add the current view as a keyframe" zh="把当前视角添加为关键帧" />],
           [<Kbd key="f">F</Kbd>, <T key="c" en="Cheer" zh="欢呼" />],
+          [
+            <>
+              <Kbd>1</Kbd> – <Kbd>8</Kbd>
+            </>,
+            <T
+              key="em"
+              en="Emotes: the actor's eight retargeted clips (Idle, Walk, Jog, Interact, Chest_Open, Yes, Dance, Sword_Attack)"
+              zh="动作：角色的八个重定向片段（Idle、Walk、Jog、Interact、Chest_Open、Yes、Dance、Sword_Attack）"
+            />,
+          ],
         ]}
       />
+
+      <H2 id="more">
+        <T en="Beans, time, kicks and sound" zh="咖啡豆、计时、踢模型与声音" />
+      </H2>
+      <UL>
+        <li>
+          <T
+            en={
+              <>
+                <strong>Bean hunt:</strong> each run places five coffee beans on floor the actor can reach (checked against the voxel
+                grid). Walk through one to collect it.
+              </>
+            }
+            zh={
+              <>
+                <strong>找咖啡豆：</strong>每次开始都会在角色走得到的地面上放五颗咖啡豆（按体素网格校验）。走过去即可拾取。
+              </>
+            }
+          />
+        </li>
+        <li>
+          <T
+            en={
+              <>
+                <strong>Timer and best time:</strong> the clock runs from Play to Celebrate. Only a run with all five beans counts
+                for your best time, which is kept in this browser.
+              </>
+            }
+            zh={
+              <>
+                <strong>计时与最佳成绩：</strong>从点击 Play 到庆祝为止计时。只有集齐五颗咖啡豆的成绩才计入最佳时间，并保存在本浏览器中。
+              </>
+            }
+          />
+        </li>
+        <li>
+          <T
+            en={
+              <>
+                <strong>Kickable models:</strong> walk into a model that dropped in and it slides and tumbles away, faster if you
+                are jogging, and bounces off walls in the voxel grid.
+              </>
+            }
+            zh={
+              <>
+                <strong>可以踢的模型：</strong>撞上投放到场景里的模型，它会滑开并翻滚，慢跑时更快，碰到体素网格里的墙会弹回。
+              </>
+            }
+          />
+        </li>
+        <li>
+          <T
+            en={
+              <>
+                <strong>Sound:</strong> the speaker button in the stage toolbar turns on footsteps, the brew hiss, step chimes and
+                landing thuds. It is off by default and synthesized with the Web Audio API, so there are no audio files.
+              </>
+            }
+            zh={
+              <>
+                <strong>声音：</strong>舞台工具栏的喇叭按钮可开启脚步声、冲咖啡的嘶嘶声、步骤提示音和落地声。默认关闭，全部用 Web Audio API
+                合成，没有音频文件。
+              </>
+            }
+          />
+        </li>
+        <li>
+          <T
+            en={
+              <>
+                <strong>Finish card:</strong> when the scene wraps, the shot you framed with <Kbd>K</Kbd> becomes a 1200 × 630
+                poster with your time and beans. Save it, or post your time on X.
+              </>
+            }
+            zh={
+              <>
+                <strong>成绩卡：</strong>杀青时，你用 <Kbd>K</Kbd> 取景的镜头会变成一张 1200 × 630 的海报，带上用时和咖啡豆数。可以保存，也可以把成绩发到 X。
+              </>
+            }
+          />
+        </li>
+      </UL>
       <P>
         <T
           en={

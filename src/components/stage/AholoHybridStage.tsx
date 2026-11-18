@@ -7,6 +7,7 @@ import type {
   Lux3dHeroAssetBlueprint,
 } from "@/config/aholo-presets";
 import { AHOLO_RIGGED_ACTORS } from "@/config/aholo-presets";
+import * as sfx from "@/lib/stage-audio";
 import type { HumanoidAnimationId } from "@/config/humanoid-animations";
 import {
   loadVoxelCollisionFromCdn,
@@ -41,6 +42,24 @@ const QUEST_STEPS: readonly { key: string; title: L; hint: L }[] = [
   },
   { key: "cheer", title: { en: "Celebrate", zh: "庆祝一下" }, hint: { en: "Press F", zh: "按 F" } },
 ];
+
+const BEAN_COUNT = 5;
+const BEST_KEY = "holorra_best_ms";
+/** Keys 1–8 play the actor's eight retargeted Lux3D clips (ids as requested from humanoidAnimationRetarget). */
+const EMOTES: { key: string; id: string; ms: number }[] = [
+  { key: "idle_loop", id: "Idle_Loop", ms: 2500 },
+  { key: "walk_loop", id: "Walk_Loop", ms: 2700 },
+  { key: "jog_fwd_loop", id: "Jog_Fwd_Loop", ms: 2800 },
+  { key: "interact", id: "Interact", ms: 2000 },
+  { key: "chest_open", id: "Chest_Open", ms: 1370 },
+  { key: "yes", id: "Yes", ms: 2500 },
+  { key: "dance_loop", id: "Dance_Loop", ms: 4000 },
+  { key: "sword_attack", id: "Sword_Attack", ms: 1530 },
+];
+function formatRunTime(ms: number): string {
+  const s = Math.max(0, ms) / 1000;
+  return `${String(Math.floor(s / 60)).padStart(2, "0")}:${(s % 60).toFixed(1).padStart(4, "0")}`;
+}
 
 const CAMERA_MODES: { id: StageCameraMode; label: L; glyph: GlyphName; hint: L }[] = [
   { id: "orbit", label: { en: "Orbit", zh: "环绕" }, glyph: "orbit", hint: { en: "Orbit the stage", zh: "环绕查看舞台" } },
@@ -219,7 +238,21 @@ export default function AholoHybridStage({
     near: false,
     wrapped: false,
   });
-  const playRef = useRef({ active: false, step: 0, near: false, interactAt: -1e9, cheerAt: -1e9, wrappedAt: -1e9 });
+  const playRef = useRef({
+    active: false, step: 0, near: false, interactAt: -1e9, cheerAt: -1e9, wrappedAt: -1e9,
+    startAt: 0, beans: 0, emoteKey: "", emoteUntil: 0,
+  });
+  // bean hunt + run timer + finish card
+  const [beansUi, setBeansUi] = useState(0);
+  const [clock, setClock] = useState(0);
+  const [run, setRun] = useState<{ ms: number; beans: number; best: number | null; isBest: boolean } | null>(null);
+  const [card, setCard] = useState<string | null>(null);
+  const [emoteLabel, setEmoteLabel] = useState<string | null>(null);
+  const lastShotRef = useRef<string | null>(null);
+  const langRef = useRef(lang);
+  langRef.current = lang;
+  const [soundOn, setSoundOn] = useState(false);
+  useEffect(() => setSoundOn(sfx.initSoundPreference()), []);
   const actionRef = useRef<{ interact: boolean; cheer: boolean }>({ interact: false, cheer: false });
   const joyRef = useRef({ x: 0, y: 0 });
   const joyKnobRef = useRef<HTMLDivElement | null>(null);
@@ -286,12 +319,43 @@ export default function AholoHybridStage({
     const q = playRef.current;
     if (!q.active || q.step !== from) return;
     q.step = from + 1;
-    if (q.step >= QUEST_STEPS.length) q.wrappedAt = performance.now();
-    setPlay((s) => ({ ...s, step: q.step, wrapped: q.step >= QUEST_STEPS.length }));
+    const wrapped = q.step >= QUEST_STEPS.length;
+    if (wrapped) {
+      q.wrappedAt = performance.now();
+      const ms = Math.round(q.wrappedAt - q.startAt);
+      // only a run with every bean counts for the best time
+      let best: number | null = null;
+      let isBest = false;
+      try {
+        const prev = Number(localStorage.getItem(BEST_KEY)) || null;
+        best = prev;
+        if (q.beans >= BEAN_COUNT && (!prev || ms < prev)) {
+          localStorage.setItem(BEST_KEY, String(ms));
+          best = ms;
+          isBest = true;
+        }
+      } catch {
+        /* private mode: no best time */
+      }
+      setRun({ ms, beans: q.beans, best, isBest });
+      sfx.fanfare();
+      void buildFinishCardRef.current(ms, q.beans);
+    } else {
+      sfx.chime(q.step * 2);
+    }
+    setPlay((s) => ({ ...s, step: q.step, wrapped }));
   }, []);
 
   const startPlay = useCallback(() => {
-    playRef.current = { active: true, step: 0, near: false, interactAt: -1e9, cheerAt: -1e9, wrappedAt: -1e9 };
+    playRef.current = {
+      active: true, step: 0, near: false, interactAt: -1e9, cheerAt: -1e9, wrappedAt: -1e9,
+      startAt: performance.now(), beans: 0, emoteKey: "", emoteUntil: 0,
+    };
+    setBeansUi(0);
+    setClock(0);
+    setRun(null);
+    setCard(null);
+    lastShotRef.current = null;
     setPlay({ active: true, step: 0, near: false, wrapped: false });
     onCameraModeChange("walk-third");
   }, [onCameraModeChange]);
@@ -306,7 +370,107 @@ export default function AholoHybridStage({
   const stopPlay = useCallback(() => {
     playRef.current.active = false;
     setPlay({ active: false, step: 0, near: false, wrapped: false });
+    setRun(null);
+    setCard(null);
   }, []);
+
+  // run clock, shown in the quest panel while a run is in progress
+  useEffect(() => {
+    if (!play.active || play.wrapped) return;
+    const id = window.setInterval(() => setClock(performance.now() - playRef.current.startAt), 100);
+    return () => window.clearInterval(id);
+  }, [play.active, play.wrapped]);
+  useEffect(() => {
+    if (!emoteLabel) return;
+    const id = window.setTimeout(() => setEmoteLabel(null), 1400);
+    return () => window.clearTimeout(id);
+  }, [emoteLabel]);
+
+  /** Finish card: the player's own framed shot with the run's time and beans, as a 1200×630 image. */
+  const buildFinishCard = useCallback(
+    async (ms: number, beans: number) => {
+      try {
+        const zh = langRef.current === "zh";
+        const W = 1200;
+        const H = 630;
+        const cv = document.createElement("canvas");
+        cv.width = W;
+        cv.height = H;
+        const g = cv.getContext("2d");
+        if (!g) return;
+        g.fillStyle = "#0B0B0A";
+        g.fillRect(0, 0, W, H);
+        const shot = lastShotRef.current ?? containerRef.current?.querySelector("canvas")?.toDataURL("image/jpeg", 0.85);
+        if (shot) {
+          const img = new Image();
+          await new Promise<void>((res) => {
+            img.onload = () => res();
+            img.onerror = () => res();
+            img.src = shot;
+          });
+          if (img.naturalWidth) {
+            const k = Math.max(W / img.naturalWidth, H / img.naturalHeight);
+            const w = img.naturalWidth * k;
+            const h = img.naturalHeight * k;
+            g.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
+          }
+        }
+        const grad = g.createLinearGradient(0, 0, 0, H);
+        grad.addColorStop(0, "rgba(11,11,10,0.55)");
+        grad.addColorStop(0.45, "rgba(11,11,10,0.15)");
+        grad.addColorStop(1, "rgba(11,11,10,0.92)");
+        g.fillStyle = grad;
+        g.fillRect(0, 0, W, H);
+        const sans = getComputedStyle(document.body).fontFamily || "sans-serif";
+        const mono = `ui-monospace, Menlo, monospace`;
+        g.textBaseline = "alphabetic";
+        // viewfinder corners
+        g.strokeStyle = "#ECE9E2";
+        g.lineWidth = 3;
+        for (const [x, y, dx, dy] of [[40, 40, 1, 1], [W - 40, 40, -1, 1], [40, H - 40, 1, -1], [W - 40, H - 40, -1, -1]] as const) {
+          g.beginPath();
+          g.moveTo(x + dx * 44, y);
+          g.lineTo(x, y);
+          g.lineTo(x, y + dy * 44);
+          g.stroke();
+        }
+        g.fillStyle = "#FF6A2B";
+        g.font = `600 22px ${mono}`;
+        g.fillText(zh ? "HOLORRA · 本场杀青" : "HOLORRA · SCENE WRAPPED", 72, 96);
+        g.fillStyle = "#ECE9E2";
+        g.font = `600 120px ${mono}`;
+        g.fillText(formatRunTime(ms), 68, H - 150);
+        g.font = `500 30px ${sans}`;
+        g.fillStyle = "#ECE9E2";
+        g.fillText(
+          zh
+            ? `咖啡豆 ${beans}/${BEAN_COUNT} · ${worldPreset.titleZh ?? worldPreset.title}`
+            : `${beans}/${BEAN_COUNT} coffee beans · ${worldPreset.title}`,
+          72,
+          H - 100
+        );
+        g.font = `400 22px ${sans}`;
+        g.fillStyle = "#A9A59B";
+        g.fillText(
+          zh ? "我在 AI 生成的 3D 世界里冲了一杯咖啡。你来试试？" : "I brewed a coffee inside a generated 3D world. Beat my time?",
+          72,
+          H - 62
+        );
+        g.textAlign = "right";
+        g.font = `500 22px ${mono}`;
+        g.fillStyle = "#ECE9E2";
+        g.fillText("holorra.xyz", W - 72, H - 100);
+        g.fillStyle = "#FF6A2B";
+        g.fillText("#Manycorehackathon", W - 72, H - 62);
+        setCard(cv.toDataURL("image/jpeg", 0.9));
+      } catch {
+        setCard(null);
+      }
+    },
+    [worldPreset.title, worldPreset.titleZh]
+  );
+  const buildFinishCardRef = useRef(buildFinishCard);
+  buildFinishCardRef.current = buildFinishCard;
 
   const handleResetCamera = useCallback(() => {
     poseStateRef.current = {
@@ -333,10 +497,13 @@ export default function AholoHybridStage({
       const canvas = containerRef.current?.querySelector("canvas");
       if (canvas) {
         snapshotDataUrl = canvas.toDataURL("image/jpeg", 0.75);
+        // the finish card uses the player's own shot, at higher quality
+        if (playRef.current.active) lastShotRef.current = canvas.toDataURL("image/jpeg", 0.9);
       }
     } catch {
       snapshotDataUrl = undefined;
     }
+    sfx.shutter();
 
     onCaptureKeyframe({
       position: [
@@ -355,6 +522,16 @@ export default function AholoHybridStage({
   }, [onCaptureKeyframe, advanceQuest]);
   const keyframeShotRef = useRef(handleTakeKeyframeSnapshot);
   keyframeShotRef.current = handleTakeKeyframeSnapshot;
+  const triggerEmote = useCallback((i: number) => {
+    const e = EMOTES[i];
+    if (!e) return;
+    playRef.current.emoteKey = e.key;
+    playRef.current.emoteUntil = performance.now() + e.ms;
+    sfx.emote();
+    setEmoteLabel(`${i + 1} · ${e.id}`);
+  }, []);
+  const triggerEmoteRef = useRef(triggerEmote);
+  triggerEmoteRef.current = triggerEmote;
 
   // Update viewer splatting tone mapping / sorting config on the fly
   useEffect(() => {
@@ -442,6 +619,9 @@ export default function AholoHybridStage({
         if (e.code === "KeyE") actionRef.current.interact = true;
         if (e.code === "KeyF") actionRef.current.cheer = true;
         if (e.code === "KeyK") keyframeShotRef.current();
+        // 1–8: play one of the actor's eight retargeted Lux3D clips
+        const n = /^Digit([1-8])$/.exec(e.code);
+        if (n) triggerEmoteRef.current(Number(n[1]) - 1);
       }
       keysPressed.add(e.code);
     };
@@ -967,7 +1147,12 @@ export default function AholoHybridStage({
         let lastSpawnCheck = 0;
         const spawnLoaded = new Set<string>();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const drops: { holder: any; floor: number; y: number; vy: number; bounces: number; settled: boolean }[] = [];
+        const drops: { holder: any; floor: number; y: number; vy: number; bounces: number; settled: boolean; x: number; z: number; vx: number; vz: number; landed: boolean }[] = [];
+        let stepAccum = 0;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const beans: { mesh: any; x: number; z: number; y: number; got: boolean }[] = [];
+        let beansStamp = -1;
+        const beanGeom = createPartGeometry("sphere", [0.085, 0.085, 0.085]);
         const dropAsset = async (asset: SpawnedAsset) => {
           try {
             const res = await fetch(asset.url, { signal });
@@ -1018,11 +1203,20 @@ export default function AholoHybridStage({
             holder.position.set(x, floor - 1.8, z);
             holder.rotation.y = Math.atan2(fx, fz);
             scene.add(holder);
-            drops.push({ holder, floor, y: floor - 1.8, vy: 0, bounces: 0, settled: false });
+            drops.push({ holder, floor, y: floor - 1.8, vy: 0, bounces: 0, settled: false, x, z, vx: 0, vz: 0, landed: false });
             setToast({ text: asset.label, source: asset.source });
           } catch {
             // a failed drop must never break the stage
           }
+        };
+
+        // read-only-ish hook for automated end-to-end tests (bean, drop and pose state)
+        (window as unknown as { __holorraStage?: unknown }).__holorraStage = {
+          pose: () => poseStateRef.current,
+          solid: (x: number, y: number, z: number) => voxelCollisionRef.current?.isWorldPointSolid(x, y, z) ?? null,
+          hero: () => ({ x: heroRoot.position.x, z: heroRoot.position.z }),
+          beans: () => beans.map((b) => ({ x: b.x, z: b.z, got: b.got })),
+          drops: () => drops.map((d) => ({ x: d.x, z: d.z, y: d.y, floor: d.floor, landed: d.landed, settled: d.settled })),
         };
 
         // 6. 60fps Spatial Render & Simulation Loop
@@ -1204,6 +1398,14 @@ export default function AholoHybridStage({
                 p.pz = nextZ;
               }
               p.py += upInput * moveSpeed * 0.65 * dt;
+              if (mode === "walk-first" || mode === "walk-third") {
+                const fast = keysPressed.has("ShiftLeft") || Math.hypot(joyRef.current.x, joyRef.current.y) > 0.95;
+                stepAccum += Math.hypot(dx, dz);
+                if (stepAccum > (fast ? 0.95 : 0.62)) {
+                  stepAccum = 0;
+                  sfx.step(fast);
+                }
+              }
             }
 
             // Scene quest: proximity to the real prop, E to brew, F to cheer
@@ -1221,6 +1423,7 @@ export default function AholoHybridStage({
               actionRef.current.interact = false;
               if (q.near && heroBlueprint.real && now - q.interactAt > 5600) {
                 q.interactAt = now;
+                sfx.brew();
                 advanceQuest(1);
               }
             }
@@ -1242,8 +1445,15 @@ export default function AholoHybridStage({
                 requestedAnim.includes("dance") ||
                 requestedAnim.includes("sword") ||
                 requestedAnim.includes("jump");
+              if (isMoving) q.emoteUntil = 0; // walking cancels an emote
               const forced =
-                now - q.interactAt < 2000 ? "interact" : now - q.cheerAt < 3000 ? "dance_loop" : null;
+                now - q.interactAt < 2000
+                  ? "interact"
+                  : now - q.cheerAt < 3000
+                    ? "dance_loop"
+                    : now < q.emoteUntil
+                      ? q.emoteKey
+                      : null;
               const sprint =
                 keysPressed.has("ShiftLeft") || Math.hypot(joyRef.current.x, joyRef.current.y) > 0.95;
               const targetKey = actorConfig.clipMap
@@ -1352,18 +1562,135 @@ export default function AholoHybridStage({
               }
             }
           }
+          const walkingNow = mode === "walk-third" || mode === "walk-first";
           for (const d of drops) {
+            // Kick: walking into a landed model sends it sliding and tumbling away from the actor
+            if (d.landed && walkingNow) {
+              const kx = d.x - p.px;
+              const kz = d.z - p.pz;
+              const kd = Math.hypot(kx, kz);
+              if (kd < 0.55 && Math.hypot(d.vx, d.vz) < 0.6) {
+                const fast = keysPressed.has("ShiftLeft") || Math.hypot(joyRef.current.x, joyRef.current.y) > 0.95;
+                const sp = fast ? 5.2 : 3.2;
+                const nx = kd > 0.01 ? kx / kd : -Math.sin(p.yaw);
+                const nz = kd > 0.01 ? kz / kd : -Math.cos(p.yaw);
+                d.vx = nx * sp;
+                d.vz = nz * sp;
+                d.vy = -(fast ? 3.4 : 2.2); // hop (−Y is up)
+                d.bounces = 0;
+                d.settled = false;
+                sfx.kick();
+              }
+            }
             if (d.settled) continue;
             d.vy += 9.8 * dt; // +Y is down in the OpenCV world
             d.y += d.vy * dt;
             if (d.y >= d.floor) {
               d.y = d.floor;
+              if (Math.abs(d.vy) > 0.8) sfx.thud(Math.min(1, Math.abs(d.vy) / 5));
               d.vy = -d.vy * 0.32;
               d.bounces += 1;
-              if (d.bounces > 2 || Math.abs(d.vy) < 0.25) d.settled = true;
+              d.landed = true;
+              if (Math.abs(d.vy) < 0.25) d.vy = 0;
             }
-            d.holder.position.y = d.y;
-            if (!d.settled) d.holder.rotation.y += dt * 1.6;
+            // horizontal slide with floor friction; walls in the voxel grid bounce it back
+            const hs = Math.hypot(d.vx, d.vz);
+            if (hs > 0) {
+              let nx2 = d.x + d.vx * dt;
+              let nz2 = d.z + d.vz * dt;
+              const eng2 = voxelCollisionRef.current;
+              if (eng2 && eng2.isWorldPointSolid(nx2, d.floor - 0.35, nz2)) {
+                d.vx = -d.vx * 0.45;
+                d.vz = -d.vz * 0.45;
+                nx2 = d.x;
+                nz2 = d.z;
+              }
+              d.x = nx2;
+              d.z = nz2;
+              const dec = (d.y >= d.floor - 0.01 ? 3.2 : 0.4) * dt;
+              const ns = Math.max(0, hs - dec);
+              d.vx *= ns / hs;
+              d.vz *= ns / hs;
+              d.holder.rotation.y += hs * dt * 2.2;
+            } else if (!d.landed) {
+              d.holder.rotation.y += dt * 1.6;
+            }
+            if (d.landed && d.vy === 0 && d.y >= d.floor && Math.hypot(d.vx, d.vz) < 0.05) {
+              d.vx = 0;
+              d.vz = 0;
+              d.settled = true;
+            }
+            d.holder.position.set(d.x, d.y, d.z);
+          }
+
+          // Bean hunt: five coffee beans placed on reachable floor when a run starts
+          const qb = playRef.current;
+          if (qb.active && qb.startAt !== beansStamp) {
+            beansStamp = qb.startAt;
+            for (const b of beans) scene.remove(b.mesh);
+            beans.length = 0;
+            const eng3 = voxelCollisionRef.current;
+            const baseFloor = worldPreset.floorY ?? p.py + 0.91;
+            const sources: [number, number][] = [[p.px, p.pz]];
+            const clear = (x0: number, z0: number, x1: number, z1: number) => {
+              if (!eng3) return true;
+              const n = Math.ceil(Math.hypot(x1 - x0, z1 - z0) / 0.12);
+              let cx = x0;
+              let cz = z0;
+              for (let i = 1; i <= n; i++) {
+                const tx2 = x0 + ((x1 - x0) * i) / n;
+                const tz2 = z0 + ((z1 - z0) * i) / n;
+                // a spawn pose can overlap the grid; the walker is let out of it, so the test is too
+                const stuckHere = eng3.filterHorizontalMove(cx, p.py, cz, cx, cz, 0.24).collided;
+                if (!stuckHere && eng3.filterHorizontalMove(cx, p.py, cz, tx2, tz2, 0.24).collided) return false;
+                cx = tx2;
+                cz = tz2;
+              }
+              return true;
+            };
+            const maxR = eng3 ? 6.5 : 2.4;
+            for (let i = 0; i < 260 && beans.length < BEAN_COUNT; i++) {
+              const ang = i * 2.39996 + 0.7;
+              const r = 1.1 + ((i * 7) % 11) * ((maxR - 1.1) / 10);
+              const origin = sources[i % sources.length];
+              const x = origin[0] + Math.cos(ang) * r;
+              const z = origin[1] + Math.sin(ang) * r;
+              if (Math.hypot(x - heroRoot.position.x, z - heroRoot.position.z) < 0.9) continue;
+              if (Math.hypot(x - p.px, z - p.pz) < 1.0) continue;
+              if (beans.some((b) => Math.hypot(b.x - x, b.z - z) < 1.4)) continue;
+              let fy = baseFloor;
+              if (eng3) {
+                const f = findFloorY((a, b, c) => eng3.isWorldPointSolid(a, b, c), x, p.py, z);
+                if (f === null || Math.abs(f - baseFloor) > 0.25) continue;
+                fy = f;
+                if (!clear(origin[0], origin[1], x, z)) continue;
+              }
+              const mat = new Aholo.MeshPhongMaterial({ color: 0xff7a35, specular: 0xffffff, shininess: 90 });
+              const mesh = new Aholo.Mesh(beanGeom, mat);
+              mesh.scale.set(0.8, 1.25, 0.8);
+              mesh.position.set(x, fy - 0.85, z);
+              scene.add(mesh);
+              beans.push({ mesh, x, z, y: fy - 0.85, got: false });
+              sources.push([x, z]);
+            }
+          }
+          if (!qb.active && beans.length) {
+            for (const b of beans) scene.remove(b.mesh);
+            beans.length = 0;
+            beansStamp = -1;
+          }
+          for (let i = 0; i < beans.length; i++) {
+            const b = beans[i];
+            if (b.got) continue;
+            b.mesh.rotation.y = tSec * 2.2 + i;
+            b.mesh.position.y = b.y + Math.sin(tSec * 2.4 + i * 1.3) * 0.06;
+            if (walkingNow && Math.hypot(b.x - p.px, b.z - p.pz) < 0.6) {
+              b.got = true;
+              scene.remove(b.mesh);
+              qb.beans += 1;
+              sfx.pickup(qb.beans);
+              setBeansUi(qb.beans);
+            }
           }
 
           if (lodSplat) {
@@ -1493,6 +1820,18 @@ export default function AholoHybridStage({
                 {Math.min(play.step, QUEST_STEPS.length)}/{QUEST_STEPS.length}
               </span>
             </div>
+            <div className="mt-1.5 flex items-center justify-between gap-3 font-mono text-[12px] tabular">
+              <span className="text-ink" aria-label={tx(lang, { en: "Run time", zh: "用时" })}>
+                {formatRunTime(run ? run.ms : clock)}
+              </span>
+              <span className={`flex items-center gap-1 ${beansUi >= BEAN_COUNT ? "text-accent" : "text-ink-2"}`}>
+                <Glyph name="bean" size={12} />
+                {beansUi}/{BEAN_COUNT}
+                <span className="font-sans text-[11px] text-ink-3 max-[900px]:hidden">
+                  <T en="beans" zh="咖啡豆" />
+                </span>
+              </span>
+            </div>
             <ol className="mt-2 space-y-1.5 max-[900px]:hidden">
               {QUEST_STEPS.map((q, i) => {
                 const done = play.step > i;
@@ -1594,10 +1933,24 @@ export default function AholoHybridStage({
 
         <button
           type="button"
+          onClick={() => {
+            sfx.setSoundEnabled(!soundOn);
+            setSoundOn(!soundOn);
+          }}
+          title={soundOn ? tx(lang, { en: "Sound on", zh: "声音已开启" }) : tx(lang, { en: "Sound off", zh: "声音已关闭" })}
+          aria-label={soundOn ? tx(lang, { en: "Turn sound off", zh: "关闭声音" }) : tx(lang, { en: "Turn sound on", zh: "开启声音" })}
+          aria-pressed={soundOn}
+          className={`btn btn-sm btn-icon h-8 w-8 border-line bg-surface/95 max-[900px]:h-10 max-[900px]:w-10 ${soundOn ? "text-accent" : ""}`}
+        >
+          <Glyph name={soundOn ? "sound" : "mute"} size={14} />
+        </button>
+
+        <button
+          type="button"
           onClick={handleResetCamera}
           title={tx(lang, { en: "Reset camera to the spawn pose", zh: "把视角重置到出生点" })}
           aria-label={tx(lang, { en: "Reset camera", zh: "重置视角" })}
-          className="btn btn-sm btn-icon h-8 w-8 border-line bg-surface/95 max-[900px]:h-10 max-[900px]:w-10"
+          className="btn btn-sm btn-icon h-8 w-8 border-line bg-surface/95 max-[900px]:h-10 max-[900px]:w-10 max-[600px]:hidden"
         >
           <Glyph name="reset" size={14} />
         </button>
@@ -1693,6 +2046,9 @@ export default function AholoHybridStage({
               <span className="flex items-center gap-1">
                 <span className="kbd">F</span> <T en="cheer" zh="欢呼" />
               </span>
+              <span className="flex items-center gap-1">
+                <span className="kbd">1</span>–<span className="kbd">8</span> <T en="emotes" zh="动作" />
+              </span>
             </>
           ) : (
             <>
@@ -1723,6 +2079,14 @@ export default function AholoHybridStage({
         </div>
       )}
 
+      {/* Emote just triggered (keys 1–8) */}
+      {emoteLabel && (
+        <div className="pointer-events-none absolute bottom-28 left-1/2 z-20 flex h-8 -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-[6px] border border-line bg-surface/95 px-3 font-mono text-[12px] text-ink">
+          <Glyph name="rig" size={13} className="text-accent" />
+          {emoteLabel}
+        </div>
+      )}
+
       {/* Brew prompt when the actor is next to the real machine */}
       {play.near && !touchUi && (
         <div className="pointer-events-none absolute bottom-16 left-1/2 z-20 flex h-9 -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-[6px] border border-accent bg-surface/95 px-3 text-[13px] text-ink">
@@ -1736,13 +2100,57 @@ export default function AholoHybridStage({
           <div className="font-mono text-[11px] text-accent">
             <T en="SCENE WRAPPED" zh="本场杀青" />
           </div>
-          <div className="mt-1 text-[15px] text-ink">
-            <T en="Walked, brewed, framed and celebrated." zh="走位、冲咖啡、取景、庆祝，全部完成。" />
+          {run && (
+            <div className="mt-1.5 flex items-baseline justify-center gap-3">
+              <span className="font-mono text-[28px] leading-none text-ink tabular">{formatRunTime(run.ms)}</span>
+              <span className={`flex items-center gap-1 font-mono text-[13px] ${run.beans >= BEAN_COUNT ? "text-accent" : "text-ink-2"}`}>
+                <Glyph name="bean" size={13} />
+                {run.beans}/{BEAN_COUNT}
+              </span>
+            </div>
+          )}
+          <div className="mt-1.5 text-[12px] text-ink-3">
+            {run && run.isBest ? (
+              <span className="text-accent">
+                <T en="New best time with all five beans." zh="集齐五颗咖啡豆，刷新最佳成绩。" />
+              </span>
+            ) : run && run.beans < BEAN_COUNT ? (
+              <T
+                en={`Find all ${BEAN_COUNT} beans for a ranked time.`}
+                zh={`集齐 ${BEAN_COUNT} 颗咖啡豆才计入最佳成绩。`}
+              />
+            ) : run && run.best ? (
+              <T en={`Best: ${formatRunTime(run.best)}`} zh={`最佳成绩：${formatRunTime(run.best)}`} />
+            ) : (
+              <T en="Walked, brewed, framed and celebrated." zh="走位、冲咖啡、取景、庆祝，全部完成。" />
+            )}
           </div>
-          <div className="mt-1 text-[12px] text-ink-3">
-            <T en="Play the camera path below to review your shot." zh="播放下方的镜头路径，回看这组镜头。" />
-          </div>
-          <div className="mt-3 flex justify-center gap-2">
+          {card && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={card} alt={tx(lang, { en: "Your finish card", zh: "你的成绩卡" })} className="mt-3 w-full rounded-[4px] border border-line" />
+          )}
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            {card && (
+              <a href={card} download="holorra-scene-wrapped.jpg" className="btn btn-sm">
+                <Glyph name="download" size={12} />
+                <T en="Save card" zh="保存成绩卡" />
+              </a>
+            )}
+            {run && (
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                  lang === "zh"
+                    ? `我在 AI 生成的 3D 世界里冲了一杯咖啡：${formatRunTime(run.ms)}，咖啡豆 ${run.beans}/${BEAN_COUNT}。你来试试？ #Manycorehackathon`
+                    : `I brewed a coffee inside a generated 3D world in ${formatRunTime(run.ms)} with ${run.beans}/${BEAN_COUNT} beans. Beat my time? #Manycorehackathon`
+                )}&url=${encodeURIComponent("https://holorra.xyz/studio?play=1")}`}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-sm"
+              >
+                <Glyph name="external" size={12} />
+                <T en="Post on X" zh="发到 X" />
+              </a>
+            )}
             <button type="button" className="btn btn-sm btn-primary" onClick={startPlay}>
               <T en="Play again" zh="再玩一次" />
             </button>

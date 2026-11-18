@@ -12,7 +12,7 @@ export type GlyphName =
   | "play" | "pause" | "stop" | "record" | "export" | "download" | "upload" | "material" | "fourview"
   | "layers" | "key" | "terminal" | "plug" | "chat" | "enter" | "search" | "sliders" | "reset"
   | "refresh" | "loader" | "copy" | "check" | "cross" | "close" | "plus" | "trash" | "doc" | "print"
-  | "external" | "back" | "pointer" | "info" | "flag" | "region" | "expand" | "collapse";
+  | "external" | "back" | "pointer" | "info" | "flag" | "region" | "expand" | "collapse" | "sound" | "mute" | "bean";
 
 const P = (d: string) => <path d={d} />;
 
@@ -173,6 +173,14 @@ const GLYPHS: Record<GlyphName, React.ReactNode> = {
   external: P("M8.5 4H4v12h12v-4.5M11.5 4H16v4.5M16 4l-7 7"),
   back: P("M12 4.5L6.5 10l5.5 5.5"),
   expand: P("M3 7.5V3h4.5M12.5 3H17v4.5M17 12.5V17h-4.5M7.5 17H3v-4.5"),
+  sound: P("M3 7.8h3l4-3.3v11l-4-3.3H3zM13 7.5a3.5 3.5 0 0 1 0 5M15 5a7 7 0 0 1 0 10"),
+  mute: P("M3 7.8h3l4-3.3v11l-4-3.3H3zM13.2 8l3.6 4M16.8 8l-3.6 4"),
+  bean: (
+    <>
+      <ellipse cx="10" cy="10" rx="5" ry="7" transform="rotate(28 10 10)" />
+      {P("M12.6 4.6c-2.6 2.4 1.2 6.4-1 9.6")}
+    </>
+  ),
   collapse: P("M7.5 3v4.5H3M12.5 3v4.5H17M17 12.5h-4.5V17M3 12.5h4.5V17"),
   // ---------------------------------------------------------------- agent / system
   key: (
