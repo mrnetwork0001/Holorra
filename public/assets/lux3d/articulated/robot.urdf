@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<robot name="robot">
+  <link name="base">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/base.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <link name="hood_top">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/hood_top.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <link name="drawer_front">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/drawer_front.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <link name="drawer_handle">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/drawer_handle.glb" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="1.0" />
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+  <joint name="hood_top_joint" type="revolute">
+    <parent link="base" />
+    <child link="hood_top" />
+    <origin rpy="0 0 0" xyz="0.10032100 0.33316099 0.01444000" />
+    <axis xyz="-0.99994800 0.01021700 0.00022400" />
+    <limit lower="0.000000" upper="1.570796" effort="10" velocity="1" />
+  </joint>
+  <joint name="drawer_front_joint" type="prismatic">
+    <parent link="base" />
+    <child link="drawer_front" />
+    <origin rpy="0 0 0" xyz="-0.01555000 0.25914899 0.02222800" />
+    <axis xyz="0.00000000 0.00000000 1.00000000" />
+    <limit lower="0.000000" upper="0.233484" effort="10" velocity="1" />
+  </joint>
+  <joint name="drawer_handle_joint" type="fixed">
+    <parent link="drawer_front" />
+    <child link="drawer_handle" />
+    <origin rpy="0 0 0" xyz="0.00000000 0.00000000 0.00000000" />
+    <axis xyz="0.00000000 0.00000000 1.00000000" />
+  </joint>
+</robot>
