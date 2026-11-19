@@ -261,7 +261,7 @@ export const LUX3D_HERO_BLUEPRINTS: Record<string, Lux3dHeroAssetBlueprint> = {
       "Both lateral armor shields deploy outward while the upper radar halo spins 360 degrees and the optical sensor extends forward",
     totalFaces: 242_000,
     pbrEnabled: true,
-    worldPosition: [18.5, -0.2, 59.8],
+    worldPosition: [-22.85, 0.2, 59.9],
     worldScale: 0.0055,
     parts: [
       {
@@ -523,7 +523,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
       px: -20.398,
       py: 0.39,
       pz: 62.774,
-      lookAt: [-18.5, 0.15, 58.5],
+      lookAt: [-21.4, 0.3, 60.3],
       yaw: 0.384,
       pitch: 0.06,
       thirdPersonDistance: 3.6,
@@ -537,7 +537,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
         label: "Aerial plaza descent",
         labelZh: "广场航拍下降",
         position: [-21.5, -1.65, 64.6],
-        target: [-18.5, 0.15, 59.5],
+        target: [-21.6, 0.3, 60.6],
         durationSec: 3.5,
         luxrealPrompt:
           "Sweeping drone crane shot descending into a massive photorealistic 3DGS urban plaza with crisp architectural detail",
@@ -546,8 +546,8 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
         id: "kf-plaza-2",
         label: "Drone reveal",
         labelZh: "无人机亮相",
-        position: [-19.6, 0.05, 61.3],
-        target: [-18.6, 0.15, 59.8],
+        position: [-21.4, 0.1, 62.3],
+        target: [-22.85, 0.2, 59.9],
         durationSec: 3.0,
         luxrealPrompt:
           "Dynamic hero orbit around the Aegis-IX patrol drone as its ballistic shield wings deploy and LiDAR halo spins",
