@@ -26,9 +26,10 @@ Built for the Manycore Aholo Global 3D AI Hackathon · `#Manycorehackathon` · A
 | **Drop-in** | Press Text to 3D and keep playing. A chip on the stage tracks the job; when Lux3D finishes, the model is fetched through an allowlisted proxy, scaled to about 70 cm and dropped 1.6 m in front of you, landing on the floor. Without a key, our stored G1-Turbo result (task 8353472) drops in, labelled *cached*. | `/studio`, left dock: Lux3D, Text to 3D |
 | **Lux3D bench** | Every Lux3D result in a live viewer: turntable, explode with a measured part table, URDF joint sliders, an 8-clip switcher, G1 vs G1-Turbo side by side, and both rig attempts (the rejected one too). Plus the full run log. | `/lab` |
 | **Live generation** | All 10 Lux3D methods, SpatialGen and Aholo Reality from the left dock. Every call leaves a receipt with its SDK method, task or world ID and mode (live, preview, cached, CDN preset). | `/studio` (a key is needed for live jobs) |
-| **Co-director** | Describe the scene in plain language; it returns an ordered plan of Aholo MCP (Model Context Protocol) tool calls and updates the stage to match. Deterministic keyword planner, no LLM key. | `/studio`, right dock: Co-director |
+| **Co-director** | Describe the scene in plain language, in English or Chinese; it returns an ordered plan of Aholo MCP (Model Context Protocol) tool calls and updates the stage to match. It also understands "stop" and "reset". Deterministic keyword planner, no LLM key. | `/studio`, right dock: Co-director |
+| **Actor library** | All 85 Lux3D animation presets, six per page, searchable. The 8 clips already retargeted onto the actor are tagged *ready* and play at a click; the other 77 are tagged *needs retarget*, and the **Retarget** button sends one to `humanoidAnimationRetarget` as a live job. | `/studio`, right dock: Actor |
 | **MCP hub** | `.mcp.json` for Claude Code, Claude Desktop and Cursor, CLI setup, and a playground showing each tool's schema and sample arguments. | `/mcp` |
-| **Bean hunt and timer** | Each run is timed and hides five coffee beans on floor the actor can reach (checked against the voxel grid). Only a run with all five counts for your best time, kept in the browser. | `/studio?play=1` |
+| **Bean hunt and timer** | Each run is timed and hides five coffee beans on floor the actor can reach (checked against the voxel grid). Only a run with all five counts for your best time, kept in the browser. An arrow and a distance in the quest panel point to the espresso machine until you reach it. | `/studio?play=1` |
 | **Emotes, kicks, sound** | Keys **1–8** play the actor's eight retargeted clips. Walk into a dropped model and it slides and tumbles. The speaker button turns on footsteps, the brew hiss and chimes, synthesized with the Web Audio API (off by default, no audio files). | `/studio`, walk modes |
 | **Finish card** | When the scene wraps, the shot you framed becomes a 1200 × 630 poster with your time and beans, to save or post on X. | End of the quest |
 | **Expand** | Hides the docks, header and timeline and gives the render the whole screen; browser fullscreen where allowed, a fixed full-window stage elsewhere. | Stage toolbar, far right |
@@ -267,7 +268,17 @@ flowchart TB
 - **The asset proxy is narrow** (`src/app/api/aholo/asset/route.ts`): https only, a fixed host allowlist, every redirect hop re-checked, 60 s and 120 MB limits.
 - **The server key has a daily budget** (`src/lib/usage-guard.ts`): 5 live jobs per visitor and 25 site-wide per day by default. Past that, requests get a 429 and the studio points the visitor to their own key.
 - **Nothing secret is committed.** `.env.local` is git-ignored, `.mcp.json` ships a placeholder, and the full git history was checked for the project key before pushing (18 Nov 2026: not present).
-- **Checks, not a test suite.** There are no unit tests yet. What does run: `npm run typecheck`, `npm run verify:aholo` (SDK exports and CDN reachability) and a production build. During development, headless-Chrome scripts (Playwright) also played the quest end to end, exercised Expand and the drop-in, and measured 0 px horizontal overflow at 390, 768 and 1440 px on every page; those scripts are not in the repository.
+- **Checks, not a test suite.** There are no unit tests yet. What does run: `npm run typecheck`, `npm run verify:aholo` (SDK exports and CDN reachability) and a production build. During development, headless-Chrome scripts (Playwright) also played the quest end to end, exercised Expand and the drop-in, and measured 0 px horizontal overflow at 390, 768 and 1440 px on every page; those scripts are not in the repository. On 19 Nov 2026 a 40-step manual walkthrough covered the same ground by hand in a desktop browser and on an iPhone.
+
+## What we learned about the assets
+
+Found while testing every step on desktop and on a phone (19 Nov 2026). Useful to anyone building on the same hosted assets.
+
+- **Two hosted worlds are stored the other way up.** The loft `.spz` and the plaza chunk-LOD stream are +Y-up, while the stage is OpenCV −Y-up. Both the splat and its voxel grid have to be turned together (`mirrorXY` in `src/config/aholo-presets.ts`); turning only the splat leaves collisions in the wrong place.
+- **LOD level 0 is the sharpest.** `LodSplat` counts levels from fine to coarse, so `minLevel: 0` gives full detail; a higher value is what made the streamed worlds look soft.
+- **The retargeted actor's origin is at the hips.** The GLB from task 8359816 has its origin 0.8 m above the soles, so it is raised by `feetBelowOrigin` to stand on the floor instead of in it.
+- **A voxel grid does not fence a capture.** Doorways and windows are open in the grid, and beyond them the splat turns to fog, so the loft's walk modes are also kept inside a box (`walkBounds`).
+- **Retargeted clips come back unnamed.** They arrive as `animation_1` to `animation_8`, in request order; `clipMap` gives them their preset names.
 
 ## What's real and what's not
 
