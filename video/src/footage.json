@@ -1,0 +1,242 @@
+{
+ "genA": {
+  "file": "footage/genA.mp4",
+  "width": 1920,
+  "height": 1102,
+  "durationFrames": 720,
+  "owner": true,
+  "source": "A",
+  "from": 7,
+  "to": 31
+ },
+ "genB": {
+  "file": "footage/genB.mp4",
+  "width": 1920,
+  "height": 1102,
+  "durationFrames": 216,
+  "owner": true,
+  "source": "A",
+  "from": 242,
+  "to": 249.2
+ },
+ "genC": {
+  "file": "footage/genC.mp4",
+  "width": 1920,
+  "height": 1102,
+  "durationFrames": 450,
+  "owner": true,
+  "source": "A",
+  "from": 256,
+  "to": 271
+ },
+ "genD": {
+  "file": "footage/genD.mp4",
+  "width": 1920,
+  "height": 1102,
+  "durationFrames": 645,
+  "owner": true,
+  "source": "A",
+  "from": 290,
+  "to": 311.5
+ },
+ "phone": {
+  "file": "footage/phone.mp4",
+  "width": 590,
+  "height": 710,
+  "durationFrames": 840,
+  "owner": true,
+  "source": "P",
+  "from": 12,
+  "to": 40
+ },
+ "artic": {
+  "file": "footage/artic.mp4",
+  "width": 1600,
+  "height": 900,
+  "durationFrames": 396,
+  "marks": {}
+ },
+ "bench": {
+  "file": "footage/bench.mp4",
+  "width": 1600,
+  "height": 900,
+  "durationFrames": 383,
+  "marks": {},
+  "rects": {
+   "table": {
+    "x": 72,
+    "y": 419,
+    "w": 1456,
+    "h": 531
+   },
+   "failed": {
+    "x": 72,
+    "y": 817,
+    "w": 1456,
+    "h": 45
+   },
+   "rig": {
+    "x": 72,
+    "y": 683,
+    "w": 1456,
+    "h": 45
+   },
+   "retarget": {
+    "x": 72,
+    "y": 728,
+    "w": 1456,
+    "h": 45
+   }
+  }
+ },
+ "dead": {
+  "file": "footage/dead.mp4",
+  "width": 1600,
+  "height": 900,
+  "durationFrames": 530,
+  "marks": {}
+ },
+ "direct": {
+  "file": "footage/direct.mp4",
+  "width": 1600,
+  "height": 900,
+  "durationFrames": 1305,
+  "marks": {
+   "direct.type": 91,
+   "direct.typed": 138,
+   "direct.apply": 192,
+   "direct.planned": 227,
+   "direct.ready": 1007
+  },
+  "rects": {
+   "panel": {
+    "x": 1277,
+    "y": 203,
+    "w": 307,
+    "h": 101
+   },
+   "trace": {
+    "x": 1277,
+    "y": 646,
+    "w": 71,
+    "h": 14
+   }
+  }
+ },
+ "engines": {
+  "file": "footage/engines.mp4",
+  "width": 1600,
+  "height": 900,
+  "durationFrames": 277,
+  "marks": {}
+ },
+ "labrig": {
+  "file": "footage/labrig.mp4",
+  "width": 1600,
+  "height": 900,
+  "durationFrames": 726,
+  "marks": {
+   "labrig.Walk_Loop": 98,
+   "labrig.Dance_Loop": 631,
+   "labrig.Sword_Attack": 366,
+   "labrig.Jog_Fwd_Loop": 499
+  },
+  "rects": {
+   "Idle_Loop": {
+    "x": 1156,
+    "y": 677,
+    "w": 87,
+    "h": 28
+   },
+   "Dance_Loop": {
+    "x": 1391,
+    "y": 711,
+    "w": 94,
+    "h": 28
+   },
+   "Sword_Attack": {
+    "x": 1156,
+    "y": 745,
+    "w": 108,
+    "h": 28
+   },
+   "Walk_Loop": {
+    "x": 1248,
+    "y": 677,
+    "w": 87,
+    "h": 28
+   }
+  }
+ },
+ "mcp": {
+  "file": "footage/mcp.mp4",
+  "width": 1600,
+  "height": 900,
+  "durationFrames": 167,
+  "marks": {}
+ },
+ "parts": {
+  "file": "footage/parts.mp4",
+  "width": 1600,
+  "height": 900,
+  "durationFrames": 687,
+  "marks": {
+   "parts.drag": 29,
+   "parts.open": 232,
+   "parts.inspect": 332,
+   "parts.colour": 516,
+   "parts.closed": 618
+  },
+  "rects": {
+   "panel": {
+    "x": 1260,
+    "y": 48,
+    "w": 340,
+    "h": 852
+   }
+  }
+ },
+ "path": {
+  "file": "footage/path.mp4",
+  "width": 1600,
+  "height": 900,
+  "durationFrames": 642,
+  "marks": {
+   "path.play": 82,
+   "path.end": 417
+  }
+ },
+ "worlds": {
+  "file": "footage/worlds.mp4",
+  "width": 1600,
+  "height": 900,
+  "durationFrames": 1299,
+  "marks": {
+   "worlds.plaza": 97,
+   "worlds.station": 464,
+   "worlds.bear": 788,
+   "worlds.cafe": 1027
+  }
+ },
+ "zh": {
+  "file": "footage/zh.mp4",
+  "width": 1600,
+  "height": 900,
+  "durationFrames": 1596,
+  "marks": {
+   "zh.switch": 106,
+   "zh.scrolled": 320,
+   "zh.studio": 1294
+  }
+ },
+ "run": {
+  "file": "footage/run.mp4",
+  "width": 1920,
+  "height": 1206,
+  "durationFrames": 2340,
+  "owner": true,
+  "source": "B",
+  "from": 14,
+  "to": 92
+ }
+}

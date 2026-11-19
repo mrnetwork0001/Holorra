@@ -1,0 +1,2308 @@
+{
+ "fps": 30,
+ "totalFrames": 5340,
+ "bpm": 100,
+ "beats": [
+  14,
+  32,
+  50,
+  68,
+  86,
+  104,
+  122,
+  140,
+  158,
+  176,
+  194,
+  212,
+  230,
+  248,
+  266,
+  284,
+  302,
+  320,
+  338,
+  356,
+  374,
+  392,
+  410,
+  428,
+  446,
+  464,
+  482,
+  500,
+  518,
+  536,
+  554,
+  572,
+  590,
+  608,
+  626,
+  644,
+  662,
+  680,
+  698,
+  716,
+  734,
+  752,
+  770,
+  788,
+  806,
+  824,
+  842,
+  860,
+  878,
+  896,
+  914,
+  932,
+  950,
+  968,
+  986,
+  1004,
+  1022,
+  1040,
+  1058,
+  1076,
+  1094,
+  1112,
+  1130,
+  1148,
+  1166,
+  1184,
+  1202,
+  1220,
+  1238,
+  1256,
+  1274,
+  1292,
+  1310,
+  1328,
+  1346,
+  1364,
+  1382,
+  1400,
+  1418,
+  1436,
+  1454,
+  1472,
+  1490,
+  1508,
+  1526,
+  1544,
+  1562,
+  1580,
+  1598,
+  1616,
+  1634,
+  1652,
+  1670,
+  1688,
+  1706,
+  1724,
+  1742,
+  1760,
+  1778,
+  1796,
+  1814,
+  1832,
+  1850,
+  1868,
+  1886,
+  1904,
+  1922,
+  1940,
+  1958,
+  1976,
+  1994,
+  2012,
+  2030,
+  2048,
+  2066,
+  2084,
+  2102,
+  2120,
+  2138,
+  2156,
+  2174,
+  2192,
+  2210,
+  2228,
+  2246,
+  2264,
+  2282,
+  2300,
+  2318,
+  2336,
+  2354,
+  2372,
+  2390,
+  2408,
+  2426,
+  2444,
+  2462,
+  2480,
+  2498,
+  2516,
+  2534,
+  2552,
+  2570,
+  2588,
+  2606,
+  2624,
+  2642,
+  2660,
+  2678,
+  2696,
+  2714,
+  2732,
+  2750,
+  2768,
+  2786,
+  2804,
+  2822,
+  2840,
+  2858,
+  2876,
+  2894,
+  2912,
+  2930,
+  2948,
+  2966,
+  2984,
+  3002,
+  3020,
+  3038,
+  3056,
+  3074,
+  3092,
+  3110,
+  3128,
+  3146,
+  3164,
+  3182,
+  3200,
+  3218,
+  3236,
+  3254,
+  3272,
+  3290,
+  3308,
+  3326,
+  3344,
+  3362,
+  3380,
+  3398,
+  3416,
+  3434,
+  3452,
+  3470,
+  3488,
+  3506,
+  3524,
+  3542,
+  3560,
+  3578,
+  3596,
+  3614,
+  3632,
+  3650,
+  3668,
+  3686,
+  3704,
+  3722,
+  3740,
+  3758,
+  3776,
+  3794,
+  3812,
+  3830,
+  3848,
+  3866,
+  3884,
+  3902,
+  3920,
+  3938,
+  3956,
+  3974,
+  3992,
+  4010,
+  4028,
+  4046,
+  4064,
+  4082,
+  4100,
+  4118,
+  4136,
+  4154,
+  4172,
+  4190,
+  4208,
+  4226,
+  4244,
+  4262,
+  4280,
+  4298,
+  4316,
+  4334,
+  4352,
+  4370,
+  4388,
+  4406,
+  4424,
+  4442,
+  4460,
+  4478,
+  4496,
+  4514,
+  4532,
+  4550,
+  4568,
+  4586,
+  4604,
+  4622,
+  4640,
+  4658,
+  4676,
+  4694,
+  4712,
+  4730,
+  4748,
+  4766,
+  4784,
+  4802,
+  4820,
+  4838,
+  4856,
+  4874,
+  4892,
+  4910,
+  4928,
+  4946,
+  4964,
+  4982,
+  5000,
+  5018,
+  5036,
+  5054,
+  5072,
+  5090,
+  5108,
+  5126,
+  5144,
+  5162,
+  5180,
+  5198,
+  5216,
+  5234,
+  5252,
+  5270,
+  5288,
+  5306,
+  5324
+ ],
+ "music": {
+  "file": "audio/music.mp3",
+  "source": "elevenlabs-music"
+ },
+ "scenes": [
+  {
+   "id": "open",
+   "from": 0,
+   "durationInFrames": 491,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "AI can build a 3D world in minutes. Then you step inside, and nothing moves. The lid stays shut. The character stands frozen. You can look, but you cannot play. We call it the dead scene.",
+     "file": "audio/vo/open_0.mp3",
+     "startFrame": 8,
+     "durationFrames": 463,
+     "words": [
+      {
+       "word": "AI",
+       "start": 8,
+       "end": 20
+      },
+      {
+       "word": "can",
+       "start": 22,
+       "end": 28
+      },
+      {
+       "word": "build",
+       "start": 30,
+       "end": 39
+      },
+      {
+       "word": "a",
+       "start": 42,
+       "end": 46
+      },
+      {
+       "word": "3D",
+       "start": 52,
+       "end": 62
+      },
+      {
+       "word": "world",
+       "start": 69,
+       "end": 82
+      },
+      {
+       "word": "in",
+       "start": 94,
+       "end": 98
+      },
+      {
+       "word": "minutes.",
+       "start": 100,
+       "end": 116
+      },
+      {
+       "word": "Then",
+       "start": 124,
+       "end": 130
+      },
+      {
+       "word": "you",
+       "start": 131,
+       "end": 133
+      },
+      {
+       "word": "step",
+       "start": 135,
+       "end": 141
+      },
+      {
+       "word": "inside,",
+       "start": 143,
+       "end": 163
+      },
+      {
+       "word": "and",
+       "start": 177,
+       "end": 183
+      },
+      {
+       "word": "nothing",
+       "start": 186,
+       "end": 197
+      },
+      {
+       "word": "moves.",
+       "start": 199,
+       "end": 216
+      },
+      {
+       "word": "The",
+       "start": 227,
+       "end": 232
+      },
+      {
+       "word": "lid",
+       "start": 235,
+       "end": 242
+      },
+      {
+       "word": "stays",
+       "start": 244,
+       "end": 252
+      },
+      {
+       "word": "shut.",
+       "start": 253,
+       "end": 267
+      },
+      {
+       "word": "The",
+       "start": 271,
+       "end": 274
+      },
+      {
+       "word": "character",
+       "start": 277,
+       "end": 292
+      },
+      {
+       "word": "stands",
+       "start": 293,
+       "end": 303
+      },
+      {
+       "word": "frozen.",
+       "start": 304,
+       "end": 319
+      },
+      {
+       "word": "You",
+       "start": 333,
+       "end": 337
+      },
+      {
+       "word": "can",
+       "start": 340,
+       "end": 345
+      },
+      {
+       "word": "look,",
+       "start": 348,
+       "end": 356
+      },
+      {
+       "word": "but",
+       "start": 357,
+       "end": 361
+      },
+      {
+       "word": "you",
+       "start": 362,
+       "end": 364
+      },
+      {
+       "word": "cannot",
+       "start": 365,
+       "end": 374
+      },
+      {
+       "word": "play.",
+       "start": 376,
+       "end": 390
+      },
+      {
+       "word": "We",
+       "start": 402,
+       "end": 406
+      },
+      {
+       "word": "call",
+       "start": 408,
+       "end": 416
+      },
+      {
+       "word": "it",
+       "start": 418,
+       "end": 424
+      },
+      {
+       "word": "the",
+       "start": 430,
+       "end": 435
+      },
+      {
+       "word": "dead",
+       "start": 439,
+       "end": 446
+      },
+      {
+       "word": "scene.",
+       "start": 448,
+       "end": 471
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "manycore",
+   "from": 491,
+   "durationInFrames": 510,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "Manycore's Aholo stack already holds the cure. SpatialGen makes the world. Lux3D makes the object, splits it into parts, gives it joints, and rigs a character. But each one is a separate tool.",
+     "file": "audio/vo/manycore_0.mp3",
+     "startFrame": 499,
+     "durationFrames": 464,
+     "words": [
+      {
+       "word": "Manycore's",
+       "start": 499,
+       "end": 519
+      },
+      {
+       "word": "Aholo",
+       "start": 522,
+       "end": 537
+      },
+      {
+       "word": "stack",
+       "start": 539,
+       "end": 548
+      },
+      {
+       "word": "already",
+       "start": 551,
+       "end": 563
+      },
+      {
+       "word": "holds",
+       "start": 565,
+       "end": 574
+      },
+      {
+       "word": "the",
+       "start": 575,
+       "end": 577
+      },
+      {
+       "word": "cure.",
+       "start": 579,
+       "end": 593
+      },
+      {
+       "word": "SpatialGen",
+       "start": 606,
+       "end": 632
+      },
+      {
+       "word": "makes",
+       "start": 637,
+       "end": 645
+      },
+      {
+       "word": "the",
+       "start": 646,
+       "end": 648
+      },
+      {
+       "word": "world.",
+       "start": 650,
+       "end": 664
+      },
+      {
+       "word": "Lux3D",
+       "start": 673,
+       "end": 694
+      },
+      {
+       "word": "makes",
+       "start": 701,
+       "end": 708
+      },
+      {
+       "word": "the",
+       "start": 709,
+       "end": 711
+      },
+      {
+       "word": "object,",
+       "start": 713,
+       "end": 730
+      },
+      {
+       "word": "splits",
+       "start": 737,
+       "end": 748
+      },
+      {
+       "word": "it",
+       "start": 749,
+       "end": 752
+      },
+      {
+       "word": "into",
+       "start": 754,
+       "end": 761
+      },
+      {
+       "word": "parts,",
+       "start": 764,
+       "end": 786
+      },
+      {
+       "word": "gives",
+       "start": 798,
+       "end": 805
+      },
+      {
+       "word": "it",
+       "start": 807,
+       "end": 809
+      },
+      {
+       "word": "joints,",
+       "start": 811,
+       "end": 829
+      },
+      {
+       "word": "and",
+       "start": 834,
+       "end": 840
+      },
+      {
+       "word": "rigs",
+       "start": 845,
+       "end": 859
+      },
+      {
+       "word": "a",
+       "start": 861,
+       "end": 863
+      },
+      {
+       "word": "character.",
+       "start": 865,
+       "end": 884
+      },
+      {
+       "word": "But",
+       "start": 890,
+       "end": 896
+      },
+      {
+       "word": "each",
+       "start": 897,
+       "end": 904
+      },
+      {
+       "word": "one",
+       "start": 906,
+       "end": 914
+      },
+      {
+       "word": "is",
+       "start": 916,
+       "end": 921
+      },
+      {
+       "word": "a",
+       "start": 923,
+       "end": 923
+      },
+      {
+       "word": "separate",
+       "start": 927,
+       "end": 941
+      },
+      {
+       "word": "tool.",
+       "start": 943,
+       "end": 963
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "turn",
+   "from": 1001,
+   "durationInFrames": 450,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "So we built Holorra. One browser tab where all of it becomes a single scene you can play. Generate the world. Split the parts. Rig the actors. Direct the scene.",
+     "file": "audio/vo/turn_0.mp3",
+     "startFrame": 1009,
+     "durationFrames": 364,
+     "words": [
+      {
+       "word": "So",
+       "start": 1009,
+       "end": 1015
+      },
+      {
+       "word": "we",
+       "start": 1017,
+       "end": 1019
+      },
+      {
+       "word": "built",
+       "start": 1022,
+       "end": 1030
+      },
+      {
+       "word": "Holorra.",
+       "start": 1033,
+       "end": 1053
+      },
+      {
+       "word": "One",
+       "start": 1072,
+       "end": 1079
+      },
+      {
+       "word": "browser",
+       "start": 1080,
+       "end": 1092
+      },
+      {
+       "word": "tab",
+       "start": 1094,
+       "end": 1105
+      },
+      {
+       "word": "where",
+       "start": 1117,
+       "end": 1124
+      },
+      {
+       "word": "all",
+       "start": 1125,
+       "end": 1129
+      },
+      {
+       "word": "of",
+       "start": 1131,
+       "end": 1132
+      },
+      {
+       "word": "it",
+       "start": 1134,
+       "end": 1136
+      },
+      {
+       "word": "becomes",
+       "start": 1137,
+       "end": 1148
+      },
+      {
+       "word": "a",
+       "start": 1149,
+       "end": 1150
+      },
+      {
+       "word": "single",
+       "start": 1151,
+       "end": 1162
+      },
+      {
+       "word": "scene",
+       "start": 1163,
+       "end": 1171
+      },
+      {
+       "word": "you",
+       "start": 1172,
+       "end": 1174
+      },
+      {
+       "word": "can",
+       "start": 1176,
+       "end": 1180
+      },
+      {
+       "word": "play.",
+       "start": 1182,
+       "end": 1195
+      },
+      {
+       "word": "Generate",
+       "start": 1210,
+       "end": 1224
+      },
+      {
+       "word": "the",
+       "start": 1225,
+       "end": 1227
+      },
+      {
+       "word": "world.",
+       "start": 1229,
+       "end": 1244
+      },
+      {
+       "word": "Split",
+       "start": 1256,
+       "end": 1266
+      },
+      {
+       "word": "the",
+       "start": 1267,
+       "end": 1270
+      },
+      {
+       "word": "parts.",
+       "start": 1272,
+       "end": 1291
+      },
+      {
+       "word": "Rig",
+       "start": 1297,
+       "end": 1303
+      },
+      {
+       "word": "the",
+       "start": 1305,
+       "end": 1307
+      },
+      {
+       "word": "actors.",
+       "start": 1309,
+       "end": 1326
+      },
+      {
+       "word": "Direct",
+       "start": 1336,
+       "end": 1349
+      },
+      {
+       "word": "the",
+       "start": 1350,
+       "end": 1352
+      },
+      {
+       "word": "scene.",
+       "start": 1354,
+       "end": 1373
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "worlds",
+   "from": 1451,
+   "durationInFrames": 427,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "Start with the world. Five of them stream into one viewer. The biggest is 41.8 million splats. And one we generated ourselves, from a single prompt, with Aholo SpatialGen.",
+     "file": "audio/vo/worlds_0.mp3",
+     "startFrame": 1459,
+     "durationFrames": 411,
+     "words": [
+      {
+       "word": "Start",
+       "start": 1459,
+       "end": 1469
+      },
+      {
+       "word": "with",
+       "start": 1471,
+       "end": 1475
+      },
+      {
+       "word": "the",
+       "start": 1476,
+       "end": 1478
+      },
+      {
+       "word": "world.",
+       "start": 1480,
+       "end": 1493
+      },
+      {
+       "word": "Five",
+       "start": 1506,
+       "end": 1515
+      },
+      {
+       "word": "of",
+       "start": 1517,
+       "end": 1520
+      },
+      {
+       "word": "them",
+       "start": 1522,
+       "end": 1527
+      },
+      {
+       "word": "stream",
+       "start": 1529,
+       "end": 1539
+      },
+      {
+       "word": "into",
+       "start": 1542,
+       "end": 1550
+      },
+      {
+       "word": "one",
+       "start": 1552,
+       "end": 1557
+      },
+      {
+       "word": "viewer.",
+       "start": 1558,
+       "end": 1572
+      },
+      {
+       "word": "The",
+       "start": 1585,
+       "end": 1589
+      },
+      {
+       "word": "biggest",
+       "start": 1592,
+       "end": 1603
+      },
+      {
+       "word": "is",
+       "start": 1605,
+       "end": 1608
+      },
+      {
+       "word": "41.8",
+       "start": 1610,
+       "end": 1643
+      },
+      {
+       "word": "million",
+       "start": 1645,
+       "end": 1654
+      },
+      {
+       "word": "splats.",
+       "start": 1656,
+       "end": 1673
+      },
+      {
+       "word": "And",
+       "start": 1678,
+       "end": 1684
+      },
+      {
+       "word": "one",
+       "start": 1687,
+       "end": 1694
+      },
+      {
+       "word": "we",
+       "start": 1695,
+       "end": 1698
+      },
+      {
+       "word": "generated",
+       "start": 1700,
+       "end": 1716
+      },
+      {
+       "word": "ourselves,",
+       "start": 1719,
+       "end": 1742
+      },
+      {
+       "word": "from",
+       "start": 1747,
+       "end": 1753
+      },
+      {
+       "word": "a",
+       "start": 1755,
+       "end": 1756
+      },
+      {
+       "word": "single",
+       "start": 1760,
+       "end": 1776
+      },
+      {
+       "word": "prompt,",
+       "start": 1778,
+       "end": 1794
+      },
+      {
+       "word": "with",
+       "start": 1804,
+       "end": 1811
+      },
+      {
+       "word": "Aholo",
+       "start": 1814,
+       "end": 1842
+      },
+      {
+       "word": "SpatialGen.",
+       "start": 1842,
+       "end": 1870
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "generate",
+   "from": 1878,
+   "durationInFrames": 421,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "Now an object. One sentence to Lux3D. A couple of minutes later, the model drops into the room and lands on the floor. Walk into it, and it slides away.",
+     "file": "audio/vo/generate_0.mp3",
+     "startFrame": 1886,
+     "durationFrames": 368,
+     "words": [
+      {
+       "word": "Now",
+       "start": 1886,
+       "end": 1896
+      },
+      {
+       "word": "an",
+       "start": 1901,
+       "end": 1906
+      },
+      {
+       "word": "object.",
+       "start": 1908,
+       "end": 1927
+      },
+      {
+       "word": "One",
+       "start": 1942,
+       "end": 1949
+      },
+      {
+       "word": "sentence",
+       "start": 1951,
+       "end": 1968
+      },
+      {
+       "word": "to",
+       "start": 1969,
+       "end": 1973
+      },
+      {
+       "word": "Lux3D.",
+       "start": 1978,
+       "end": 2024
+      },
+      {
+       "word": "A",
+       "start": 2035,
+       "end": 2038
+      },
+      {
+       "word": "couple",
+       "start": 2040,
+       "end": 2047
+      },
+      {
+       "word": "of",
+       "start": 2048,
+       "end": 2050
+      },
+      {
+       "word": "minutes",
+       "start": 2051,
+       "end": 2058
+      },
+      {
+       "word": "later,",
+       "start": 2060,
+       "end": 2074
+      },
+      {
+       "word": "the",
+       "start": 2079,
+       "end": 2083
+      },
+      {
+       "word": "model",
+       "start": 2086,
+       "end": 2094
+      },
+      {
+       "word": "drops",
+       "start": 2096,
+       "end": 2106
+      },
+      {
+       "word": "into",
+       "start": 2107,
+       "end": 2112
+      },
+      {
+       "word": "the",
+       "start": 2114,
+       "end": 2117
+      },
+      {
+       "word": "room",
+       "start": 2119,
+       "end": 2125
+      },
+      {
+       "word": "and",
+       "start": 2127,
+       "end": 2131
+      },
+      {
+       "word": "lands",
+       "start": 2133,
+       "end": 2143
+      },
+      {
+       "word": "on",
+       "start": 2144,
+       "end": 2147
+      },
+      {
+       "word": "the",
+       "start": 2148,
+       "end": 2150
+      },
+      {
+       "word": "floor.",
+       "start": 2152,
+       "end": 2165
+      },
+      {
+       "word": "Walk",
+       "start": 2178,
+       "end": 2186
+      },
+      {
+       "word": "into",
+       "start": 2188,
+       "end": 2195
+      },
+      {
+       "word": "it,",
+       "start": 2198,
+       "end": 2207
+      },
+      {
+       "word": "and",
+       "start": 2211,
+       "end": 2215
+      },
+      {
+       "word": "it",
+       "start": 2218,
+       "end": 2220
+      },
+      {
+       "word": "slides",
+       "start": 2222,
+       "end": 2233
+      },
+      {
+       "word": "away.",
+       "start": 2234,
+       "end": 2254
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "split",
+   "from": 2299,
+   "durationInFrames": 329,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "But a fused mesh is still a statue. Part split cuts it into four real parts, with not one triangle lost. Drag the slider, and it comes apart.",
+     "file": "audio/vo/split_0.mp3",
+     "startFrame": 2307,
+     "durationFrames": 276,
+     "words": [
+      {
+       "word": "But",
+       "start": 2307,
+       "end": 2313
+      },
+      {
+       "word": "a",
+       "start": 2315,
+       "end": 2315
+      },
+      {
+       "word": "fused",
+       "start": 2317,
+       "end": 2326
+      },
+      {
+       "word": "mesh",
+       "start": 2328,
+       "end": 2334
+      },
+      {
+       "word": "is",
+       "start": 2336,
+       "end": 2338
+      },
+      {
+       "word": "still",
+       "start": 2338,
+       "end": 2345
+      },
+      {
+       "word": "a",
+       "start": 2347,
+       "end": 2347
+      },
+      {
+       "word": "statue.",
+       "start": 2349,
+       "end": 2365
+      },
+      {
+       "word": "Part",
+       "start": 2376,
+       "end": 2384
+      },
+      {
+       "word": "split",
+       "start": 2386,
+       "end": 2395
+      },
+      {
+       "word": "cuts",
+       "start": 2398,
+       "end": 2406
+      },
+      {
+       "word": "it",
+       "start": 2407,
+       "end": 2409
+      },
+      {
+       "word": "into",
+       "start": 2411,
+       "end": 2416
+      },
+      {
+       "word": "four",
+       "start": 2420,
+       "end": 2428
+      },
+      {
+       "word": "real",
+       "start": 2429,
+       "end": 2434
+      },
+      {
+       "word": "parts,",
+       "start": 2436,
+       "end": 2455
+      },
+      {
+       "word": "with",
+       "start": 2458,
+       "end": 2464
+      },
+      {
+       "word": "not",
+       "start": 2466,
+       "end": 2470
+      },
+      {
+       "word": "one",
+       "start": 2472,
+       "end": 2477
+      },
+      {
+       "word": "triangle",
+       "start": 2478,
+       "end": 2492
+      },
+      {
+       "word": "lost.",
+       "start": 2493,
+       "end": 2505
+      },
+      {
+       "word": "Drag",
+       "start": 2517,
+       "end": 2524
+      },
+      {
+       "word": "the",
+       "start": 2525,
+       "end": 2527
+      },
+      {
+       "word": "slider,",
+       "start": 2529,
+       "end": 2543
+      },
+      {
+       "word": "and",
+       "start": 2544,
+       "end": 2549
+      },
+      {
+       "word": "it",
+       "start": 2550,
+       "end": 2552
+      },
+      {
+       "word": "comes",
+       "start": 2553,
+       "end": 2560
+      },
+      {
+       "word": "apart.",
+       "start": 2561,
+       "end": 2583
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "articulate",
+   "from": 2628,
+   "durationInFrames": 354,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "Then one more sentence. The hood hinges open. The drawer slides out. Lux3D returns real joints, and the machine starts to work.",
+     "file": "audio/vo/articulate_0.mp3",
+     "startFrame": 2636,
+     "durationFrames": 301,
+     "words": [
+      {
+       "word": "Then",
+       "start": 2636,
+       "end": 2643
+      },
+      {
+       "word": "one",
+       "start": 2645,
+       "end": 2649
+      },
+      {
+       "word": "more",
+       "start": 2650,
+       "end": 2655
+      },
+      {
+       "word": "sentence.",
+       "start": 2656,
+       "end": 2677
+      },
+      {
+       "word": "The",
+       "start": 2689,
+       "end": 2693
+      },
+      {
+       "word": "hood",
+       "start": 2696,
+       "end": 2706
+      },
+      {
+       "word": "hinges",
+       "start": 2710,
+       "end": 2723
+      },
+      {
+       "word": "open.",
+       "start": 2726,
+       "end": 2742
+      },
+      {
+       "word": "The",
+       "start": 2755,
+       "end": 2759
+      },
+      {
+       "word": "drawer",
+       "start": 2762,
+       "end": 2771
+      },
+      {
+       "word": "slides",
+       "start": 2773,
+       "end": 2784
+      },
+      {
+       "word": "out.",
+       "start": 2786,
+       "end": 2798
+      },
+      {
+       "word": "Lux3D",
+       "start": 2812,
+       "end": 2835
+      },
+      {
+       "word": "returns",
+       "start": 2838,
+       "end": 2852
+      },
+      {
+       "word": "real",
+       "start": 2854,
+       "end": 2861
+      },
+      {
+       "word": "joints,",
+       "start": 2863,
+       "end": 2880
+      },
+      {
+       "word": "and",
+       "start": 2886,
+       "end": 2891
+      },
+      {
+       "word": "the",
+       "start": 2892,
+       "end": 2894
+      },
+      {
+       "word": "machine",
+       "start": 2896,
+       "end": 2906
+      },
+      {
+       "word": "starts",
+       "start": 2907,
+       "end": 2915
+      },
+      {
+       "word": "to",
+       "start": 2916,
+       "end": 2918
+      },
+      {
+       "word": "work.",
+       "start": 2920,
+       "end": 2937
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rig",
+   "from": 2982,
+   "durationInFrames": 482,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "The actor began as a statue. Auto rig gave her 52 joints in 81 seconds. Retarget gave her eight moves in 17. The first character we tried was rejected. We left that in.",
+     "file": "audio/vo/rig_0.mp3",
+     "startFrame": 2990,
+     "durationFrames": 418,
+     "words": [
+      {
+       "word": "The",
+       "start": 2990,
+       "end": 2995
+      },
+      {
+       "word": "actor",
+       "start": 2996,
+       "end": 3006
+      },
+      {
+       "word": "began",
+       "start": 3008,
+       "end": 3018
+      },
+      {
+       "word": "as",
+       "start": 3020,
+       "end": 3024
+      },
+      {
+       "word": "a",
+       "start": 3026,
+       "end": 3027
+      },
+      {
+       "word": "statue.",
+       "start": 3028,
+       "end": 3045
+      },
+      {
+       "word": "Auto",
+       "start": 3057,
+       "end": 3066
+      },
+      {
+       "word": "rig",
+       "start": 3068,
+       "end": 3075
+      },
+      {
+       "word": "gave",
+       "start": 3083,
+       "end": 3090
+      },
+      {
+       "word": "her",
+       "start": 3091,
+       "end": 3094
+      },
+      {
+       "word": "52",
+       "start": 3096,
+       "end": 3111
+      },
+      {
+       "word": "joints",
+       "start": 3113,
+       "end": 3124
+      },
+      {
+       "word": "in",
+       "start": 3131,
+       "end": 3136
+      },
+      {
+       "word": "81",
+       "start": 3139,
+       "end": 3154
+      },
+      {
+       "word": "seconds.",
+       "start": 3155,
+       "end": 3173
+      },
+      {
+       "word": "Retarget",
+       "start": 3190,
+       "end": 3205
+      },
+      {
+       "word": "gave",
+       "start": 3207,
+       "end": 3213
+      },
+      {
+       "word": "her",
+       "start": 3214,
+       "end": 3217
+      },
+      {
+       "word": "eight",
+       "start": 3220,
+       "end": 3228
+      },
+      {
+       "word": "moves",
+       "start": 3230,
+       "end": 3238
+      },
+      {
+       "word": "in",
+       "start": 3240,
+       "end": 3242
+      },
+      {
+       "word": "17.",
+       "start": 3244,
+       "end": 3263
+      },
+      {
+       "word": "The",
+       "start": 3275,
+       "end": 3278
+      },
+      {
+       "word": "first",
+       "start": 3280,
+       "end": 3287
+      },
+      {
+       "word": "character",
+       "start": 3288,
+       "end": 3300
+      },
+      {
+       "word": "we",
+       "start": 3301,
+       "end": 3303
+      },
+      {
+       "word": "tried",
+       "start": 3305,
+       "end": 3315
+      },
+      {
+       "word": "was",
+       "start": 3318,
+       "end": 3324
+      },
+      {
+       "word": "rejected.",
+       "start": 3326,
+       "end": 3346
+      },
+      {
+       "word": "We",
+       "start": 3365,
+       "end": 3369
+      },
+      {
+       "word": "left",
+       "start": 3371,
+       "end": 3379
+      },
+      {
+       "word": "that",
+       "start": 3383,
+       "end": 3390
+      },
+      {
+       "word": "in.",
+       "start": 3393,
+       "end": 3408
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "play",
+   "from": 3464,
+   "durationInFrames": 540,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "So press Play. Walk her through the room. Collect the beans, brew the coffee, frame the shot, and dance. The floor under her feet is a voxel grid of the same room. On a phone, your thumb does the walking.",
+     "file": "audio/vo/play_0.mp3",
+     "startFrame": 3472,
+     "durationFrames": 471,
+     "words": [
+      {
+       "word": "So",
+       "start": 3472,
+       "end": 3478
+      },
+      {
+       "word": "press",
+       "start": 3480,
+       "end": 3487
+      },
+      {
+       "word": "Play.",
+       "start": 3489,
+       "end": 3503
+      },
+      {
+       "word": "Walk",
+       "start": 3512,
+       "end": 3521
+      },
+      {
+       "word": "her",
+       "start": 3522,
+       "end": 3525
+      },
+      {
+       "word": "through",
+       "start": 3527,
+       "end": 3534
+      },
+      {
+       "word": "the",
+       "start": 3535,
+       "end": 3537
+      },
+      {
+       "word": "room.",
+       "start": 3538,
+       "end": 3550
+      },
+      {
+       "word": "Collect",
+       "start": 3563,
+       "end": 3575
+      },
+      {
+       "word": "the",
+       "start": 3575,
+       "end": 3578
+      },
+      {
+       "word": "beans,",
+       "start": 3579,
+       "end": 3597
+      },
+      {
+       "word": "brew",
+       "start": 3603,
+       "end": 3609
+      },
+      {
+       "word": "the",
+       "start": 3611,
+       "end": 3613
+      },
+      {
+       "word": "coffee,",
+       "start": 3615,
+       "end": 3633
+      },
+      {
+       "word": "frame",
+       "start": 3647,
+       "end": 3657
+      },
+      {
+       "word": "the",
+       "start": 3657,
+       "end": 3660
+      },
+      {
+       "word": "shot,",
+       "start": 3663,
+       "end": 3679
+      },
+      {
+       "word": "and",
+       "start": 3682,
+       "end": 3687
+      },
+      {
+       "word": "dance.",
+       "start": 3690,
+       "end": 3707
+      },
+      {
+       "word": "The",
+       "start": 3720,
+       "end": 3724
+      },
+      {
+       "word": "floor",
+       "start": 3727,
+       "end": 3737
+      },
+      {
+       "word": "under",
+       "start": 3739,
+       "end": 3745
+      },
+      {
+       "word": "her",
+       "start": 3747,
+       "end": 3750
+      },
+      {
+       "word": "feet",
+       "start": 3752,
+       "end": 3761
+      },
+      {
+       "word": "is",
+       "start": 3774,
+       "end": 3780
+      },
+      {
+       "word": "a",
+       "start": 3781,
+       "end": 3782
+      },
+      {
+       "word": "voxel",
+       "start": 3786,
+       "end": 3802
+      },
+      {
+       "word": "grid",
+       "start": 3805,
+       "end": 3816
+      },
+      {
+       "word": "of",
+       "start": 3820,
+       "end": 3824
+      },
+      {
+       "word": "the",
+       "start": 3826,
+       "end": 3828
+      },
+      {
+       "word": "same",
+       "start": 3830,
+       "end": 3837
+      },
+      {
+       "word": "room.",
+       "start": 3839,
+       "end": 3849
+      },
+      {
+       "word": "On",
+       "start": 3860,
+       "end": 3866
+      },
+      {
+       "word": "a",
+       "start": 3867,
+       "end": 3868
+      },
+      {
+       "word": "phone,",
+       "start": 3870,
+       "end": 3886
+      },
+      {
+       "word": "your",
+       "start": 3893,
+       "end": 3898
+      },
+      {
+       "word": "thumb",
+       "start": 3900,
+       "end": 3909
+      },
+      {
+       "word": "does",
+       "start": 3911,
+       "end": 3917
+      },
+      {
+       "word": "the",
+       "start": 3919,
+       "end": 3921
+      },
+      {
+       "word": "walking.",
+       "start": 3923,
+       "end": 3943
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "direct",
+   "from": 4004,
+   "durationInFrames": 510,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "Or just say what you want. In English, or in Chinese.",
+     "file": "audio/vo/direct_0.mp3",
+     "startFrame": 4012,
+     "durationFrames": 113,
+     "words": [
+      {
+       "word": "Or",
+       "start": 4012,
+       "end": 4019
+      },
+      {
+       "word": "just",
+       "start": 4022,
+       "end": 4028
+      },
+      {
+       "word": "say",
+       "start": 4029,
+       "end": 4036
+      },
+      {
+       "word": "what",
+       "start": 4038,
+       "end": 4042
+      },
+      {
+       "word": "you",
+       "start": 4044,
+       "end": 4046
+      },
+      {
+       "word": "want.",
+       "start": 4049,
+       "end": 4062
+      },
+      {
+       "word": "In",
+       "start": 4068,
+       "end": 4072
+      },
+      {
+       "word": "English,",
+       "start": 4074,
+       "end": 4088
+      },
+      {
+       "word": "or",
+       "start": 4094,
+       "end": 4098
+      },
+      {
+       "word": "in",
+       "start": 4099,
+       "end": 4100
+      },
+      {
+       "word": "Chinese.",
+       "start": 4102,
+       "end": 4125
+      }
+     ]
+    },
+    {
+     "voice": "prompt",
+     "text": "切换到城市街道，让角色跳舞。",
+     "file": "audio/vo/direct_1.mp3",
+     "startFrame": 4133,
+     "durationFrames": 101,
+     "words": [
+      {
+       "word": "切换到城市街道，让角色跳舞。",
+       "start": 4133,
+       "end": 4233
+      }
+     ]
+    },
+    {
+     "voice": "narrator",
+     "text": "Switch to the city street, and make her dance. The plan comes back as Aholo MCP tool calls.",
+     "file": "audio/vo/direct_2.mp3",
+     "startFrame": 4241,
+     "durationFrames": 207,
+     "words": [
+      {
+       "word": "Switch",
+       "start": 4241,
+       "end": 4250
+      },
+      {
+       "word": "to",
+       "start": 4252,
+       "end": 4254
+      },
+      {
+       "word": "the",
+       "start": 4256,
+       "end": 4258
+      },
+      {
+       "word": "city",
+       "start": 4259,
+       "end": 4267
+      },
+      {
+       "word": "street,",
+       "start": 4269,
+       "end": 4284
+      },
+      {
+       "word": "and",
+       "start": 4289,
+       "end": 4295
+      },
+      {
+       "word": "make",
+       "start": 4297,
+       "end": 4303
+      },
+      {
+       "word": "her",
+       "start": 4304,
+       "end": 4306
+      },
+      {
+       "word": "dance.",
+       "start": 4308,
+       "end": 4322
+      },
+      {
+       "word": "The",
+       "start": 4335,
+       "end": 4339
+      },
+      {
+       "word": "plan",
+       "start": 4341,
+       "end": 4349
+      },
+      {
+       "word": "comes",
+       "start": 4351,
+       "end": 4358
+      },
+      {
+       "word": "back",
+       "start": 4360,
+       "end": 4366
+      },
+      {
+       "word": "as",
+       "start": 4367,
+       "end": 4371
+      },
+      {
+       "word": "Aholo",
+       "start": 4373,
+       "end": 4394
+      },
+      {
+       "word": "MCP",
+       "start": 4394,
+       "end": 4416
+      },
+      {
+       "word": "tool",
+       "start": 4420,
+       "end": 4425
+      },
+      {
+       "word": "calls.",
+       "start": 4427,
+       "end": 4447
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "under",
+   "from": 4514,
+   "durationInFrames": 459,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "Record a camera path, and hand it to LuxReal as a storyboard. Under the hood: five official SDKs, ten Lux3D methods, 22 MCP tools. Bring your own key, or just play.",
+     "file": "audio/vo/under_0.mp3",
+     "startFrame": 4522,
+     "durationFrames": 444,
+     "words": [
+      {
+       "word": "Record",
+       "start": 4522,
+       "end": 4535
+      },
+      {
+       "word": "a",
+       "start": 4537,
+       "end": 4538
+      },
+      {
+       "word": "camera",
+       "start": 4540,
+       "end": 4551
+      },
+      {
+       "word": "path,",
+       "start": 4554,
+       "end": 4570
+      },
+      {
+       "word": "and",
+       "start": 4576,
+       "end": 4581
+      },
+      {
+       "word": "hand",
+       "start": 4584,
+       "end": 4592
+      },
+      {
+       "word": "it",
+       "start": 4593,
+       "end": 4596
+      },
+      {
+       "word": "to",
+       "start": 4597,
+       "end": 4600
+      },
+      {
+       "word": "LuxReal",
+       "start": 4603,
+       "end": 4621
+      },
+      {
+       "word": "as",
+       "start": 4623,
+       "end": 4628
+      },
+      {
+       "word": "a",
+       "start": 4629,
+       "end": 4630
+      },
+      {
+       "word": "storyboard.",
+       "start": 4631,
+       "end": 4653
+      },
+      {
+       "word": "Under",
+       "start": 4667,
+       "end": 4675
+      },
+      {
+       "word": "the",
+       "start": 4676,
+       "end": 4678
+      },
+      {
+       "word": "hood:",
+       "start": 4681,
+       "end": 4693
+      },
+      {
+       "word": "five",
+       "start": 4703,
+       "end": 4712
+      },
+      {
+       "word": "official",
+       "start": 4713,
+       "end": 4726
+      },
+      {
+       "word": "SDKs,",
+       "start": 4729,
+       "end": 4756
+      },
+      {
+       "word": "ten",
+       "start": 4765,
+       "end": 4773
+      },
+      {
+       "word": "Lux3D",
+       "start": 4776,
+       "end": 4796
+      },
+      {
+       "word": "methods,",
+       "start": 4799,
+       "end": 4817
+      },
+      {
+       "word": "22",
+       "start": 4824,
+       "end": 4844
+      },
+      {
+       "word": "MCP",
+       "start": 4844,
+       "end": 4863
+      },
+      {
+       "word": "tools.",
+       "start": 4868,
+       "end": 4886
+      },
+      {
+       "word": "Bring",
+       "start": 4897,
+       "end": 4903
+      },
+      {
+       "word": "your",
+       "start": 4905,
+       "end": 4908
+      },
+      {
+       "word": "own",
+       "start": 4910,
+       "end": 4915
+      },
+      {
+       "word": "key,",
+       "start": 4917,
+       "end": 4930
+      },
+      {
+       "word": "or",
+       "start": 4935,
+       "end": 4939
+      },
+      {
+       "word": "just",
+       "start": 4941,
+       "end": 4946
+      },
+      {
+       "word": "play.",
+       "start": 4948,
+       "end": 4965
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "close",
+   "from": 4973,
+   "durationInFrames": 367,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "Holorra. The world is generated. Now it is alive. Play it at holorra.xyz.",
+     "file": "audio/vo/close_0.mp3",
+     "startFrame": 4981,
+     "durationFrames": 203,
+     "words": [
+      {
+       "word": "Holorra.",
+       "start": 4981,
+       "end": 5001
+      },
+      {
+       "word": "The",
+       "start": 5007,
+       "end": 5012
+      },
+      {
+       "word": "world",
+       "start": 5014,
+       "end": 5023
+      },
+      {
+       "word": "is",
+       "start": 5025,
+       "end": 5027
+      },
+      {
+       "word": "generated.",
+       "start": 5028,
+       "end": 5050
+      },
+      {
+       "word": "Now",
+       "start": 5060,
+       "end": 5065
+      },
+      {
+       "word": "it",
+       "start": 5067,
+       "end": 5069
+      },
+      {
+       "word": "is",
+       "start": 5071,
+       "end": 5074
+      },
+      {
+       "word": "alive.",
+       "start": 5075,
+       "end": 5088
+      },
+      {
+       "word": "Play",
+       "start": 5099,
+       "end": 5107
+      },
+      {
+       "word": "it",
+       "start": 5109,
+       "end": 5113
+      },
+      {
+       "word": "at",
+       "start": 5115,
+       "end": 5120
+      },
+      {
+       "word": "holorra.xyz.",
+       "start": 5123,
+       "end": 5183
+      }
+     ]
+    },
+    {
+     "voice": "prompt",
+     "text": "谢谢！",
+     "file": "audio/vo/close_1.mp3",
+     "startFrame": 5191,
+     "durationFrames": 30,
+     "words": [
+      {
+       "word": "谢谢！",
+       "start": 5191,
+       "end": 5220
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

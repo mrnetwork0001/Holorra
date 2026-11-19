@@ -1,0 +1,32 @@
+TITLE
+Holorra: the 3D world is generated. Now it is alive. (Manycore Aholo Global 3D AI Hackathon)
+
+DESCRIPTION
+AI can build a 3D world in minutes. Then you step inside, and nothing moves. Holorra is one browser tab where Manycore's Aholo tools become a single scene you can play: generate the world, split the parts, rig the actors, direct the scene.
+
+Play it: https://holorra.xyz
+Studio: https://holorra.xyz/studio?play=1
+Real Lux3D results, inspected live: https://holorra.xyz/lab
+Project report: https://holorra.xyz/report
+
+Everything on screen is the live site. The Text to 3D job, the Play run and the phone session are our own screen recordings, with the waiting cut.
+
+Built on @manycore/aholo-viewer, aholo-sdk-world, aholo-sdk-lux3d, aholo-sdk-asset and aholo-sdk-mcp.
+
+生成世界。拆分部件。绑定角色。执导场景。
+
+#Manycorehackathon #Aholo #3DGS #Lux3D
+
+CHAPTERS
+0:00 The dead scene
+0:16 Why Manycore Aholo
+0:33 Holorra
+0:48 Generate the world
+1:02 A live Text to 3D job
+1:16 Split the parts
+1:27 Real joints
+1:39 Rig the actor
+1:55 Play the scene
+2:13 Direct it, in Chinese
+2:30 Camera path and under the hood
+2:45 Play it now

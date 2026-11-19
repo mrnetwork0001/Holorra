@@ -1,0 +1,169 @@
+{
+ "title": "Holorra: generate the world, split the parts, rig the actors, direct the scene",
+ "model": "eleven_multilingual_v2",
+ "voices": {
+  "narrator": {
+   "name": "Uyi",
+   "id": "NwBN5lRnglDs8TBVmser",
+   "settings": {
+    "stability": 0.5,
+    "similarity_boost": 0.8,
+    "style": 0.25,
+    "use_speaker_boost": true
+   }
+  },
+  "prompt": {
+   "name": "Alice",
+   "id": "Xb7hH8MSUJpSbSDYk0k2",
+   "settings": {
+    "stability": 0.7,
+    "similarity_boost": 0.8,
+    "style": 0.05,
+    "use_speaker_boost": true
+   }
+  }
+ },
+ "scenes": [
+  {
+   "id": "open",
+   "seconds": 14,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "AI can build a 3D world in minutes. Then you step inside, and nothing moves. The lid stays shut. The character stands frozen. You can look, but you cannot play. We call it the dead scene."
+    }
+   ]
+  },
+  {
+   "id": "manycore",
+   "seconds": 17,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "Manycore's Aholo stack already holds the cure. SpatialGen makes the world. Lux3D makes the object, splits it into parts, gives it joints, and rigs a character. But each one is a separate tool.",
+     "say": "Manycore's Ah-holo stack already holds the cure. Spatial Gen makes the world. Lux three D makes the object, splits it into parts, gives it joints, and rigs a character. But each one is a separate tool."
+    }
+   ]
+  },
+  {
+   "id": "turn",
+   "seconds": 15,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "So we built Holorra. One browser tab where all of it becomes a single scene you can play. Generate the world. Split the parts. Rig the actors. Direct the scene.",
+     "say": "So we built Ho-lora. One browser tab where all of it becomes a single scene you can play. Generate the world. Split the parts. Rig the actors. Direct the scene."
+    }
+   ]
+  },
+  {
+   "id": "worlds",
+   "seconds": 14,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "Start with the world. Five of them stream into one viewer. The biggest is 41.8 million splats. And one we generated ourselves, from a single prompt, with Aholo SpatialGen.",
+     "say": "Start with the world. Five of them stream into one viewer. The biggest is forty-one point eight million splats. And one we generated ourselves, from a single prompt, with Ah-holo Spatial Gen."
+    }
+   ]
+  },
+  {
+   "id": "generate",
+   "seconds": 15,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "Now an object. One sentence to Lux3D. A couple of minutes later, the model drops into the room and lands on the floor. Walk into it, and it slides away.",
+     "say": "Now an object. One sentence to Lux three D. A couple of minutes later, the model drops into the room and lands on the floor. Walk into it, and it slides away."
+    }
+   ]
+  },
+  {
+   "id": "split",
+   "seconds": 12,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "But a fused mesh is still a statue. Part split cuts it into four real parts, with not one triangle lost. Drag the slider, and it comes apart."
+    }
+   ]
+  },
+  {
+   "id": "articulate",
+   "seconds": 12,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "Then one more sentence. The hood hinges open. The drawer slides out. Lux3D returns real joints, and the machine starts to work.",
+     "say": "Then one more sentence. The hood hinges open. The drawer slides out. Lux three D returns real joints, and the machine starts to work."
+    }
+   ]
+  },
+  {
+   "id": "rig",
+   "seconds": 17,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "The actor began as a statue. Auto rig gave her 52 joints in 81 seconds. Retarget gave her eight moves in 17. The first character we tried was rejected. We left that in.",
+     "say": "The actor began as a statue. Auto rig gave her fifty-two joints in eighty-one seconds. Retarget gave her eight moves in seventeen. The first character we tried was rejected. We left that in."
+    }
+   ]
+  },
+  {
+   "id": "play",
+   "seconds": 18,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "So press Play. Walk her through the room. Collect the beans, brew the coffee, frame the shot, and dance. The floor under her feet is a voxel grid of the same room. On a phone, your thumb does the walking."
+    }
+   ]
+  },
+  {
+   "id": "direct",
+   "seconds": 17,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "Or just say what you want. In English, or in Chinese."
+    },
+    {
+     "voice": "prompt",
+     "text": "切换到城市街道，让角色跳舞。"
+    },
+    {
+     "voice": "narrator",
+     "text": "Switch to the city street, and make her dance. The plan comes back as Aholo MCP tool calls.",
+     "say": "Switch to the city street, and make her dance. The plan comes back as Ah-holo M C P tool calls."
+    }
+   ]
+  },
+  {
+   "id": "under",
+   "seconds": 15,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "Record a camera path, and hand it to LuxReal as a storyboard. Under the hood: five official SDKs, ten Lux3D methods, 22 MCP tools. Bring your own key, or just play.",
+     "say": "Record a camera path, and hand it to Lux Real as a storyboard. Under the hood: five official S D Ks, ten Lux three D methods, twenty-two M C P tools. Bring your own key, or just play."
+    }
+   ]
+  },
+  {
+   "id": "close",
+   "seconds": 11,
+   "lines": [
+    {
+     "voice": "narrator",
+     "text": "Holorra. The world is generated. Now it is alive. Play it at holorra.xyz.",
+     "say": "Ho-lora. The world is generated. Now it is alive. Play it at Ho-lora dot x y z."
+    },
+    {
+     "voice": "prompt",
+     "text": "谢谢！"
+    }
+   ]
+  }
+ ]
+}
