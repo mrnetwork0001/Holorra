@@ -14,3 +14,11 @@ next-env.d.ts
 CLAUDE.md
 CLAUDE_CODE_STARTER_PROMPTS.md
 .claude/
+
+# Demo film: generated media stays local
+video/node_modules/
+video/out/
+video/.cache/
+video/public/footage/
+video/public/stills/
+video/public/audio/
