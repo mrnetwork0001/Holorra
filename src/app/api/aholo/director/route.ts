@@ -33,7 +33,10 @@ const ZH_KEYWORDS: [RegExp, string][] = [
   [/拆分|爆炸|部件|拆开/, "split explode"],
   [/打开|开启|铰链|抽屉|顶盖|关节/, "open articulate"],
   [/角色|人物|演员|人形|机器人/, "actor"],
+  [/停止|停下|别跳|不要跳|站好|站立|待机|静止/, "stop idle"],
   [/跳舞|舞蹈|庆祝|欢呼/, "dance"],
+  [/点头|同意/, "nod"],
+  [/合上|复位|重置|还原|关闭|合拢/, "close reset"],
   [/剑|战斗|攻击/, "sword"],
   [/跳跃|忍者/, "jump"],
   [/冲刺|奔跑/, "sprint"],
@@ -133,11 +136,11 @@ export async function POST(req: NextRequest) {
       mcpTool: "lux3d_text_to_3d",
       sdkMethod: "lux3d.textTo3d.create",
       arguments: {
-        prompt: "Kinetix modular smart espresso synthesizer with brushed titanium chassis and hinged brew hood",
+        prompt: "A modular espresso machine with a brushed titanium body, a hinged brewing hood on top and a sliding capsule drawer at the front",
         version: "G1",
         outputFormat: ["glb", "zip"],
       },
-      rationale: "Synthesize the Kinetix Modular Espresso Unit via Lux3D G1.",
+      rationale: "The espresso machine on stage: generated from this prompt with Lux3D G1.",
     });
   }
 
@@ -170,14 +173,24 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  // "close", "reassemble", "reset": put the prop back together
+  if (/\b(close|reassemble|reset|put .* back)\b/.test(lower) && !lower.includes("explode") && !lower.includes("split")) {
+    mutation.explodePercent = 0;
+    mutation.articulateActive = false;
+  }
+
   // 4. Rigged Actor & 85-Preset Animation Retarget intent
   if (/\b(human|man|woman|person|actor|character|robot|droid)\b/.test(lower)) {
     mutation.switchActorId = "lux3d";
   }
 
   let selectedAnim: HumanoidAnimationId | undefined;
-  if (lower.includes("dance")) selectedAnim = "Dance_Loop";
-  else if (lower.includes("sword") || lower.includes("combat") || lower.includes("attack")) selectedAnim = "Sword_Heavy_Combo";
+  // "stop dancing" must win over "dance"
+  if (/\b(stop|idle|stand still|stand|rest|relax|freeze)\b/.test(lower)) selectedAnim = "Idle_Loop";
+  else if (lower.includes("dance")) selectedAnim = "Dance_Loop";
+  else if (lower.includes("sword") || lower.includes("combat") || lower.includes("attack")) selectedAnim = "Sword_Attack";
+  else if (/\b(nod|yes|agree)\b/.test(lower)) selectedAnim = "Yes";
+  else if (/\b(jog|run)\b/.test(lower)) selectedAnim = "Jog_Fwd_Loop";
   else if (lower.includes("ninja") || lower.includes("jump")) selectedAnim = "NinjaJump_Start";
   else if (lower.includes("sprint") || lower.includes("run")) selectedAnim = "Sprint_Loop";
   else if (lower.includes("walk") || lower.includes("patrol")) selectedAnim = "Walk_Loop";

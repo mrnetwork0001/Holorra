@@ -74,6 +74,7 @@ const DIRECTOR_PRESETS = [
   "Explode the espresso machine parts to 75%, open its articulated hood, and make the actor dance",
   "Switch to the Juguo Urban Plaza world, spawn the Aegis patrol drone, and split parts to 50%",
   "Switch to Grand Transit Concourse, load the ChronoGate holo-kiosk, and run a cinematic camera flythrough",
+  "Reset: close the espresso machine and make the actor stand still",
 ];
 
 /** Chinese copy for the animation categories in src/config/humanoid-animations.ts, keyed by group id. */
@@ -96,6 +97,7 @@ const DIRECTOR_TEXT_ZH: Record<string, string> = {
   [DIRECTOR_PRESETS[0]]: "把咖啡机部件爆炸到 75%，打开铰链顶盖，再让角色跳支舞",
   [DIRECTOR_PRESETS[1]]: "切换到 Juguo Urban Plaza 世界，放出 Aegis 巡逻无人机，并把部件拆分到 50%",
   [DIRECTOR_PRESETS[2]]: "切换到 Grand Transit Concourse，载入 ChronoGate 全息信息亭，播放一段电影感的飞越镜头",
+  [DIRECTOR_PRESETS[3]]: "复位：合上咖啡机，让角色站好不动",
   "Initialize hybrid 3DGS loft stage with segmented Lux3D appliance & rigged Lux3D actor":
     "初始化混合 3DGS 阁楼舞台：载入已拆分部件的 Lux3D 家电和已绑骨的 Lux3D 角色",
   "Boot plan: hosted loft world plus the 4-part articulated espresso machine and the rigged Lux3D actor.":
