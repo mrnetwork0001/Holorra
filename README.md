@@ -4,7 +4,7 @@
 
 Holorra puts 3D Gaussian Splatting (3DGS) worlds, Lux3D props that come apart and move, an auto-rigged actor you control, and a camera director on one WebGL2 stage, built on the official Manycore Aholo SDKs. One rule decides what goes on that stage: **every asset is a real Aholo output, and anything that is not is labelled.**
 
-Built for the Manycore Aholo Global 3D AI Hackathon · `#Manycorehackathon` · App: [holorra.xyz](https://holorra.xyz) · Demo film (2:58): [youtu.be/HOIWQNxpB9U](https://youtu.be/HOIWQNxpB9U) · Report: [12-slide deck (PDF)](https://holorra.xyz/holorra-report-deck.pdf) · Code: [github.com/mrnetwork0001/Holorra](https://github.com/mrnetwork0001/Holorra)
+Built for the Manycore Aholo Global 3D AI Hackathon · `#Manycorehackathon` · App: [holorra.xyz](https://holorra.xyz) · Demo film (2:58): [youtu.be/HOIWQNxpB9U](https://youtu.be/HOIWQNxpB9U) · Report: [12-slide deck (PDF)](https://holorra.xyz/holorra-report-deck.pdf) · Announcement: [post on X](https://x.com/encrypt_wizard/status/2123336985657934200) · Code: [github.com/mrnetwork0001/Holorra](https://github.com/mrnetwork0001/Holorra)
 
 **Judges, start here:** [holorra.xyz/studio?play=1](https://holorra.xyz/studio?play=1) starts a one-minute scene quest with no key and no sign-up. Every real Lux3D result is live in 3D at `/lab`, and the docs (13 pages, including the HTTP API and an honest Limits & FAQ) are at `/docs`.
 
