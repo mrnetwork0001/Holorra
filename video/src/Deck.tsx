@@ -6,14 +6,13 @@ import { Lockup, Lux3D } from "./ui/Logos";
 
 /** The project report deck: 12 stills at 1920 x 1080 (rendered at 2x). Every figure is from the Lux3D bench's run log. */
 const A = "#ff6a2b";
-const Slide: React.FC<{ tone: Tone; children: React.ReactNode; n: number }> = ({ tone, children, n }) => {
+const Slide: React.FC<{ tone: Tone; children: React.ReactNode; n: number }> = ({ tone, children }) => {
   const t = TONE[tone];
   const dot = tone === "dark" ? "rgba(236,233,226,0.07)" : tone === "light" ? "rgba(11,11,10,0.07)" : "rgba(26,11,3,0.1)";
   return (
     <AbsoluteFill style={{ background: tone === "dark" ? "radial-gradient(1200px 700px at 72% 40%, #1d130d 0%, #0b0b0a 62%)" : t.bg, color: t.ink, fontFamily: sans, overflow: "hidden" }}>
       <AbsoluteFill style={{ backgroundImage: `radial-gradient(${dot} 1.4px, transparent 1.6px)`, backgroundSize: "34px 34px" }} />
       {children}
-      <div style={{ position: "absolute", right: 64, bottom: 44, fontFamily: mono, fontSize: 15, letterSpacing: "0.14em", color: t.muted }}>HOLORRA · {String(n).padStart(2, "0")} / 12</div>
     </AbsoluteFill>
   );
 };
