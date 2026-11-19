@@ -209,6 +209,7 @@ export default function InspectorDock({
   // Humanoid Rig & 85 Animations state
   const [animSearch, setAnimSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [clipPageRaw, setClipPage] = useState(0);
   const [isCallingRigApi, setIsCallingRigApi] = useState(false);
 
   // MCP Spatial Co-Director state
@@ -410,6 +411,24 @@ export default function InspectorDock({
   }, [animSearch, selectedCategory]);
 
   const totalClips = HUMANOID_ANIMATION_GROUPS.reduce((n, g) => n + g.clips.length, 0);
+
+  // Six clips per page, so the list never needs a long scroll.
+  const CLIPS_PER_PAGE = 6;
+  const matchedClips = filteredAnimationGroups.reduce((n, g) => n + g.clips.length, 0);
+  const clipPages = Math.max(1, Math.ceil(matchedClips / CLIPS_PER_PAGE));
+  const clipPage = Math.min(clipPageRaw, clipPages - 1);
+  const pagedAnimationGroups = useMemo(() => {
+    const from = clipPage * CLIPS_PER_PAGE;
+    const to = from + CLIPS_PER_PAGE;
+    let i = 0;
+    return filteredAnimationGroups
+      .map((g) => {
+        const start = i;
+        i += g.clips.length;
+        return { ...g, total: g.clips.length, clips: g.clips.slice(Math.max(0, from - start), Math.max(0, to - start)) };
+      })
+      .filter((g) => g.clips.length > 0);
+  }, [filteredAnimationGroups, clipPage]);
   const totalFaces = activeHeroBlueprint.parts.reduce((n, p) => n + p.faceCount, 0);
   const isWalking = cameraMode === "walk-third";
 
@@ -744,7 +763,10 @@ export default function InspectorDock({
                 <input
                   type="text"
                   value={animSearch}
-                  onChange={(e) => setAnimSearch(e.target.value)}
+                  onChange={(e) => {
+                    setAnimSearch(e.target.value);
+                    setClipPage(0);
+                  }}
                   placeholder={tx(lang, { en: "Search clips", zh: "搜索动作片段（英文）" })}
                   className="field pl-8"
                 />
@@ -762,7 +784,10 @@ export default function InspectorDock({
                     <button
                       key={c.id}
                       type="button"
-                      onClick={() => setSelectedCategory(c.id)}
+                      onClick={() => {
+                        setSelectedCategory(c.id);
+                        setClipPage(0);
+                      }}
                       aria-pressed={active}
                       className={`h-9 min-w-0 rounded-[4px] leading-none transition-colors ${
                         active ? "bg-hover text-ink" : "text-ink-3 hover:text-ink"
@@ -786,14 +811,14 @@ export default function InspectorDock({
                     />
                   </p>
                 )}
-                {filteredAnimationGroups.map((group) => (
+                {pagedAnimationGroups.map((group) => (
                   <div key={group.id}>
                     <div className="sticky top-0 z-10 -mx-4 flex items-center justify-between bg-surface px-4 pt-3 pb-1.5">
                       <span className="label">
                         <T en={group.label} zh={ANIMATION_GROUP_ZH[group.id]?.label ?? group.label} />
                       </span>
                       <span className="font-mono text-[10.5px] text-ink-3 tabular">
-                        {group.clips.length}
+                        {group.total}
                       </span>
                     </div>
                     <ul className="-mx-2 space-y-px">
@@ -838,6 +863,32 @@ export default function InspectorDock({
                   </div>
                 ))}
               </div>
+              {clipPages > 1 && (
+                <div className="mt-3 flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-sm"
+                    disabled={clipPage === 0}
+                    onClick={() => setClipPage(clipPage - 1)}
+                  >
+                    <T en="Previous" zh="上一页" />
+                  </button>
+                  <span className="font-mono text-[11px] text-ink-3 tabular" aria-live="polite">
+                    <T
+                      en={`Page ${clipPage + 1} of ${clipPages} · ${matchedClips} clips`}
+                      zh={`第 ${clipPage + 1} / ${clipPages} 页 · 共 ${matchedClips} 个`}
+                    />
+                  </span>
+                  <button
+                    type="button"
+                    className="btn btn-sm"
+                    disabled={clipPage >= clipPages - 1}
+                    onClick={() => setClipPage(clipPage + 1)}
+                  >
+                    <T en="Next" zh="下一页" />
+                  </button>
+                </div>
+              )}
               <p className="mt-3 font-mono text-[10.5px] text-ink-3">
                 <T
                   en="Selecting a clip plays it on the actor. Retarget sends it to humanoidAnimationRetarget."
