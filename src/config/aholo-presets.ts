@@ -177,6 +177,8 @@ export const LUX3D_HERO_BLUEPRINTS: Record<string, Lux3dHeroAssetBlueprint> = {
         // SpatialGen coffee bar: on the table top measured in the generated splat
         // (flat patch at z = -0.46, 0.69 m above the floor -> y = 0.46 in the stage frame)
         "spatialgen-coffee-bar": { at: [0.65, -0.9], floorY: 0.46 },
+        // object turntable: on a plinth to the right of the bear (floor y = 0.41)
+        "sculpted-bear-studio": { at: [1.15, -0.62], floorY: -0.19, plinth: 0.6 },
       },
       joints: [
         { name: "hood_top_joint", max: 0.8 },
@@ -361,7 +363,7 @@ export const LUX3D_HERO_BLUEPRINTS: Record<string, Lux3dHeroAssetBlueprint> = {
       "The holographic ring spins continuously while the upper screen tilts toward the passenger and the ticket tray slides out",
     totalFaces: 148_500,
     pbrEnabled: true,
-    worldPosition: [-0.85, -1.45, 0.65],
+    worldPosition: [-1.45, -1.35, 0.1],
     worldScale: 0.004,
     parts: [
       {
@@ -593,7 +595,7 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
         label: "Terminal inspection",
         labelZh: "终端近观",
         position: [-0.45, -1.55, 1.35],
-        target: [-0.85, -1.45, 0.65],
+        target: [-1.45, -1.35, 0.1],
         durationSec: 3.0,
         luxrealPrompt:
           "Close-up product focus on the ChronoGate interactive wayfinding terminal as its holographic ring rotates",
