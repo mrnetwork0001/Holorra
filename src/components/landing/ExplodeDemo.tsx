@@ -152,7 +152,7 @@ export default function ExplodeDemo() {
               )}
             </>
           ) : (
-            <T en="Select a part to isolate it." zh="选择一个部件即可单独显示。" />
+            <T en="Select a part to see its details." zh="选择一个部件即可查看详情。" />
           )}
         </p>
       </div>

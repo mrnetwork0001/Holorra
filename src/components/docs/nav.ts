@@ -29,7 +29,7 @@ export const DOC_GROUPS: DocGroup[] = [
     items: [
       { href: "/docs/worlds", title: "Worlds & the stage", blurb: "five splat worlds, LOD streaming and voxel floors", zh: { title: "世界与舞台", blurb: "五个高斯泼溅世界、LOD 流式加载与体素地面" } },
       { href: "/docs/play", title: "Play mode", blurb: "the scene quest, controls and the phone joystick", zh: { title: "游玩模式", blurb: "场景任务、操作方式与手机摇杆" } },
-      { href: "/docs/parts", title: "Parts & articulation", blurb: "explode, isolate and hinge a generated object", zh: { title: "部件拆分与关节化", blurb: "爆炸、隔离、让生成的物体动起来" } },
+      { href: "/docs/parts", title: "Parts & articulation", blurb: "explode, hide and hinge a generated object", zh: { title: "部件拆分与关节化", blurb: "爆炸、隐藏、让生成的物体动起来" } },
       { href: "/docs/actors", title: "Actors & animation", blurb: "auto-rig, retarget and the clip library", zh: { title: "角色与动画", blurb: "自动绑骨、动画重定向与动作库" } },
       { href: "/docs/director", title: "Camera director", blurb: "keyframes, spline playback and the LuxReal pack", zh: { title: "镜头导演", blurb: "关键帧、样条回放与 LuxReal 分镜包" } },
     ],

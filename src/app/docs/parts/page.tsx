@@ -34,14 +34,14 @@ export default function PartsDoc() {
             <>
               <strong>A generated object should come apart and move.</strong> <C>lux3d.partSplit</C> breaks a mesh into semantic
               sub-meshes, and <C>lux3d.articulationAnimation</C> gives it joints from one sentence. Holorra lets you explode,
-              isolate, recolor and hinge the result on the stage.
+              hide, recolor and hinge the result on the stage.
             </>
           }
           zh={
             <>
               <strong>生成的物体应该能拆开，也能动起来。</strong>
               <C>lux3d.partSplit</C> 把网格拆成语义子网格，<C>lux3d.articulationAnimation</C>{" "}
-              用一句话为它加上关节。在 Holorra 的舞台上，你可以对结果做爆炸视图、单独显示、改色，并让铰链动起来。
+              用一句话为它加上关节。在 Holorra 的舞台上，你可以对结果做爆炸视图、隐藏、改色，并让铰链动起来。
             </>
           }
         />
@@ -88,7 +88,7 @@ export default function PartsDoc() {
       />
 
       <H2 id="explode">
-        <T en="Explode, isolate, recolor" zh="爆炸、单独显示、改色" />
+        <T en="Explode, hide, recolor" zh="爆炸、隐藏、改色" />
       </H2>
       <UL>
         <li>
@@ -111,13 +111,13 @@ export default function PartsDoc() {
           <T
             en={
               <>
-                <strong>Isolate:</strong> click a part on the stage or in the part list to select it; the eye toggles hide and show
+                <strong>Select and hide:</strong> click a part on the stage or in the part list to select it; the eye toggles hide and show
                 it.
               </>
             }
             zh={
               <>
-                <strong>单独显示：</strong>在舞台上或部件列表中点击某个部件即可选中；点眼睛图标可隐藏或显示它。
+                <strong>选中与隐藏：</strong>在舞台上或部件列表中点击某个部件即可选中；点眼睛图标可隐藏或显示它。
               </>
             }
           />

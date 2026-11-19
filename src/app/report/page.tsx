@@ -390,8 +390,8 @@ export default function ProjectReportDeckPage() {
                     { en: "Parts", zh: "部件" },
                     { en: "One fused shell. Doors do not open and nothing separates for printing.", zh: "一整块熔合的外壳。门打不开，也无法拆件打印。" },
                     {
-                      en: "Semantic sub-meshes from lux3d.partSplit that can be exploded, isolated and recolored.",
-                      zh: "lux3d.partSplit 输出语义子网格，可做爆炸视图、单独显示和改色。",
+                      en: "Semantic sub-meshes from lux3d.partSplit that can be exploded, hidden and recolored.",
+                      zh: "lux3d.partSplit 输出语义子网格，可做爆炸视图、隐藏和改色。",
                     },
                   ],
                   [

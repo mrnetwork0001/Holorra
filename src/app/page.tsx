@@ -296,7 +296,7 @@ const TRY: { key: string; title: ReactNode; body: ReactNode }[] = [
   {
     key: "explode",
     title: <T en="Explode a prop" zh="爆炸一个道具" />,
-    body: <T en="Drag the explode control, select a part to isolate or recolor it, toggle articulation." zh="拖动爆炸视图控件，选中部件可单独显示或改色，也可开关关节动画。" />,
+    body: <T en="Drag the explode control, select a part to hide or recolor it, toggle articulation." zh="拖动爆炸视图控件，选中部件可隐藏或改色，也可开关关节动画。" />,
   },
   {
     key: "drop",
@@ -579,7 +579,7 @@ export default function LandingPage() {
                 k: "Parts",
                 kz: "部件",
                 before: <T en="One fused shell. Nothing opens." zh="融成一整块外壳，什么都打不开。" />,
-                after: <T en="Semantic sub-meshes you can explode, isolate, recolor and hinge." zh="语义部件可以爆炸、单独显示、改色，还能加铰链。" />,
+                after: <T en="Semantic sub-meshes you can explode, hide, recolor and hinge." zh="语义部件可以爆炸、隐藏、改色，还能加铰链。" />,
               },
               {
                 k: "Motion",
@@ -1179,14 +1179,14 @@ export default function LandingPage() {
               en={
                 <>
                   <span className="font-mono text-[15px] text-ink">lux3d.partSplit</span> returns an object&apos;s semantic
-                  sub-meshes. Explode them to inspect, isolate or recolor one, then describe its motion in plain language with{" "}
+                  sub-meshes. Explode them to inspect, hide or recolor one, then describe its motion in plain language with{" "}
                   <span className="font-mono text-[15px] text-ink">lux3d.articulationAnimation</span>. Try the control below.
                 </>
               }
               zh={
                 <>
                   <span className="font-mono text-[15px] text-ink">lux3d.partSplit</span>{" "}
-                  返回物体的语义部件。爆炸展开查看、单独显示或改色，再用一句大白话通过{" "}
+                  返回物体的语义部件。爆炸展开查看、隐藏或改色，再用一句大白话通过{" "}
                   <span className="font-mono text-[15px] text-ink">lux3d.articulationAnimation</span> 描述它怎么动。试试下面的控件。
                 </>
               }

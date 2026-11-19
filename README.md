@@ -4,9 +4,11 @@
 
 Holorra puts 3D Gaussian Splatting (3DGS) worlds, Lux3D props that come apart and move, an auto-rigged actor you control, and a camera director on one WebGL2 stage, built on the official Manycore Aholo SDKs. One rule decides what goes on that stage: **every asset is a real Aholo output, and anything that is not is labelled.**
 
-Built for the Manycore Aholo Global 3D AI Hackathon · `#Manycorehackathon` · App: [holorra.xyz](https://holorra.xyz) · Demo: `<VIDEO_URL>` · Code: [github.com/mrnetwork0001/Holorra](https://github.com/mrnetwork0001/Holorra)
+Built for the Manycore Aholo Global 3D AI Hackathon · `#Manycorehackathon` · App: [holorra.xyz](https://holorra.xyz) · Report: [12-slide deck (PDF)](https://holorra.xyz/holorra-report-deck.pdf) · Code: [github.com/mrnetwork0001/Holorra](https://github.com/mrnetwork0001/Holorra)
 
 **Judges, start here:** [holorra.xyz/studio?play=1](https://holorra.xyz/studio?play=1) starts a one-minute scene quest with no key and no sign-up. Every real Lux3D result is live in 3D at `/lab`, and the docs (13 pages, including the HTTP API and an honest Limits & FAQ) are at `/docs`.
+
+![Holorra landing page: a directing stage for generated 3D worlds](docs/screenshots/landing.jpg)
 
 ---
 
@@ -15,9 +17,12 @@ Built for the Manycore Aholo Global 3D AI Hackathon · `#Manycorehackathon` · A
 | Verb | What it is | Try it without a key |
 | --- | --- | --- |
 | **Generate** | Five 3DGS worlds open with no wait. Four stream from Manycore's content delivery network (CDN), up to a **41.8M-splat** level-of-detail (LOD) stream in 528 chunks. The fifth, a **Scandinavian coffee bar**, came back from one SpatialGen sentence in **625 s** as 266,895 splats (world `3FO4K4V99KMD`). | `/studio?world=spatialgen-coffee-bar`, or the world tabs in the studio header |
-| **Split** | One prompt became an espresso machine on Lux3D G1 (229,788 triangles, 3 PBR maps). `partSplit` broke it into **4 parts** with the same triangle count, and one sentence to `articulationAnimation` returned a URDF (robot description file) with a **revolute hood hinge (0 to 90°)** and a **prismatic drawer**. Explode it (Closed, Inspect, Service, CAD), isolate a part, recolor it. | `/studio`, right dock: Parts. Or `/lab` for the bench. |
+| **Split** | One prompt became an espresso machine on Lux3D G1 (229,788 triangles, 3 PBR maps). `partSplit` broke it into **4 parts** with the same triangle count, and one sentence to `articulationAnimation` returned a URDF (robot description file) with a **revolute hood hinge (0 to 90°)** and a **prismatic drawer**. Explode it (Closed, Inspect, Service, CAD), hide or select a part, recolor it. | `/studio`, right dock: Parts. Or `/lab` for the bench. |
 | **Play** | A static character mesh went through `humanoidAutoRig` (**52 joints**) and `humanoidAnimationRetarget` (**8 clips**). Press Play: walk it to the machine, press **E** to brew (the camera cuts in while the URDF hood and drawer open), **K** to frame the shot, **F** to celebrate. *The machine you brew on is the one Lux3D generated, and the hinge that opens is the one Lux3D inferred.* Phones get a thumb joystick. | `/studio?play=1` |
 | **Direct** | Keyframes store camera position, target, duration and a shot prompt with a frame grabbed from the canvas. Playback follows a Catmull-Rom spline. Export a storyboard pack (`manycore.aholo.luxreal.storyboard.v1`) and a master prompt for LuxReal's video creator. | Press **K** anywhere, then **Play path** and **Storyboard JSON** under the stage |
+
+![The studio: the creation dock, the 3DGS loft with the espresso machine and the actor, and the Parts inspector](docs/screenshots/studio.jpg)
+*The studio at `/studio`: generate on the left, the stage in the middle, parts, actor and co-director on the right, the camera path below.*
 
 ### More to explore
 
@@ -33,7 +38,7 @@ Built for the Manycore Aholo Global 3D AI Hackathon · `#Manycorehackathon` · A
 | **Emotes, kicks, sound** | Keys **1–8** play the actor's eight retargeted clips. Walk into a dropped model and it slides and tumbles. The speaker button turns on footsteps, the brew hiss and chimes, synthesized with the Web Audio API (off by default, no audio files). | `/studio`, walk modes |
 | **Finish card** | When the scene wraps, the shot you framed becomes a 1200 × 630 poster with your time and beans, to save or post on X. | End of the quest |
 | **Expand** | Hides the docks, header and timeline and gives the render the whole screen; browser fullscreen where allowed, a fixed full-window stage elsewhere. | Stage toolbar, far right |
-| **Project report** | The submission deck: problem, pipeline, real results, comparisons, rubric. Prints to PDF one slide per page. | `/report`, also `docs/Holorra-Project-Report.pdf` |
+| **Project report** | Two forms of the same story. The report deck: 12 slides with process screenshots, three asset comparisons, the final result and the team. And the in-app report: problem, pipeline, real results, comparisons, rubric, printing to PDF one slide per page. | Deck: `docs/Holorra-Report-Deck.pdf` (and `.pptx`), also at `/holorra-report-deck.pdf`. In-app: `/report`, also `docs/Holorra-Project-Report.pdf` |
 | **Docs** | 13 pages: welcome, how it works, worlds, play mode, parts, actors, director, live generation, real results, MCP, HTTP API, deployment, limits & FAQ. | `/docs` |
 
 The studio header holds the five world tabs, links to Studio, Report, MCP and Docs, render settings (splat exposure, sort mode) and the **API key** field with a COM / CN region switch. The stage toolbar has Play, the camera mode (orbit, third person, first person, path), Keyframe, reset camera and Expand. At 900 px and below, the docks move into a left drawer behind a burger button and the stage gets a touch joystick with Brew, Frame and Cheer buttons. Nothing anywhere needs an account.
@@ -186,6 +191,9 @@ sequenceDiagram
 ```
 
 ### The scene quest
+
+![Play mode: the brew close-up, with the hood open and the drawer out, from a real run](docs/screenshots/play-brew.jpg)
+*Pressing **E** at the machine: the camera cuts in while the Lux3D-inferred hood hinge and drawer slide open.*
 
 ```mermaid
 sequenceDiagram
@@ -372,6 +380,9 @@ src/config/aholo-presets.ts   the five worlds, stage props, the actor, default k
 src/config/lux3d-results.ts   task IDs, prompts, times and measurements of every real run
 src/config/humanoid-animations.ts  the 85-clip library and the MCP tool catalog
 src/lib/aholo-server.ts       SDK clients and key / region resolution
+src/lib/usage-guard.ts        daily budget for live jobs on the server key
+src/lib/i18n.tsx              English / 简体中文 text helpers
+src/lib/stage-audio.ts        stage sound, synthesized with the Web Audio API
 src/lib/urdf-assembly.ts      URDF parser and runtime assembly, floor probe
 src/lib/voxel-collision.ts    reads Manycore voxel grids: solid tests, wall sliding
 src/lib/luxreal-exporter.ts   Catmull-Rom camera spline and the storyboard pack
@@ -380,7 +391,9 @@ public/assets/lux3d/          mirrored Lux3D results (GLB, URDF and link meshes)
 public/assets/spatialgen/     the SpatialGen world and its panorama
 public/landing/               captures of the real app used on the landing page and in the docs
 scripts/verify-aholo-sdks.mjs SDK and CDN check (npm run verify:aholo)
-docs/                         architecture, SDK reference, design system, mobile rules, report PDF
+docs/                         architecture, SDK reference, design system, mobile rules, report deck (PDF, PPTX) and report PDFs
+video/                        the demo film and the report deck, as code (Remotion): script, scenes, capture scripts
+deploy/                       systemd unit, Caddy site file and deploy scripts for a VPS
 .mcp.json                     Aholo MCP server for Claude Code and Cursor (placeholder key)
 ```
 
@@ -395,6 +408,7 @@ Worlds 01 to 04, their voxel grids and the demo GLBs referenced as MCP samples b
 - **Fonts:** IBM Plex Sans, IBM Plex Mono and Instrument Serif (SIL Open Font License), loaded with `next/font`.
 - **glTF-Transform** (MIT), used offline to make web copies of the results.
 - **Open-source npm packages** are listed in `package.json`.
+- **Demo film and report deck:** built with Remotion; narration, score and sound effects from ElevenLabs. The Manycore | Aholo lockup and the Aholo Lux3D mark shown in them are Manycore's, used unaltered. Sources are listed in `video/README.md`.
 - **Built with Claude Code** as a coding assistant.
 - **No prior Holorra code.** Everything else was written for this hackathon.
 

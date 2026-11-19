@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Redeploy from your machine: build here, upload, restart on the server. Other apps on the host are untouched.
-#   HOST=root@38.49.216.120 bash deploy/redeploy.sh
+#   HOST=root@SERVER_IP bash deploy/redeploy.sh
 set -euo pipefail
-HOST="${HOST:-root@38.49.216.120}"
+HOST="${HOST:?set HOST=root@SERVER_IP}"
 cd "$(dirname "$0")/.."
 rm -rf .next && npx next build
 git checkout -- tsconfig.json 2>/dev/null || true   # next build may append its types path

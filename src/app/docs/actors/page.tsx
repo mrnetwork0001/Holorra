@@ -163,14 +163,15 @@ export default function ActorsDoc() {
         <T
           en={
             <>
-              The Actor tab lists all {TOTAL} official Lux3D humanoid animations, searchable and grouped. Selecting one plays it if it
-              is already on the actor, and calls <C>humanoidAnimationRetarget</C> for it (live with a key, a preview receipt
-              without). One retarget job takes 1 to 10 animation IDs.
+              The Actor tab lists all {TOTAL} official Lux3D humanoid animations, searchable and grouped. The eight already on the actor are
+              tagged ready and play at a click. The others are tagged as needing a retarget: selecting one and pressing Retarget
+              calls <C>humanoidAnimationRetarget</C> for it (live with a key, a preview receipt without). One retarget job takes 1
+              to 10 animation IDs.
             </>
           }
           zh={
             <>
-              角色标签页列出全部 {TOTAL} 个官方 Lux3D 人形动画，支持搜索并按类别分组。选中某个动画时，如果它已在角色身上就直接播放，同时为它调用{" "}
+              角色标签页列出全部 {TOTAL} 个官方 Lux3D 人形动画，支持搜索并按类别分组。已在角色身上的八个标为「可播放」，点击即播；其余标为「需重定向」，选中后点击「重定向」才会调用{" "}
               <C>humanoidAnimationRetarget</C>（有密钥时为实时调用，没有密钥时返回预览回执）。一个重定向任务可包含 1 到 10 个动画 ID。
             </>
           }
