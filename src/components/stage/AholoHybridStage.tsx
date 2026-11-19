@@ -180,6 +180,7 @@ export default function AholoHybridStage({
   const [fps, setFps] = useState<number>(60);
   const [voxelStatus, setVoxelStatus] = useState<string>("Loading Octree...");
   const [actorLoaded, setActorLoaded] = useState<boolean>(false);
+  const [playingClip, setPlayingClip] = useState<string | null>(null);
   const [hudPose, setHudPose] = useState<{ x: number; y: number; z: number; yaw: number }>({
     x: worldPreset.pose.px,
     y: worldPreset.pose.py,
@@ -1016,6 +1017,8 @@ export default function AholoHybridStage({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const actorActions: Record<string, any> = {};
         let currentClipKey = "";
+        let hudClipKey = "";
+        const clipNames: Record<string, string> = {};
 
         async function loadRiggedActorGlb() {
           try {
@@ -1083,6 +1086,7 @@ export default function AholoHybridStage({
               act.weight = 0;
               const mapped = actorConfig.clipMap?.[clip.name] ?? clip.name;
               actorActions[mapped.toLowerCase()] = act;
+              clipNames[mapped.toLowerCase()] = mapped;
             });
 
             const firstKey = actorActions["idle_loop"] ? "idle_loop" : Object.keys(actorActions)[0];
@@ -1790,6 +1794,11 @@ export default function AholoHybridStage({
               yaw: ((Math.round((p.yaw * 180) / Math.PI) % 360) + 540) % 360 - 180,
             });
             hudTimer = now;
+            // what the actor is really playing, which may differ from the clip that was asked for
+            if (currentClipKey && currentClipKey !== hudClipKey) {
+              hudClipKey = currentClipKey;
+              setPlayingClip(clipNames[currentClipKey] ?? currentClipKey);
+            }
           }
 
           rafId = requestAnimationFrame(tickFrame);
@@ -1886,7 +1895,7 @@ export default function AholoHybridStage({
           <span className="flex items-center gap-1.5 font-sans text-[12px] text-ink-2">
             <Glyph name="rig" size={13} className="text-ink-3" />
             <T en={actor.name} zh={ACTOR_NAME_ZH[actor.id] ?? actor.name} />
-            <span className="font-mono text-[11px] text-ink-3">{activeAnimationId}</span>
+            <span className="font-mono text-[11px] text-ink-3">{playingClip ?? activeAnimationId}</span>
             {actorLoaded && (
               <Glyph name="check" size={12} className="text-ok" title={tx(lang, { en: "Actor loaded", zh: "角色已加载" })} />
             )}
