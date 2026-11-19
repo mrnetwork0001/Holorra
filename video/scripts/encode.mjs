@@ -7,7 +7,16 @@
 import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { join } from "node:path";
-import { concatList } from "./cdp.mjs";
+/** ffmpeg concat list with real per-frame durations, so the clip plays at wall-clock speed. */
+function concatList(frames) {
+  let out = "";
+  for (let i = 0; i < frames.length; i++) {
+    const next = frames[i + 1];
+    out += `file '${frames[i].file}'\nduration ${(next ? Math.max(0.01, next.t - frames[i].t) : 0.1).toFixed(3)}\n`;
+  }
+  if (frames.length) out += `file '${frames[frames.length - 1].file}'\n`;
+  return out;
+}
 
 const ROOT = new URL("..", import.meta.url).pathname;
 const FR = join(ROOT, ".cache/frames");
