@@ -128,18 +128,22 @@ export default function LabPage() {
                       <T
                         en={
                           <>
-                            {r.triangles ? `${r.triangles.toLocaleString("en-US")} tris` : ""}
-                            {r.meshes && r.meshes > 1 ? ` · ${r.meshes} parts` : ""}
-                            {r.clips?.length ? ` · ${r.clips.length} clips` : ""}
-                            {r.joints ? ` · ${r.joints} joints` : ""}
+                            {[
+                              r.triangles ? `${r.triangles.toLocaleString("en-US")} tris` : "",
+                              r.meshes && r.meshes > 1 ? `${r.meshes} parts` : "",
+                              r.clips?.length ? `${r.clips.length} clips` : "",
+                              r.joints ? `${r.joints} joints` : "",
+                            ].filter(Boolean).join(" · ")}
                           </>
                         }
                         zh={
                           <>
-                            {r.triangles ? `${r.triangles.toLocaleString("en-US")} 个三角面` : ""}
-                            {r.meshes && r.meshes > 1 ? ` · ${r.meshes} 个部件` : ""}
-                            {r.clips?.length ? ` · ${r.clips.length} 个动作片段` : ""}
-                            {r.joints ? ` · ${r.joints} 个关节` : ""}
+                            {[
+                              r.triangles ? `${r.triangles.toLocaleString("en-US")} 个三角面` : "",
+                              r.meshes && r.meshes > 1 ? `${r.meshes} 个部件` : "",
+                              r.clips?.length ? `${r.clips.length} 个动作片段` : "",
+                              r.joints ? `${r.joints} 个关节` : "",
+                            ].filter(Boolean).join(" · ")}
                           </>
                         }
                       />
