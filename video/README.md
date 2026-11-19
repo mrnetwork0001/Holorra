@@ -1,5 +1,7 @@
 # Holorra: the demo film
 
+Watch it: https://youtu.be/HOIWQNxpB9U
+
 A film of just under 3 minutes for the Manycore Aholo Global 3D AI Hackathon, made with Remotion from Holorra's own live site. It lives in `video/` and is excluded from the app's TypeScript (`tsconfig.json` excludes `video`) and from deploys (`deploy/redeploy.sh` excludes `video`).
 
 ## What is real
