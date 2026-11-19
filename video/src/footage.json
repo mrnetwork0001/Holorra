@@ -41,13 +41,13 @@
  },
  "phone": {
   "file": "footage/phone.mp4",
-  "width": 590,
-  "height": 710,
-  "durationFrames": 840,
+  "width": 708,
+  "height": 1534,
+  "durationFrames": 900,
   "owner": true,
   "source": "P",
-  "from": 12,
-  "to": 40
+  "from": 13,
+  "to": 43
  },
  "artic": {
   "file": "footage/artic.mp4",

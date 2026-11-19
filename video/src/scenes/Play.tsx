@@ -4,6 +4,27 @@ import { C, mono, sans } from "../theme";
 import { clamp, pop } from "../ui/motion";
 import { Card, Fill, Finder, In, Kicker, Plate, useCue } from "./common";
 
+const PW = 428, PH = 927; // the screen, at the recording's own 1180 x 2556 proportion
+/** An iPhone 15 Pro body drawn around the recording: titanium band, thin black bezel, side buttons. */
+const Phone: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const band = 7, bezel = 9, r = 70;
+  const W = PW + 2 * (band + bezel), H = PH + 2 * (band + bezel);
+  const btn = (side: "l" | "r", top: number, h: number) => (
+    <div style={{ position: "absolute", [side === "l" ? "left" : "right"]: -4, top, width: 5, height: h, borderRadius: 3, background: "linear-gradient(180deg, #8f8c86, #55534f 50%, #7d7a74)", boxShadow: "0 0 0 1px rgba(0,0,0,0.5)" }} />
+  );
+  return (
+    <div style={{ position: "relative", width: W, height: H, filter: "drop-shadow(0 50px 70px rgba(0,0,0,0.65))" }}>
+      {btn("l", 150, 34)}{btn("l", 214, 62)}{btn("l", 290, 62)}{btn("r", 250, 98)}
+      <div style={{ position: "absolute", inset: 0, borderRadius: r, background: "linear-gradient(135deg, #b9b6af 0%, #6f6d68 22%, #3d3c39 50%, #7b7873 78%, #c2bfb8 100%)", boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.22), inset 0 0 6px rgba(0,0,0,0.6)" }} />
+      <div style={{ position: "absolute", inset: band, borderRadius: r - band, background: "#020202" }} />
+      <div style={{ position: "absolute", left: band + bezel, top: band + bezel, width: PW, height: PH, borderRadius: r - band - bezel, overflow: "hidden", background: "#000" }}>
+        {children}
+        <div style={{ position: "absolute", inset: 0, borderRadius: r - band - bezel, boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.05)", background: "linear-gradient(120deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0) 28%)", pointerEvents: "none" }} />
+      </div>
+    </div>
+  );
+};
+
 const at = (sec: number) => Math.round((sec - 14) * 30); // seconds in the owner's recording -> frames of the "run" clip
 const STEPS = [["Walk", "Walk"], ["beans,", "5 beans"], ["brew", "Brew"], ["frame", "Frame"], ["dance.", "Dance"]] as const;
 
@@ -58,14 +79,11 @@ export const Play: React.FC = () => {
         <div style={{ fontSize: 46, fontWeight: 600, letterSpacing: "-0.04em", marginTop: 8 }}>A 5 cm voxel grid</div>
         <div style={{ fontFamily: mono, fontSize: 19, color: C.ink2, marginTop: 6 }}>of the same capture, under her feet</div>
       </Card>
-      {/* the same quest on a phone */}
-      <div style={{ position: "absolute", left: 1290, top: 150 + (1 - ph) * 80, width: 470, height: 800, opacity: pho, borderRadius: 54, background: "#050505", boxShadow: `0 0 0 2px ${C.lineStrong}, 0 50px 110px rgba(0,0,0,0.7)`, padding: 16, boxSizing: "border-box", transform: `rotate(${(1 - ph) * 5 + 2}deg)` }}>
-        <div style={{ position: "relative", width: "100%", height: "100%", borderRadius: 40, overflow: "hidden", background: C.canvas }}>
-          <Sequence from={tPhone - 14} layout="none"><Plate name="phone" from={150} x={0} y={0} w={438} h={768} dur={160} z0={1.02} z1={1.06} ox={50} oy={46} /></Sequence>
-        </div>
-        <div style={{ position: "absolute", left: "50%", top: 26, width: 110, height: 26, marginLeft: -55, borderRadius: 14, background: "#050505" }} />
+      {/* the same quest on a phone: the owner's full iPhone screen recording, uncropped, in an iPhone 15 Pro body */}
+      <div style={{ position: "absolute", left: 1310, top: 64 + (1 - ph) * 90, opacity: pho, transform: `rotate(${(1 - ph) * 4}deg)`, transformOrigin: "50% 100%" }}>
+        <Phone><Sequence from={tPhone - 14} layout="none"><Plate name="phone" from={205} x={0} y={0} w={PW} h={PH} dur={200} z0={1} z1={1} /></Sequence></Phone>
       </div>
-      <In at={tPhone - 2} style={{ position: "absolute", left: 130, top: 800 }}>
+      <In at={tPhone - 2} style={{ position: "absolute", left: 130, top: 790 }}>
         <div style={{ fontFamily: sans, fontWeight: 500, fontSize: 84, letterSpacing: "-0.045em", lineHeight: 1.04, color: C.ink, textShadow: "0 6px 40px rgba(0,0,0,0.8)" }}>On a phone, your <span style={{ color: C.accent }}>thumb</span><br />does the walking.</div>
       </In>
     </Fill>
