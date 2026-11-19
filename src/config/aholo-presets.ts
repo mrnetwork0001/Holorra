@@ -495,8 +495,8 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
         id: "kf-3",
         label: "Actor tracking shot",
         labelZh: "角色跟拍",
-        position: [2.55, -0.7, -1.6],
-        target: [3.8, -0.4, -1.6],
+        position: [1.7, -0.75, -1.35],
+        target: [3.6, -0.5, -1.8],
         durationSec: 3.0,
         luxrealPrompt:
           "Low-angle reverse tracking shot following the rigged Lux3D actor walking across the living room floor",

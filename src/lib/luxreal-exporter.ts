@@ -118,8 +118,8 @@ export function buildLuxRealStoryboardBundle(params: {
     `[LuxReal 3D-Consistent Scene Brief] World: ${params.worldTitle}.`,
     `Hero Prop: ${params.heroAssetName} (Lux3D Part-Split at ${params.partExplosionPercent}% explosion).`,
     `Rigged Actor: ${params.actorName} performing ${params.activeAnimationClip}.`,
-    ...params.keyframes.map((k, i) => `Shot ${i + 1} (${k.durationSec}s): ${k.luxrealPrompt}`),
-  ].join(" ");
+    ...params.keyframes.map((k, i) => `Shot ${i + 1} (${k.durationSec}s): ${k.luxrealPrompt.replace(/[.\s]+$/, "")}.`),
+  ].join("\n");
 
   return {
     schema: "manycore.aholo.luxreal.storyboard.v1",

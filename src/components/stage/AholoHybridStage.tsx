@@ -1306,6 +1306,7 @@ export default function AholoHybridStage({
         let fpsTimer = lastTime;
         let hudTimer = lastTime;
         let splineStartTime = 0;
+        let splineReturnPose: { px: number; py: number; pz: number; yaw: number; pitch: number } | null = null;
 
         const tickFrame = (now: number) => {
           if (signal.aborted || !viewer) return;
@@ -1407,7 +1408,11 @@ export default function AholoHybridStage({
           const mode = cameraModeRef.current;
 
           if (isPlayingSplineRef.current && keyframesRef.current.length >= 2) {
-            if (splineStartTime === 0) splineStartTime = now;
+            if (splineStartTime === 0) {
+              splineStartTime = now;
+              // remember the view, so the path ends where the user was instead of at an odd angle
+              splineReturnPose = { px: p.px, py: p.py, pz: p.pz, yaw: p.yaw, pitch: p.pitch };
+            }
             const totalDurationMs =
               keyframesRef.current.reduce((acc, k) => acc + k.durationSec, 0) * 1000;
             const elapsed = now - splineStartTime;
@@ -1425,10 +1430,17 @@ export default function AholoHybridStage({
 
             if (norm >= 1) {
               splineStartTime = 0;
+              if (splineReturnPose) Object.assign(p, splineReturnPose);
+              splineReturnPose = null;
               onSplineFinish();
             }
           } else {
             splineStartTime = 0;
+            if (splineReturnPose) {
+              // stopped part-way: go back to the view from before the path
+              Object.assign(p, splineReturnPose);
+              splineReturnPose = null;
+            }
 
             // Process WASD / Arrow movement
             const moveSpeed = keysPressed.has("ShiftLeft") ? 4.8 : 2.3;
