@@ -86,6 +86,8 @@ export interface AholoWorldPreset {
   upAxis?: "z";
   /** floor height in the stage frame when there is no voxel grid to probe */
   floorY?: number;
+  /** walk modes stay inside this box [xMin, xMax, zMin, zMax]: the captured area, where the splat is sharp */
+  walkBounds?: [number, number, number, number];
   /** [x, z] where the actor stands, when the default spot (ahead of the camera) is not suitable */
   actorSpot?: [number, number];
   pose: InitialCameraPose;
@@ -467,6 +469,8 @@ export const AHOLO_WORLD_PRESETS: AholoWorldPreset[] = [
     },
     floorY: 0.36,
     beanArea: [0.9, 6.0, -3.45, 0.45],
+    // the lounge, dining and kitchen; beyond these the capture turns to fog
+    walkBounds: [0.7, 8.7, -5.7, 1.0],
     actorSpot: [3.35, -1.95],
     defaultHeroAssetId: "cyber-barista-station",
     defaultActorId: "lux3d",

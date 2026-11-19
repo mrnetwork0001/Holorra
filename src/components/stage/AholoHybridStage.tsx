@@ -181,6 +181,8 @@ export default function AholoHybridStage({
   const [voxelStatus, setVoxelStatus] = useState<string>("Loading Octree...");
   const [actorLoaded, setActorLoaded] = useState<boolean>(false);
   const [playingClip, setPlayingClip] = useState<string | null>(null);
+  const [guide, setGuide] = useState<{ m: number; deg: number } | null>(null);
+  const [farHint, setFarHint] = useState(0);
   const [hudPose, setHudPose] = useState<{ x: number; y: number; z: number; yaw: number }>({
     x: worldPreset.pose.px,
     y: worldPreset.pose.py,
@@ -1306,6 +1308,8 @@ export default function AholoHybridStage({
         let fpsTimer = lastTime;
         let hudTimer = lastTime;
         let splineStartTime = 0;
+        let guideAt = 0;
+        let guideLast: [number, number] = [-1, 0];
         let splineReturnPose: { px: number; py: number; pz: number; yaw: number; pitch: number } | null = null;
 
         const tickFrame = (now: number) => {
@@ -1505,11 +1509,31 @@ export default function AholoHybridStage({
               }
             }
 
+            const wb = worldPreset.walkBounds;
+            if (wb && (mode === "walk-third" || mode === "walk-first")) {
+              p.px = Math.min(wb[1], Math.max(wb[0], p.px));
+              p.pz = Math.min(wb[3], Math.max(wb[2], p.pz));
+            }
+
             // Scene quest: proximity to the real prop, E to brew, F to cheer
             const q = playRef.current;
             if (heroBlueprint.real) {
               const dist = Math.hypot(heroRoot.position.x - p.px, heroRoot.position.z - p.pz);
               const near = (mode === "walk-third" || mode === "walk-first") && dist < 1.05;
+              if (q.active && q.step < 2 && now - guideAt > 200) {
+                // pointer to the machine: metres, and degrees clockwise from straight ahead
+                guideAt = now;
+                const vx = heroRoot.position.x - p.px;
+                const vz = heroRoot.position.z - p.pz;
+                const ahead = -Math.sin(p.yaw) * vx - Math.cos(p.yaw) * vz;
+                const side = -Math.cos(p.yaw) * vx + Math.sin(p.yaw) * vz;
+                const m = Math.round(dist * 2) / 2;
+                const deg = Math.round((Math.atan2(side, ahead) * 180) / Math.PI / 15) * 15;
+                if (m !== guideLast[0] || deg !== guideLast[1]) {
+                  guideLast = [m, deg];
+                  setGuide(near ? null : { m, deg });
+                }
+              }
               if (near !== q.near) {
                 q.near = near;
                 setPlay((st) => ({ ...st, near }));
@@ -1865,6 +1889,17 @@ export default function AholoHybridStage({
   const actor = AHOLO_RIGGED_ACTORS[actorId];
   const voxel = describeVoxelStatus(voxelStatus);
 
+  // "↑ 3.5 m": which way the espresso machine is, relative to where the camera looks
+  const guideChip =
+    play.active && play.step < 2 && !play.near && guide ? (
+      <span className="ml-1.5 inline-flex items-center gap-1 whitespace-nowrap font-mono text-[11px] text-accent">
+        <span aria-hidden className="inline-block text-[13px] leading-none" style={{ transform: `rotate(${guide.deg}deg)` }}>
+          ↑
+        </span>
+        {guide.m.toFixed(1)} m
+      </span>
+    ) : null;
+
   return (
     <div
       ref={rootRef}
@@ -1956,6 +1991,7 @@ export default function AholoHybridStage({
                       {current && (
                         <span className="block font-mono text-[10.5px] text-ink-3">
                           <T en={q.hint.en} zh={q.hint.zh} />
+                          {guideChip}
                         </span>
                       )}
                     </span>
@@ -1965,7 +2001,10 @@ export default function AholoHybridStage({
             </ol>
             <div className="mt-1.5 text-[12px] text-ink min-[901px]:hidden">
               {play.step < QUEST_STEPS.length ? (
-                <T en={QUEST_STEPS[play.step].title.en} zh={QUEST_STEPS[play.step].title.zh} />
+                <>
+                  <T en={QUEST_STEPS[play.step].title.en} zh={QUEST_STEPS[play.step].title.zh} />
+                  {guideChip}
+                </>
               ) : (
                 <T en="Scene wrapped" zh="本场杀青" />
               )}
@@ -2221,6 +2260,12 @@ export default function AholoHybridStage({
         </div>
       )}
 
+      {farHint > 0 && play.active && !play.near && !play.wrapped && Date.now() - farHint < 4000 && (
+        <div role="status" className="pointer-events-none absolute left-1/2 top-[45%] z-30 w-[min(86%,300px)] -translate-x-1/2 rounded-md border border-accent bg-surface/95 px-3 py-2 text-center text-[13px] text-ink">
+          <T en="Walk up to the espresso machine first. Follow the arrow in the quest panel." zh="请先走到咖啡机旁，跟随任务面板里的箭头。" />
+        </div>
+      )}
+
       {/* Brew prompt when the actor is next to the real machine */}
       {play.near && !play.wrapped && !touchUi && (
         <div className="pointer-events-none absolute bottom-16 left-1/2 z-20 flex h-9 -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-[6px] border border-accent bg-surface/95 px-3 text-[13px] text-ink">
@@ -2383,7 +2428,10 @@ export default function AholoHybridStage({
           <div className="absolute bottom-4 right-4 z-30 flex flex-col items-end gap-2">
             <button
               type="button"
-              onClick={() => (actionRef.current.interact = true)}
+              onClick={() => {
+                actionRef.current.interact = true;
+                if (!play.near && play.active && !play.wrapped) setFarHint(Date.now());
+              }}
               className={`btn h-14 w-14 rounded-full p-0 text-[12px] ${play.near ? "btn-primary" : ""}`}
               aria-label={tx(lang, { en: "Brew", zh: "冲咖啡" })}
             >
