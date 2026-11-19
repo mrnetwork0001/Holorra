@@ -268,7 +268,7 @@ flowchart TB
 - **The asset proxy is narrow** (`src/app/api/aholo/asset/route.ts`): https only, a fixed host allowlist, every redirect hop re-checked, 60 s and 120 MB limits.
 - **The server key has a daily budget** (`src/lib/usage-guard.ts`): 5 live jobs per visitor and 25 site-wide per day by default. Past that, requests get a 429 and the studio points the visitor to their own key.
 - **Nothing secret is committed.** `.env.local` is git-ignored, `.mcp.json` ships a placeholder, and the full git history was checked for the project key before pushing (18 Nov 2026: not present).
-- **Checks, not a test suite.** There are no unit tests yet. What does run: `npm run typecheck`, `npm run verify:aholo` (SDK exports and CDN reachability) and a production build. During development, headless-Chrome scripts (Playwright) also played the quest end to end, exercised Expand and the drop-in, and measured 0 px horizontal overflow at 390, 768 and 1440 px on every page; those scripts are not in the repository. On 19 Nov 2026 a 40-step manual walkthrough covered the same ground by hand in a desktop browser and on an iPhone.
+- **Checks, not a test suite.** There are no unit tests yet. What does run: `npm run typecheck`, `npm run verify:aholo` (SDK exports and CDN reachability) and a production build. During development, headless-Chrome scripts (Playwright) also played the quest end to end, exercised Expand and the drop-in, and measured 0 px horizontal overflow at 390, 768 and 1440 px on every page; those scripts are not in the repository. On 19 Nov 2026 a 40-step manual walkthrough covered the same ground by hand in a desktop browser, with loading, layout and joystick walking also checked on an iPhone.
 
 ## What we learned about the assets
 
