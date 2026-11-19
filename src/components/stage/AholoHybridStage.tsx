@@ -1787,7 +1787,7 @@ export default function AholoHybridStage({
               x: Number(p.px.toFixed(2)),
               y: Number(p.py.toFixed(2)),
               z: Number(p.pz.toFixed(2)),
-              yaw: Number(((p.yaw * 180) / Math.PI).toFixed(0)),
+              yaw: ((Math.round((p.yaw * 180) / Math.PI) % 360) + 540) % 360 - 180,
             });
             hudTimer = now;
           }
@@ -2201,7 +2201,7 @@ export default function AholoHybridStage({
       )}
 
       {/* Brew prompt when the actor is next to the real machine */}
-      {play.near && !touchUi && (
+      {play.near && !play.wrapped && !touchUi && (
         <div className="pointer-events-none absolute bottom-16 left-1/2 z-20 flex h-9 -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-[6px] border border-accent bg-surface/95 px-3 text-[13px] text-ink">
           <span className="kbd">E</span> <T en="Brew a coffee" zh="冲一杯咖啡" />
         </div>
