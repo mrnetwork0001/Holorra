@@ -208,7 +208,7 @@ export default function InspectorDock({
 
   // Humanoid Rig & 85 Animations state
   const [animSearch, setAnimSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState<string>("ready");
   const [clipPageRaw, setClipPage] = useState(0);
   const [isCallingRigApi, setIsCallingRigApi] = useState(false);
 
@@ -392,23 +392,33 @@ export default function InspectorDock({
     }
   };
 
+  // Clips already baked into this actor's GLB play instantly; the rest need a Retarget job first.
+  const readyClips = useMemo(
+    () => new Set(Object.values(AHOLO_RIGGED_ACTORS[actorId].clipMap ?? {}).map((c) => c.toLowerCase())),
+    [actorId]
+  );
+  const isReady = (id: string) => readyClips.has(id.toLowerCase());
+
   const filteredAnimationGroups = useMemo(() => {
     const q = animSearch.trim().toLowerCase();
+    // a search looks through every clip, whatever filter is on
+    const cat = q && selectedCategory === "ready" ? "all" : selectedCategory;
     return HUMANOID_ANIMATION_GROUPS.filter(
-      (g) => selectedCategory === "all" || g.id === selectedCategory
+      (g) => cat === "all" || cat === "ready" || g.id === cat
     )
       .map((g) => ({
         ...g,
         clips: g.clips.filter(
           (c) =>
-            !q ||
+            (cat !== "ready" || readyClips.has(c.id.toLowerCase())) &&
+            (!q ||
             c.id.toLowerCase().includes(q) ||
             c.label.toLowerCase().includes(q) ||
-            c.recommendedUse.toLowerCase().includes(q)
+            c.recommendedUse.toLowerCase().includes(q))
         ),
       }))
       .filter((g) => g.clips.length > 0);
-  }, [animSearch, selectedCategory]);
+  }, [animSearch, selectedCategory, readyClips]);
 
   const totalClips = HUMANOID_ANIMATION_GROUPS.reduce((n, g) => n + g.clips.length, 0);
 
@@ -773,7 +783,7 @@ export default function InspectorDock({
               </div>
 
               <div className="mt-2 grid grid-cols-4 rounded-md border border-line bg-canvas p-0.5">
-                {[{ id: "all", label: "All", zh: "全部", count: totalClips }, ...HUMANOID_ANIMATION_GROUPS.map((g) => ({
+                {[{ id: "ready", label: "Ready", zh: "可播放", count: readyClips.size }, { id: "all", label: "All", zh: "全部", count: totalClips }, ...HUMANOID_ANIMATION_GROUPS.map((g) => ({
                   id: g.id,
                   label: g.label.split(/[ ,&]/)[0],
                   zh: ANIMATION_GROUP_ZH[g.id]?.short ?? g.label.split(/[ ,&]/)[0],
@@ -840,20 +850,22 @@ export default function InspectorDock({
                                 <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-full bg-accent" />
                               )}
                               <div className="min-w-0 flex-1">
-                                <div className="font-mono text-[11.5px] text-ink truncate">{clip.id}</div>
+                                <div className={`font-mono text-[11.5px] truncate ${isReady(clip.id) ? "text-ink" : "text-ink-2"}`}>{clip.id}</div>
                                 <div className="text-[11px] text-ink-3 truncate">{clip.recommendedUse}</div>
                               </div>
-                              {active ? (
+                              {!isReady(clip.id) ? (
+                                <span className={`shrink-0 font-mono text-[10px] ${active ? "text-accent" : "text-ink-3"}`}>
+                                  <T en="needs retarget" zh="需重定向" />
+                                </span>
+                              ) : active ? (
                                 <span className="inline-flex shrink-0 items-center gap-1.5 font-mono text-[10px] text-accent">
                                   <span className="dot dot-live" />
                                   <T en="on stage" zh="舞台中" />
                                 </span>
                               ) : (
-                                clip.loop && (
-                                  <span className="shrink-0 font-mono text-[10px] text-ink-3">
-                                    <T en="loop" zh="循环" />
-                                  </span>
-                                )
+                                <span className="shrink-0 font-mono text-[10px] text-ok">
+                                  <T en="ready" zh="可播放" />
+                                </span>
                               )}
                             </button>
                           </li>
@@ -863,6 +875,14 @@ export default function InspectorDock({
                   </div>
                 ))}
               </div>
+              {!isReady(activeAnimationId) && (
+                <p role="status" className="mt-3 rounded-md border border-line-strong bg-raised px-3 py-2 text-[12px] leading-snug text-ink-2">
+                  <T
+                    en={<><span className="font-mono text-ink">{activeAnimationId}</span> is not on this actor yet, so she keeps her current pose. Press <b>Retarget</b> above to generate it with Lux3D (a live job, about 6 credits), or pick a clip marked <span className="text-ok">ready</span>.</>}
+                    zh={<><span className="font-mono text-ink">{activeAnimationId}</span> 尚未烘焙到当前角色，所以角色保持原动作。点击上方「重定向」用 Lux3D 生成（实时任务，约 6 积分），或选择标有<span className="text-ok">可播放</span>的片段。</>}
+                  />
+                </p>
+              )}
               {clipPages > 1 && (
                 <div className="mt-3 flex items-center justify-between gap-2">
                   <button
@@ -891,8 +911,8 @@ export default function InspectorDock({
               )}
               <p className="mt-3 font-mono text-[10.5px] text-ink-3">
                 <T
-                  en="Selecting a clip plays it on the actor. Retarget sends it to humanoidAnimationRetarget."
-                  zh="选择动作片段会在角色上播放；点击「重定向」才会调用 humanoidAnimationRetarget。"
+                  en="Ready clips play instantly. The others are the rest of Lux3D's 85 presets: Retarget sends one to humanoidAnimationRetarget."
+                  zh="「可播放」片段可立即播放；其余为 Lux3D 85 个预设中的其他动作，点击「重定向」会调用 humanoidAnimationRetarget。"
                 />
               </p>
             </Section>
